@@ -1,5 +1,5 @@
 {
-    "name": "alerts-ua/alerts-in-ua-php",
+    "name": "fyennyi/alerts-in-ua-php",
     "description": "PHP client library for the alerts.in.ua API.",
     "require": {
         "guzzlehttp/guzzle": "^7.0",
