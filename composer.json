@@ -1,0 +1,15 @@
+{
+    "name": "alerts-ua/alerts-in-ua-php",
+    "description": "PHP client library for the alerts.in.ua API.",
+    "require": {
+        "guzzlehttp/guzzle": "^7.0",
+        "react/event-loop": "^1.1",
+        "react/promise": "^2.8",
+        "react/http": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "AlertsUA\\": "src/"
+        }
+    }
+}
