@@ -27,11 +27,11 @@ $client = new AlertsClient('your_token');
 
 $client->getActiveAlerts()->then(
     function ($data) {
-        echo "Alerts: ";
+        echo 'Alerts: ';
         print_r($data);
     },
     function ($error) {
-        echo "Error: " . $error;
+        echo 'Error: ' . $error;
     }
 );
 ```
