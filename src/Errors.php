@@ -8,3 +8,5 @@ class RateLimitError extends ApiError {}
 class InternalServerError extends ApiError {}
 class ForbiddenError extends ApiError {}
 class InvalidParameterException extends \Exception {}
+class NotFoundError extends ApiError {}
+class BadRequestError extends ApiError {}
