@@ -63,6 +63,19 @@ class AlertsClient
         return $deferred->promise();
     }
 
+    private function resolveUid($identifier)
+    {
+        if (is_string($identifier)) {
+            if (ctype_digit($identifier)) {
+                return (int) $identifier;
+            } else {
+                return (new LocationUidResolver)->resolveUid($identifier);
+            }
+        }
+
+        return $identifier;
+    }
+
     public function getActiveAlerts($use_cache = true)
     {
         return $this->request('alerts/active.json', $use_cache);
@@ -70,16 +83,7 @@ class AlertsClient
 
     public function getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = true)
     {
-        if (is_string($oblast_uid_or_location_title)) {
-            if (ctype_digit($oblast_uid_or_location_title)) {
-                $oblast_uid = (int) $oblast_uid_or_location_title;
-            } else {
-                $oblast_uid = (new LocationUidResolver)->resolveUid($oblast_uid_or_location_title);
-            }
-        } else {
-            $oblast_uid = $oblast_uid_or_location_title;
-        }
-
+        $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
         return $this->request($url, $use_cache);
@@ -87,16 +91,7 @@ class AlertsClient
 
     public function getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = true)
     {
-        if (is_string($oblast_uid_or_location_title)) {
-            if (ctype_digit($oblast_uid_or_location_title)) {
-                $oblast_uid = (int) $oblast_uid_or_location_title;
-            } else {
-                $oblast_uid = (new LocationUidResolver)->resolveUid($oblast_uid_or_location_title);
-            }
-        } else {
-            $oblast_uid = $oblast_uid_or_location_title;
-        }
-
+        $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $data = $this->request("iot/active_air_raid_alerts/{$oblast_uid}.json", $use_cache);
 
         return new AirRaidAlertOblastStatus((new LocationUidResolver)->resolveLocationTitle($oblast_uid), $data, $oblast_level_only);
