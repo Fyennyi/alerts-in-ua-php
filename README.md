@@ -7,7 +7,7 @@ The Alerts.in.ua API Client is a PHP library that simplifies access to the alert
 To install the Alerts.in.ua API Client, run the following command in your terminal:
 
 ```bash
-composer require alerts-ua/alerts-in-ua-php
+composer require fyennyi/alerts-in-ua-php
 ```
 
 ## Usage
@@ -34,6 +34,24 @@ $client->getActiveAlerts()->then(
         echo 'Error: ' . $error;
     }
 );
+```
+
+### Synchronous Usage
+
+For synchronous usage, you can use the `wait` method provided by the `React\Promise\Promise` class:
+
+```php
+require 'vendor/autoload.php';
+
+use AlertsUA\AlertsClient;
+
+$client = new AlertsClient('your_token');
+
+$promise = $client->getActiveAlerts();
+$data = $promise->wait();
+
+echo 'Alerts: ';
+print_r($data);
 ```
 
 ## Methods
