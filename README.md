@@ -36,26 +36,31 @@ $client->getActiveAlerts()->then(
 );
 ```
 
-### Methods
+## Methods
 
-#### AlertsClient
+### AlertsClient
 
-##### `getActiveAlerts()`
+#### `getActiveAlerts($use_cache = true)`
 Fetches a list of active alerts asynchronously.
 
-##### `getAirRaidAlertStatusesByOblast($oblast_level_only = false, $use_cache = true)`
-Fetches the status of air raid alerts for all oblasts.
+#### `getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = true)`
+Fetches the history of alerts for a specific region or location.
 
-- `$oblast_level_only` *(bool, optional)*
-– If `true`, returns only oblast-level alerts. Defaults to `false`.
+- `$oblast_uid_or_location_title` *(string)* – The unique ID or location title of the oblast.
+- `$period` *(string, optional)* – The period for which to fetch the history. Defaults to `'week_ago'`.
 - `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
 
-##### `getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = true)`
+#### `getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = true)`
 Fetches the status of air raid alerts for a specific oblast.
 
 - `$oblast_uid_or_location_title` *(string)* – The unique ID or location title of the oblast.
-- `$oblast_level_only` *(bool, optional)*
-– If `true`, returns only oblast-level alerts. Defaults to `false`.
+- `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+
+#### `getAirRaidAlertStatusesByOblast($oblast_level_only = false, $use_cache = true)`
+Fetches the status of air raid alerts for all oblasts.
+
+- `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
 - `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
 
 ## Districts and Regions (UIDs)
