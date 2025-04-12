@@ -1,4 +1,4 @@
-# API Client for alerts.in.ua in PHP
+# API Client for alerts.in.ua in PHP <img src="images/logo.png" alt="alerts.in.ua logo" align="right" width="50">
 
 The API client for alerts.in.ua is a PHP library that simplifies access to the alerts.in.ua API service. It provides real-time information about air raid alerts in Ukraine. The library supports asynchronous operations, making it easy to integrate with various applications and services.
 
