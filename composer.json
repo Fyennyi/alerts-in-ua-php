@@ -11,5 +11,9 @@
         "psr-4": {
             "AlertsUA\\": "src/"
         }
-    }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "license": "MIT",
+    "version": "0.1.0"
 }
