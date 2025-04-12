@@ -4,7 +4,7 @@ The API client for alerts.in.ua is a PHP library that simplifies access to the a
 
 ## Installation
 
-To install the Alerts.in.ua API Client, run the following command in your terminal:
+To install the API Client for alerts.in.ua, run the following command in your terminal:
 
 ```bash
 composer require fyennyi/alerts-in-ua-php
