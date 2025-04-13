@@ -21,50 +21,18 @@ Here's a basic example of how to use the library to get a list of active alerts 
 ```php
 require 'vendor/autoload.php';
 
-use AlertsUA\AlertsClient;
-
 $client = new AlertsClient('your_token');
 
-$client->getActiveAlerts()->then(
-    function ($alerts) {
-        echo 'Active alerts count: ' . count($alerts->getAllAlerts()) . "\n";
-
-        $airRaidAlerts = $alerts->getAirRaidAlerts();
-        echo 'Air raid alerts count: ' . count($airRaidAlerts) . "\n";
-
-        foreach ($alerts->getAllAlerts() as $alert) {
-            echo "Alert in {$alert->location_title} started at {$alert->started_at->format('H:i:s')}\n";
-        }
-    },
-    function ($error) {
-        echo 'Error: ' . $error->getMessage() . "\n";
-    }
-);
-```
-
-### Synchronous Usage
-
-For synchronous usage, you can use the `wait` method provided by the `React\Promise\Promise` class:
-
-```php
-require 'vendor/autoload.php';
-
-use AlertsUA\AlertsClient;
-
-$client = new AlertsClient('your_token');
+$alertsResult = $client->getActiveAlerts(false);
+$client->wait();
 
 try {
-    $alerts = $client->getActiveAlertsSync();
-
-    echo 'Active alerts count: ' . count($alerts->getAllAlerts()) . "\n";
-
-    $kyivAlerts = $alerts->getAlertsByOblast('Kyiv Oblast');
-    echo 'Alerts count in Kyiv Oblast: ' . count($kyivAlerts) . "\n";
+    $alerts = $alertsResult->resume();
+    echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "Alert in {$alert->location_title} started at {$alert->started_at->format('H:i:s')}\n";
+        echo "{$alert->alert_type} in {$alert->location_title}\n";
     }
-
 } catch (\Exception $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
 }
