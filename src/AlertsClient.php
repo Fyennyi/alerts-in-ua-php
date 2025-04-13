@@ -19,6 +19,8 @@ class AlertsClient
 
     private $promises = [];
 
+    private $fibers = [];
+
     /**
      * Constructor for alerts.in.ua API client
      *
@@ -100,6 +102,8 @@ class AlertsClient
 
         $fiber->start();
 
+        $this->fibers[] = $fiber;
+
         return $fiber;
     }
 
@@ -115,12 +119,13 @@ class AlertsClient
         $results = Utils::settle($this->promises)->wait();
         $this->promises = [];
 
-        foreach (Fiber::getAll() as $fiber) {
-            if ($fiber->isTerminated() || ! $fiber->isSuspended()) {
-                continue;
+        foreach ($this->fibers as $fiber) {
+            if (! $fiber->isTerminated() && $fiber->isSuspended()) {
+                $fiber->resume();
             }
-            $fiber->resume();
         }
+
+        $this->fibers = [];
     }
 
     /**
