@@ -26,12 +26,18 @@ use AlertsUA\AlertsClient;
 $client = new AlertsClient('your_token');
 
 $client->getActiveAlerts()->then(
-    function ($data) {
-        echo 'Alerts: ';
-        print_r($data);
+    function ($alerts) {
+        echo 'Active alerts count: ' . count($alerts->getAllAlerts()) . "\n";
+
+        $airRaidAlerts = $alerts->getAirRaidAlerts();
+        echo 'Air raid alerts count: ' . count($airRaidAlerts) . "\n";
+
+        foreach ($alerts->getAllAlerts() as $alert) {
+            echo "Alert in {$alert->location_title} started at {$alert->started_at->format('H:i:s')}\n";
+        }
     },
     function ($error) {
-        echo 'Error: ' . $error;
+        echo 'Error: ' . $error->getMessage() . "\n";
     }
 );
 ```
@@ -47,11 +53,21 @@ use AlertsUA\AlertsClient;
 
 $client = new AlertsClient('your_token');
 
-$promise = $client->getActiveAlerts();
-$data = $promise->wait();
+try {
+    $alerts = $client->getActiveAlertsSync();
 
-echo 'Alerts: ';
-print_r($data);
+    echo 'Active alerts count: ' . count($alerts->getAllAlerts()) . "\n";
+
+    $kyivAlerts = $alerts->getAlertsByOblast('Kyiv Oblast');
+    echo 'Alerts count in Kyiv Oblast: ' . count($kyivAlerts) . "\n";
+
+    foreach ($alerts->getAllAlerts() as $alert) {
+        echo "Alert in {$alert->location_title} started at {$alert->started_at->format('H:i:s')}\n";
+    }
+
+} catch (\Exception $e) {
+    echo 'Error: ' . $e->getMessage() . "\n";
+}
 ```
 
 ## Methods
