@@ -21,6 +21,8 @@ Here's a basic example of how to use the library to get a list of active alerts 
 ```php
 require 'vendor/autoload.php';
 
+use AlertsUA\AlertsClient;
+
 $client = new AlertsClient('your_token');
 
 $alertsResult = $client->getActiveAlerts(false);
