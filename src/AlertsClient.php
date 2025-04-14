@@ -69,11 +69,15 @@ class AlertsClient
      */
     private function createFiber($endpoint, $use_cache, callable $processor)
     {
-        $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
-            if ($use_cache && isset($this->cache[$endpoint])) {
-                return call_user_func($processor, $this->cache[$endpoint]);
-            }
+        if ($use_cache && isset($this->cache[$endpoint])) {
+            $fiber = new Fiber(fn () => call_user_func($processor, $this->cache[$endpoint]));
 
+            $fiber->start();
+
+            return $fiber;
+        }
+
+        $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->token,
@@ -83,7 +87,6 @@ class AlertsClient
             ]);
 
             $this->promises[] = $promise;
-
             Fiber::suspend();
 
             try {
@@ -102,7 +105,9 @@ class AlertsClient
 
         $fiber->start();
 
-        $this->fibers[] = $fiber;
+        if ($fiber->isSuspended()) {
+            $this->fibers[] = $fiber;
+        }
 
         return $fiber;
     }
@@ -119,10 +124,16 @@ class AlertsClient
         $results = Utils::settle($this->promises)->wait();
         $this->promises = [];
 
-        foreach ($this->fibers as $fiber) {
-            if (! $fiber->isTerminated() && $fiber->isSuspended()) {
-                $fiber->resume();
+        foreach ($this->fibers as $key => $fiber) {
+            if ($fiber->isSuspended()) {
+                try {
+                    $fiber->resume();
+                } catch (\Throwable $e) {
+                    error_log('Error resuming fiber: ' . $e->getMessage());
+                }
             }
+
+            unset($this->fibers[$key]);
         }
 
         $this->fibers = [];
