@@ -12,9 +12,10 @@ class Alerts
 
     public function __construct($data)
     {
-        $this->alerts = array_map(fn ($alert) => new Alert($alert), $data['alerts']);
+        $this->alerts = array_map(fn ($alert) => new Alert($alert), $data['alerts'] ?? []);
         $meta = $data['meta'] ?? [];
-        $this->last_updated_at = UaDateParser::parseDate($meta['last_updated_at'] ?? null, '%Y/%m/%d %H:%M:%S %z');
+        $last_updated_at = $meta['last_updated_at'] ?? null;
+        $this->last_updated_at = UaDateParser::parseDate($last_updated_at);
         $this->disclaimer = $data['disclaimer'] ?? '';
     }
 
