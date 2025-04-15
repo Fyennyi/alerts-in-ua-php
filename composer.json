@@ -2,10 +2,7 @@
     "name": "fyennyi/alerts-in-ua-php",
     "description": "PHP client library for the alerts.in.ua API.",
     "require": {
-        "guzzlehttp/guzzle": "^7.9.3",
-        "react/event-loop": "^1.5.0",
-        "react/promise": "^3.2.0",
-        "react/http": "^1.11.0"
+        "guzzlehttp/guzzle": "^7.9.3"
     },
     "autoload": {
         "psr-4": {
