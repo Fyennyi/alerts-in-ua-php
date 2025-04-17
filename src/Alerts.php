@@ -31,22 +31,22 @@ class Alerts
 
     public function getOblastAlerts()
     {
-        return $this->getAlertsByAlertType('oblast');
+        return $this->getAlertsByLocationType('oblast');
     }
 
     public function getRaionAlerts()
     {
-        return $this->getAlertsByAlertType('raion');
+        return $this->getAlertsByLocationType('raion');
     }
 
     public function getHromadaAlerts()
     {
-        return $this->getAlertsByAlertType('hromada');
+        return $this->getAlertsByLocationType('hromada');
     }
 
     public function getCityAlerts()
     {
-        return $this->getAlertsByAlertType('city');
+        return $this->getAlertsByLocationType('city');
     }
 
     public function getAlertsByAlertType($alert_type)
