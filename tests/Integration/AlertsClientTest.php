@@ -14,7 +14,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
 use ReflectionClass;
-use ReflectionProperty;
 
 class AlertsClientTest extends TestCase
 {
