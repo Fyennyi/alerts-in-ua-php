@@ -32,7 +32,7 @@ $alertsResult = $client->getActiveAlerts(false);
 $client->wait();
 
 try {
-    $alerts = $alertsResult->resume();
+    $alerts = $alertsResult->getReturn();
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
