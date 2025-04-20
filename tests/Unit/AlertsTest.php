@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use AlertsUA\Alerts;
+use DateTime;
 
 class AlertsTest extends TestCase
 {
