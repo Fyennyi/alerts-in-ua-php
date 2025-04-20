@@ -1,0 +1,30 @@
+{
+  "alerts": [
+    {
+      "id": 12345,
+      "location_title": "Харківська область",
+      "location_type": "oblast",
+      "started_at": "2023-04-15T08:30:00.000Z",
+      "updated_at": "2023-04-15T08:30:00.000Z",
+      "alert_type": "air_raid",
+      "location_uid": 22,
+      "location_oblast": "Харківська область",
+      "location_oblast_uid": 22
+    },
+    {
+      "id": 12346,
+      "location_title": "Харків",
+      "location_type": "city",
+      "started_at": "2023-04-15T08:35:00.000Z",
+      "updated_at": "2023-04-15T08:35:00.000Z",
+      "alert_type": "air_raid",
+      "location_uid": 1293,
+      "location_oblast": "Харківська область",
+      "location_oblast_uid": 22
+    }
+  ],
+  "meta": {
+    "last_updated_at": "2023-04-15T08:40:00.000Z"
+  },
+  "disclaimer": "This is test data"
+}
