@@ -5,7 +5,6 @@ namespace Tests\Integration;
 use PHPUnit\Framework\TestCase;
 use AlertsUA\AlertsClient;
 use AlertsUA\Alerts;
-use AlertsUA\Alert;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
