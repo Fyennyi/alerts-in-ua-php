@@ -5,16 +5,11 @@ namespace Tests\Integration;
 use PHPUnit\Framework\TestCase;
 use AlertsUA\AlertsClient;
 use AlertsUA\Alerts;
-use AlertsUA\Alert;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Middleware;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Request;
 use ReflectionClass;
-use ReflectionProperty;
 
 class ApiIntegrationTest extends TestCase
 {
