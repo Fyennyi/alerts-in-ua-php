@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use AlertsUA\AirRaidAlertOblastStatuses;
+use AlertsUA\AirRaidAlertOblastStatus;
 
 class MockAlertTest extends TestCase
 {
