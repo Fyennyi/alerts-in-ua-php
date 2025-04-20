@@ -30,7 +30,7 @@ class ApiIntegrationTest extends TestCase
     public function testAlertWorkflow()
     {
         // Step 1: Get active alerts
-        $alertsResponseJson = file_get_contents(__DIR__ . '/fixtures/active_alerts.json');
+        $alertsResponseJson = file_get_contents(__DIR__ . '/../fixtures/active_alerts.json');
         $this->mockHandler->append(new Response(200, [], $alertsResponseJson));
         
         $alertsClient = $this->createMockAlertsClient();
@@ -44,7 +44,7 @@ class ApiIntegrationTest extends TestCase
         $oblastAlerts = $alerts->getOblastAlerts();
         
         // Step 2: Get alerts history for a specific region
-        $historyResponseJson = file_get_contents(__DIR__ . '/fixtures/alerts_history.json');
+        $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
         $this->mockHandler->append(new Response(200, [], $historyResponseJson));
         
         $historyFiber = $alertsClient->getAlertsHistory('Харківська область', 'week_ago', false);
