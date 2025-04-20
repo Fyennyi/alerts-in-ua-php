@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use AlertsUA\UaDateParser;
+use DateTime;
 
 class UaDateParserTest extends TestCase
 {
