@@ -36,16 +36,32 @@ class LocationUidResolver
 
     private $location_to_uid;
 
+    /**
+     * Constructor for LocationUidResolver
+     * Initializes the reverse mapping of locations to UIDs
+     */
     public function __construct()
     {
         $this->location_to_uid = array_flip($this->uid_to_location);
     }
 
+    /**
+     * Resolve location title to UID
+     *
+     * @param  string  $location_title  Location title to resolve
+     * @return int|string UID for the location or 'Unknown UID' if not found
+     */
     public function resolveUid($location_title)
     {
         return $this->location_to_uid[$location_title] ?? 'Unknown UID';
     }
 
+    /**
+     * Resolve UID to location title
+     *
+     * @param  int  $uid  UID to resolve
+     * @return string Location title or 'Unknown location' if not found
+     */
     public function resolveLocationTitle($uid)
     {
         return $this->uid_to_location[$uid] ?? 'Unknown location';
