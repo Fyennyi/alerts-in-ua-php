@@ -7,6 +7,13 @@ use DateTimeZone;
 
 class UaDateParser
 {
+    /**
+     * Parse date string to DateTime object with Kyiv timezone
+     *
+     * @param  string  $date_string  Date string to parse
+     * @param  string  $time_format  Expected format of the date string
+     * @return DateTime|null DateTime object in Kyiv timezone or null if parsing fails
+     */
     public static function parseDate($date_string, $time_format = 'Y-m-d\TH:i:s.u\Z')
     {
         if (empty($date_string)) {
