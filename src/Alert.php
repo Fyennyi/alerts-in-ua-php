@@ -30,6 +30,11 @@ class Alert
 
     public $calculated;
 
+    /**
+     * Constructor for Alert
+     *
+     * @param  array  $data  Raw alert data from API
+     */
     public function __construct($data)
     {
         $this->id = $data['id'] ?? null;
@@ -47,6 +52,11 @@ class Alert
         $this->calculated = $data['calculated'] ?? false;
     }
 
+    /**
+     * Check if alert is finished
+     *
+     * @return bool True if alert has finished_at date set
+     */
     public function isFinished()
     {
         return null !== $this->finished_at;
