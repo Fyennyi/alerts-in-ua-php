@@ -6,6 +6,12 @@ class AirRaidAlertOblastStatuses
 {
     private $statuses;
 
+    /**
+     * Constructor for AirRaidAlertOblastStatuses
+     *
+     * @param  string  $data  Raw status data string
+     * @param  bool  $oblast_level_only  Filter for only oblast level alerts
+     */
     public function __construct($data, $oblast_level_only)
     {
         $this->statuses = [];
@@ -27,6 +33,11 @@ class AirRaidAlertOblastStatuses
         }
     }
 
+    /**
+     * Get all oblast statuses
+     *
+     * @return array Array of AirRaidAlertOblastStatus objects
+     */
     public function getStatuses()
     {
         return $this->statuses;
