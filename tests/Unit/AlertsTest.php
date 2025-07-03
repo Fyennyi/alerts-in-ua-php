@@ -2,16 +2,17 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use AlertsUA\Alerts;
 use DateTime;
+use Fyennyi\AlertsInUa\Model\Alerts;
+use PHPUnit\Framework\TestCase;
 
 class AlertsTest extends TestCase
 {
     private $alertsData;
+
     private $alerts;
 
-    protected function setUp(): void
+    protected function setUp() : void
     {
         $this->alertsData = [
             'alerts' => [
