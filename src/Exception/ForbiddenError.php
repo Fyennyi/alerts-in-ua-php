@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA\Exception;
+namespace Fyennyi\AlertsInUa\Exception;
 
 /**
  * Error thrown when access to a resource is forbidden
