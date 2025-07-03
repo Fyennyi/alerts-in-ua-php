@@ -9,7 +9,7 @@
     },
     "autoload": {
         "psr-4": {
-            "AlertsUA\\": "src/"
+            "Fyennyi\\AlertsInUa\\": "src/"
         }
     },
     "minimum-stability": "stable",
