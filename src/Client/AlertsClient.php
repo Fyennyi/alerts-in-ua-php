@@ -5,6 +5,7 @@ namespace AlertsUA\Client;
 use AlertsUA\Exception\ApiError;
 use AlertsUA\Exception\BadRequestError;
 use AlertsUA\Exception\ForbiddenError;
+use AlertsUA\Exception\InternalServerError;
 use AlertsUA\Exception\NotFoundError;
 use AlertsUA\Exception\RateLimitError;
 use AlertsUA\Exception\UnauthorizedError;
@@ -170,6 +171,8 @@ class AlertsClient
                         return new RateLimitError('Rate limit exceeded.');
                     case 400:
                         return new BadRequestError('Bad request parameters.');
+                    case 500:
+                        return new InternalServerError('Internal server error.');
                     default:
                         return new ApiError('API error: ' . $error->getMessage());
                 }
