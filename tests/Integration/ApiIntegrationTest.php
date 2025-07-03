@@ -14,10 +14,12 @@ use ReflectionClass;
 class ApiIntegrationTest extends TestCase
 {
     private $mockHandler;
+
     private $client;
+
     private $token = 'test_api_token';
 
-    protected function setUp(): void
+    protected function setUp() : void
     {
         $this->mockHandler = new MockHandler();
         $handlerStack = HandlerStack::create($this->mockHandler);
