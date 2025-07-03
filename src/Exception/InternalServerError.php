@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA;
+namespace AlertsUA\Exception;
 
 /**
  * Error thrown when the server encounters an internal error
