@@ -2,6 +2,8 @@
 
 namespace AlertsUA\Model;
 
+use AlertsUA\Util\UaDateParser;
+
 class Alert
 {
     public $id;
