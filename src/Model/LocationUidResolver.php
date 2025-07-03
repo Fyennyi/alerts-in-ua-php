@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA\Model;
+namespace Fyennyi\AlertsInUa\Model;
 
 class LocationUidResolver
 {
