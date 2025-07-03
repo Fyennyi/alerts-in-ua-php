@@ -1,8 +1,8 @@
 <?php
 
-namespace AlertsUA\Model;
+namespace Fyennyi\AlertsInUa\Model;
 
-use AlertsUA\Util\UaDateParser;
+use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alerts
 {
