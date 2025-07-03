@@ -1,20 +1,20 @@
 <?php
 
-namespace AlertsUA\Client;
+namespace Fyennyi\AlertsInUa\Client;
 
-use AlertsUA\Exception\ApiError;
-use AlertsUA\Exception\BadRequestError;
-use AlertsUA\Exception\ForbiddenError;
-use AlertsUA\Exception\InternalServerError;
-use AlertsUA\Exception\NotFoundError;
-use AlertsUA\Exception\RateLimitError;
-use AlertsUA\Exception\UnauthorizedError;
-use AlertsUA\Model\LocationUidResolver;
-use AlertsUA\Util\UserAgent;
 use Fiber;
+use Fyennyi\AlertsInUa\Exception\ApiError;
+use Fyennyi\AlertsInUa\Exception\BadRequestError;
+use Fyennyi\AlertsInUa\Exception\ForbiddenError;
+use Fyennyi\AlertsInUa\Exception\InternalServerError;
+use Fyennyi\AlertsInUa\Exception\NotFoundError;
+use Fyennyi\AlertsInUa\Exception\RateLimitError;
+use Fyennyi\AlertsInUa\Exception\UnauthorizedError;
+use Fyennyi\AlertsInUa\Model\LocationUidResolver;
+use Fyennyi\AlertsInUa\Util\UserAgent;
 use GuzzleHttp\Client;
-use GuzzleHttp\Promise\Utils;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\Utils;
 
 class AlertsClient
 {
