@@ -2,9 +2,9 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use AlertsUA\UaDateParser;
 use DateTime;
+use Fyennyi\AlertsInUa\Util\UaDateParser;
+use PHPUnit\Framework\TestCase;
 
 class UaDateParserTest extends TestCase
 {
