@@ -2,9 +2,9 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-use AlertsUA\Alert;
 use DateTime;
+use Fyennyi\AlertsInUa\Model\Alert;
+use PHPUnit\Framework\TestCase;
 
 class AlertTest extends TestCase
 {
