@@ -2,13 +2,13 @@
 
 namespace Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
-use AlertsUA\AlertsClient;
-use AlertsUA\Alerts;
+use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Fyennyi\AlertsInUa\Model\Alerts;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 class ApiIntegrationTest extends TestCase
