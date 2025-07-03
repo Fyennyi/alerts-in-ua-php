@@ -1,6 +1,8 @@
 <?php
 
-namespace AlertsUA;
+namespace AlertsUA\Model;
+
+use AlertsUA\Util\UaDateParser;
 
 class Alerts
 {
