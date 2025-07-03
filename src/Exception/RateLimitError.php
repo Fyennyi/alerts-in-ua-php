@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA\Exception;
+namespace Fyennyi\AlertsInUa\Exception;
 
 /**
  * Error thrown when too many requests are made to the API
