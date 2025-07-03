@@ -2,26 +2,29 @@
 
 namespace Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
-use AlertsUA\AlertsClient;
-use AlertsUA\Alerts;
+use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Fyennyi\AlertsInUa\Model\Alerts;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Middleware;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 class AlertsClientTest extends TestCase
 {
     private $mockHandler;
+
     private $historyContainer = [];
+
     private $client;
+
     private $alertsClient;
 
-    protected function setUp(): void
+    protected function setUp() : void
     {
         $this->mockHandler = new MockHandler();
         $handlerStack = HandlerStack::create($this->mockHandler);
