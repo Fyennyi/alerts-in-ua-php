@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA;
+namespace AlertsUA\Exception;
 
 /**
  * Base class for all API errors
