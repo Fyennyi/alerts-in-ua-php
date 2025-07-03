@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA\Util;
+namespace Fyennyi\AlertsInUa\Util;
 
 class UserAgent
 {
