@@ -1,6 +1,6 @@
 <?php
 
-namespace AlertsUA;
+namespace AlertsUA\Util;
 
 use DateTime;
 use DateTimeZone;
