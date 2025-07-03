@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
+use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use PHPUnit\Framework\TestCase;
-use AlertsUA\AirRaidAlertOblastStatus;
 
 class MockAlertTest extends TestCase
 {
