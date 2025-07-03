@@ -1,7 +1,15 @@
 <?php
 
-namespace AlertsUA;
+namespace AlertsUA\Client;
 
+use AlertsUA\Exception\ApiError;
+use AlertsUA\Exception\BadRequestError;
+use AlertsUA\Exception\ForbiddenError;
+use AlertsUA\Exception\NotFoundError;
+use AlertsUA\Exception\RateLimitError;
+use AlertsUA\Exception\UnauthorizedError;
+use AlertsUA\Model\LocationUidResolver;
+use AlertsUA\Util\UserAgent;
 use Fiber;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\Utils;
