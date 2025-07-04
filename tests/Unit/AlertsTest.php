@@ -94,7 +94,7 @@ class AlertsTest extends TestCase
     {
         $kharkivAlerts = $this->alerts->getAlertsByOblast('Харківська область');
         $this->assertCount(2, $kharkivAlerts);
-        
+
         $kyivAlerts = $this->alerts->getAlertsByOblast('м. Київ');
         $this->assertCount(1, $kyivAlerts);
     }
