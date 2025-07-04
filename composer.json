@@ -14,6 +14,6 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "license": "CSSM-Unlimited-2.0",
+    "license": "LicenceRef-CSSM-Unlimited-2.0",
     "version": "0.1.8"
 }
