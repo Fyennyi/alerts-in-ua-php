@@ -28,16 +28,16 @@ class AlertsClientTest extends TestCase
     {
         $this->mockHandler = new MockHandler();
         $handlerStack = HandlerStack::create($this->mockHandler);
-        
+
         // Add history middleware
         $history = Middleware::history($this->historyContainer);
         $handlerStack->push($history);
-        
+
         $this->client = new Client(['handler' => $handlerStack]);
-        
+
         // Create alerts client with mock GuzzleHttp client
         $this->alertsClient = new AlertsClient('test_token');
-        
+
         // Set the GuzzleHttp client via reflection
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
@@ -62,21 +62,21 @@ class AlertsClientTest extends TestCase
                 'last_updated_at' => '2023-01-02T11:30:00.000Z'
             ],
         ]);
-        
+
         $this->mockHandler->append(new Response(200, [], $responseBody));
-        
+
         // Call method
         $fiber = $this->alertsClient->getActiveAlerts(false);
         $this->alertsClient->wait();
         $result = $fiber->getReturn();
-        
+
         // Assert request was made correctly
         $this->assertCount(1, $this->historyContainer);
         $request = $this->historyContainer[0]['request'];
         $this->assertEquals('GET', $request->getMethod());
         $this->assertEquals('/v1/alerts/active.json', $request->getUri()->getPath());
         $this->assertEquals('Bearer test_token', $request->getHeader('Authorization')[0]);
-        
+
         // Assert response was parsed correctly
         $this->assertInstanceOf(Alerts::class, $result);
         $this->assertCount(1, $result->getAllAlerts());
@@ -103,20 +103,20 @@ class AlertsClientTest extends TestCase
                 'last_updated_at' => '2023-01-02T11:30:00.000Z'
             ],
         ]);
-        
+
         $this->mockHandler->append(new Response(200, [], $responseBody));
-        
+
         // Call method with location title
         $fiber = $this->alertsClient->getAlertsHistory('Харківська область', 'day_ago', false);
         $this->alertsClient->wait();
         $result = $fiber->getReturn();
-        
+
         // Assert request was made correctly
         $this->assertCount(1, $this->historyContainer);
         $request = $this->historyContainer[0]['request'];
         $this->assertEquals('GET', $request->getMethod());
         $this->assertEquals('/v1/regions/22/alerts/day_ago.json', $request->getUri()->getPath());
-        
+
         // Assert response was parsed correctly
         $this->assertInstanceOf(Alerts::class, $result);
         $this->assertCount(1, $result->getAllAlerts());
@@ -129,19 +129,19 @@ class AlertsClientTest extends TestCase
         // Mock unauthorized response
         $this->mockHandler->append(
             new RequestException(
-                'Unauthorized', 
-                new Request('GET', 'test'), 
+                'Unauthorized',
+                new Request('GET', 'test'),
                 new Response(401, [], json_encode(['error' => 'Invalid token']))
             )
         );
-        
+
+        // Expect exception
+        $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
+
         // Call method
         $fiber = $this->alertsClient->getActiveAlerts(false);
         $this->alertsClient->wait();
-        
-        // Expect exception
-        $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
-        $result = $fiber->getReturn();
+        $fiber->getReturn(); // here the UnauthorizedError will be thrown and the test will pass
     }
 
     public function testCache()
@@ -156,19 +156,19 @@ class AlertsClientTest extends TestCase
                 ]
             ],
         ]);
-        
+
         $this->mockHandler->append(new Response(200, [], $responseBody));
-        
+
         // First call should make a request
         $fiber1 = $this->alertsClient->getActiveAlerts(true);
         $this->alertsClient->wait();
         $result1 = $fiber1->getReturn();
-        
+
         // Second call with cache should not make a request
         $fiber2 = $this->alertsClient->getActiveAlerts(true);
         $this->alertsClient->wait();
         $result2 = $fiber2->getReturn();
-        
+
         // Assert only one request was made
         $this->assertCount(1, $this->historyContainer);
     }
