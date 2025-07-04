@@ -141,7 +141,7 @@ class AlertsClientTest extends TestCase
         // Call method
         $fiber = $this->alertsClient->getActiveAlerts(false);
         $this->alertsClient->wait();
-        $fiber->getReturn(); // here the UnauthorizedError will be thrown and the test will pass
+        $fiber->getReturn(); // Here the UnauthorizedError will be thrown and the test will pass
     }
 
     public function testCache()
