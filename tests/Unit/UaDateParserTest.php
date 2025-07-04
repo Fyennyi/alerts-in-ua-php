@@ -12,10 +12,10 @@ class UaDateParserTest extends TestCase
     {
         $dateString = '2023-01-02T10:15:30.000Z';
         $dateTime = UaDateParser::parseDate($dateString);
-        
+
         $this->assertInstanceOf(DateTime::class, $dateTime);
         $this->assertEquals('Europe/Kyiv', $dateTime->getTimezone()->getName());
-        
+
         // Since Kyiv is UTC+2/UTC+3, the parsed time will be later than UTC
         $this->assertGreaterThanOrEqual('10:15:30', $dateTime->format('H:i:s'));
     }
