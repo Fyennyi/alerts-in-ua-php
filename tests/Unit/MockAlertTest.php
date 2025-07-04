@@ -11,9 +11,9 @@ class MockAlertTest extends TestCase
     {
         $oblast = 'м. Київ';
         $status = 'A';
-        
+
         $alertStatus = new AirRaidAlertOblastStatus($oblast, $status);
-        
+
         $this->assertEquals($oblast, $alertStatus->getOblast());
         $this->assertEquals($status, $alertStatus->getStatus());
     }
