@@ -140,7 +140,7 @@ class AlertsClientTest extends TestCase
         $this->alertsClient->wait();
         
         // Expect exception
-        $this->expectException(\AlertsInUa\Exception\UnauthorizedError::class);
+        $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
         $result = $fiber->getReturn();
     }
 
