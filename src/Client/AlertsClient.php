@@ -10,6 +10,7 @@ use Fyennyi\AlertsInUa\Exception\InternalServerError;
 use Fyennyi\AlertsInUa\Exception\NotFoundError;
 use Fyennyi\AlertsInUa\Exception\RateLimitError;
 use Fyennyi\AlertsInUa\Exception\UnauthorizedError;
+use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 use GuzzleHttp\Client;
