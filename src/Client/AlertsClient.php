@@ -109,7 +109,7 @@ class AlertsClient
 
                 return call_user_func($processor, $data);
             } catch (\Exception $e) {
-                throw $this->processError($e);
+                $this->processError($e);
             }
         });
 
@@ -136,11 +136,7 @@ class AlertsClient
 
         foreach ($this->fibers as $key => $fiber) {
             if ($fiber->isSuspended()) {
-                try {
-                    $fiber->resume();
-                } catch (\Throwable $e) {
-                    error_log('Error resuming fiber: ' . $e->getMessage());
-                }
+                $fiber->resume();
             }
 
             unset($this->fibers[$key]);
@@ -153,7 +149,14 @@ class AlertsClient
      * Process API errors
      *
      * @param  \Exception  $error  Request error
-     * @return ApiError Appropriate API error
+     *
+     * @throws UnauthorizedError If the response status is 401
+     * @throws ForbiddenError If the response status is 403
+     * @throws NotFoundError If the response status is 404
+     * @throws RateLimitError If the response status is 429
+     * @throws BadRequestError If the response status is 400
+     * @throws InternalServerError If the response status is 500
+     * @throws ApiError For any other or unknown errors
      */
     private function processError($error)
     {
@@ -163,25 +166,25 @@ class AlertsClient
                 $code = $response->getStatusCode();
                 switch ($code) {
                     case 401:
-                        return new UnauthorizedError('Unauthorized access. Check your API token.');
+                        throw new UnauthorizedError('Unauthorized access. Check your API token.');
                     case 403:
-                        return new ForbiddenError('Access forbidden.');
+                        throw new ForbiddenError('Access forbidden.');
                     case 404:
-                        return new NotFoundError('Resource not found.');
+                        throw new NotFoundError('Resource not found.');
                     case 429:
-                        return new RateLimitError('Rate limit exceeded.');
+                        throw new RateLimitError('Rate limit exceeded.');
                     case 400:
-                        return new BadRequestError('Bad request parameters.');
+                        throw new BadRequestError('Bad request parameters.');
                     case 500:
-                        return new InternalServerError('Internal server error.');
+                        throw new InternalServerError('Internal server error.');
                     default:
-                        return new ApiError('API error: ' . $error->getMessage());
+                        throw new ApiError('API error: ' . $error->getMessage());
                 }
             } else {
-                return new ApiError('Request failed: ' . $error->getMessage());
+                throw new ApiError('Request failed: ' . $error->getMessage());
             }
         } else {
-            return new ApiError('Unknown error: ' . $error->getMessage());
+            throw new ApiError('Unknown error: ' . $error->getMessage());
         }
     }
 
