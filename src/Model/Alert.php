@@ -20,11 +20,11 @@ class Alert
 
     public ?string $alert_type;
 
-    public ?string $location_uid;
+    public ?int $location_uid;
 
     public ?string $location_oblast;
 
-    public ?string $location_oblast_uid;
+    public ?int $location_oblast_uid;
 
     public ?string $location_raion;
 
