@@ -12,4 +12,4 @@
     </paths>
     <version>3</version>
     <title>API Client for alerts.in.ua in PHP</title>
-</phpdocumentor>
+    <name>fyennyi/alerts-in-ua-php</name> </phpdocumentor>
