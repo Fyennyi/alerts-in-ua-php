@@ -203,7 +203,13 @@ class AlertsClient
             if (ctype_digit($identifier)) {
                 return (int) $identifier;
             } else {
-                return (new LocationUidResolver)->resolveUid($identifier);
+                $result = (new LocationUidResolver)->resolveUid($identifier);
+
+                if ($result === 'Unknown UID') {
+                    throw new \Fyennyi\AlertsInUa\Exception\InvalidParameterException("Unknown location: {$identifier}");
+                }
+
+                return $result;
             }
         }
 
