@@ -4,6 +4,7 @@ namespace Fyennyi\AlertsInUa\Model;
 
 class LocationUidResolver
 {
+    /** @var array<int, string> */
     private array $uid_to_location = [
         3 => 'Хмельницька область',
         4 => 'Вінницька область',
@@ -34,6 +35,7 @@ class LocationUidResolver
         31 => 'м. Київ',
     ];
 
+    /** @var array<string, int> */
     private array $location_to_uid;
 
     /**
