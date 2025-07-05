@@ -7,38 +7,44 @@
 >
     <title>Alerts in UA PHP Library Documentation</title>
     
-    <files>
-        <directory>src</directory>
-        <ignore>tests/**/*</ignore>
-        <ignore>vendor/**/*</ignore>
-        <ignore>*.md</ignore>
-        <ignore>*.txt</ignore>
-        <ignore>*.json</ignore>
-        <ignore>*.xml</ignore>
-        <ignore>*.yml</ignore>
-        <ignore>*.yaml</ignore>
-    </files>
+    <use-cache>true</use-cache>
     
-    <parser>
-        <target>docs</target>
-        <encoding>utf8</encoding>
-        <extensions>
-            <extension>php</extension>
-        </extensions>
-        <visibility>public</visibility>
-        <visibility>protected</visibility>
-        <defaultPackageName>AlertsInUa</defaultPackageName>
-    </parser>
+    <paths>
+        <output>docs</output>
+        <cache>cache</cache>
+    </paths>
     
-    <transformer>
-        <target>docs</target>
-    </transformer>
+    <versions>
+        <api>
+            <source dsn=".">
+                <path>src</path>
+            </source>
+            <output>docs</output>
+            <ignore>
+                <path>tests</path>
+                <path>vendor</path>
+                <path>*.md</path>
+                <path>*.txt</path>
+                <path>*.json</path>
+                <path>*.xml</path>
+                <path>*.yml</path>
+                <path>*.yaml</path>
+            </ignore>
+            <extensions>
+                <extension>php</extension>
+            </extensions>
+            <visibility>public</visibility>
+            <visibility>protected</visibility>
+            <default-package-name>AlertsInUa</default-package-name>
+        </api>
+    </versions>
     
-    <transformations>
+    <settings>
+        <setting name="graphs.enabled" value="true"/>
+        <setting name="graphs.format" value="svg"/>
+    </settings>
+    
+    <templates>
         <template name="clean"/>
-    </transformations>
-    
-    <logging>
-        <level>warn</level>
-    </logging>
+    </templates>
 </phpdocumentor>
