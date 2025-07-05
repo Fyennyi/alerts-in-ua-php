@@ -37,7 +37,7 @@ class AirRaidAlertOblastStatuses
     /**
      * Get all oblast statuses
      *
-     * @return array Array of AirRaidAlertOblastStatus objects
+     * @return AirRaidAlertOblastStatus[] Array of AirRaidAlertOblastStatus objects
      */
     public function getStatuses() : array
     {
