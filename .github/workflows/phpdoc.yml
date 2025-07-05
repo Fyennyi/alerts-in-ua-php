@@ -3,6 +3,8 @@ name: Generate PHPDoc
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: write
@@ -19,10 +21,11 @@ jobs:
       with:
         php-version: '8.3'
 
-    - name: Install dependencies
+    - name: Clear Composer Cache and install dependencies
       run: |
         rm -rf vendor composer.lock
-        composer install --prefer-dist --no-progress
+        composer clear-cache
+        composer install --prefer-dist --no-progress --no-scripts
 
     - name: Generate PHPDoc
       run: |
