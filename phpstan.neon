@@ -1,0 +1,22 @@
+parameters:
+    level: 6
+    paths:
+        - src
+    excludePaths:
+        - tests
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # Ignore specific patterns if needed
+        - '#Call to an undefined method#'
+        - '#Access to an undefined property#'
+    
+    # Additional rules for better analysis
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    checkUninitializedProperties: true
+    checkDynamicProperties: true
+    
+    # Symfony integration if needed
+    # symfony:
+    #     container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml
