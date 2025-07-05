@@ -18,9 +18,9 @@ class Alert
 
     public ?\DateTimeInterface $updated_at;
 
-    public string $alert_type;
+    public ?string $alert_type;
 
-    public string $location_uid;
+    public ?string $location_uid;
 
     public string $location_oblast;
 
