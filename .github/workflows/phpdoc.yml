@@ -50,15 +50,12 @@ jobs:
     - name: Create docs directory
       run: mkdir -p docs
 
-    - name: Generate documentation
+    - name: Remove any existing config files
       run: |
-        phpdoc --directory=src \
-               --target=docs \
-               --title="Alerts in UA PHP Library" \
-               --defaultpackagename="AlertsInUa" \
-               --template=clean \
-               --ignore="*.md,*.txt,*.json,*.xml,*.yml,*.yaml" \
-               --config=none
+        rm -f phpdoc.xml phpdoc.dist.xml .phpdoc.xml .phpdoc.dist.xml
+
+    - name: Generate documentation
+      run: phpdoc
 
     - name: Setup Pages
       if: github.ref == 'refs/heads/main'
