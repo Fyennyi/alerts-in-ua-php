@@ -13,7 +13,11 @@ class LocationUidResolverTest extends TestCase
 
         $this->assertEquals(31, $resolver->resolveUid('м. Київ'));
         $this->assertEquals(22, $resolver->resolveUid('Харківська область'));
-        $this->assertEquals('Unknown UID', $resolver->resolveUid('Неіснуюча область'));
+
+        // Test that InvalidParameterException is thrown for unknown location
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Unknown location: Неіснуюча область');
+        $resolver->resolveUid('Неіснуюча область');
     }
 
     public function testResolveLocationTitle()
@@ -22,6 +26,28 @@ class LocationUidResolverTest extends TestCase
 
         $this->assertEquals('м. Київ', $resolver->resolveLocationTitle(31));
         $this->assertEquals('Харківська область', $resolver->resolveLocationTitle(22));
-        $this->assertEquals('Unknown location', $resolver->resolveLocationTitle(999));
+
+        // Test that InvalidParameterException is thrown for unknown UID
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Unknown UID: 999');
+        $resolver->resolveLocationTitle(999);
+    }
+
+    public function testResolveUidWithUnknownLocationThrowsException()
+    {
+        $resolver = new LocationUidResolver();
+
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Unknown location: Неіснуюча область');
+        $resolver->resolveUid('Неіснуюча область');
+    }
+
+    public function testResolveLocationTitleWithUnknownUidThrowsException()
+    {
+        $resolver = new LocationUidResolver();
+
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Unknown UID: 999');
+        $resolver->resolveLocationTitle(999);
     }
 }
