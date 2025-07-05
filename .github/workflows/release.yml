@@ -32,14 +32,9 @@ jobs:
       run: |
         PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
         if [ -z "$PREV_TAG" ]; then
-          echo "changelog=First release" >> $GITHUB_OUTPUT
+          echo "First release" > changelog.txt
         else
-          CHANGELOG=$(git log --pretty=format:"- %s" "$PREV_TAG"..HEAD)
-          # Escape newlines for GITHUB_OUTPUT
-          CHANGELOG="${CHANGELOG//'%'/'%25'}"
-          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %s" "$PREV_TAG"..HEAD > changelog.txt
         fi
 
     - name: Create Release
