@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor
+    configVersion="3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://www.phpdoc.org"
+    xsi:schemaLocation="https://www.phpdoc.org https://raw.githubusercontent.com/phpDocumentor/phpDocumentor/master/data/xsd/phpdoc.xsd"
+>
+    <title>Alerts in UA PHP Library Documentation</title>
+    
+    <files>
+        <directory>src</directory>
+        <ignore>tests/**/*</ignore>
+        <ignore>vendor/**/*</ignore>
+        <ignore>*.md</ignore>
+        <ignore>*.txt</ignore>
+        <ignore>*.json</ignore>
+        <ignore>*.xml</ignore>
+        <ignore>*.yml</ignore>
+        <ignore>*.yaml</ignore>
+    </files>
+    
+    <parser>
+        <target>docs</target>
+        <encoding>utf8</encoding>
+        <extensions>
+            <extension>php</extension>
+        </extensions>
+        <visibility>public</visibility>
+        <visibility>protected</visibility>
+        <defaultPackageName>AlertsInUa</defaultPackageName>
+    </parser>
+    
+    <transformer>
+        <target>docs</target>
+    </transformer>
+    
+    <transformations>
+        <template name="clean"/>
+    </transformations>
+    
+    <logging>
+        <level>warn</level>
+    </logging>
+</phpdocumentor>
