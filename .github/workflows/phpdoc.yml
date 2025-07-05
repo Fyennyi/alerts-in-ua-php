@@ -3,8 +3,6 @@ name: Generate PHPDoc
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 permissions:
   contents: write
@@ -21,16 +19,16 @@ jobs:
       with:
         php-version: '8.3'
 
-    - name: Clear Composer Cache and install dependencies
-      run: |
-        rm -rf vendor composer.lock
-        composer clear-cache
-        composer install --prefer-dist --no-progress --no-scripts
+    - name: Install project dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Install phpDocumentor globally
+      run: composer global require phpdocumentor/phpdocumentor:^3.4
 
     - name: Generate PHPDoc
       run: |
         mkdir -p docs
-        vendor/bin/phpdoc -d src -t docs
+        ~/.composer/vendor/bin/phpdoc -d src -t docs
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
