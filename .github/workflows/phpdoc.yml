@@ -23,7 +23,7 @@ jobs:
       with:
         php-version: '8.3'
 
-    - name: Clear Composer Cache (Optional, for troubleshooting)
+    - name: Clear Composer Cache
       run: composer clear-cache
       shell: bash
 
@@ -39,14 +39,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
 
-    - name: Install dependencies
+    - name: Install Project Dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Install phpDocumentor
-      run: composer require --dev phpdocumentor/phpdocumentor:"^3.3"
+    - name: Install phpDocumentor Globally
+      run: composer global require phpdocumentor/phpdocumentor:"^3.0" --prefer-dist --no-progress
+      env:
+        PATH: ${{ github.home }}/.composer/vendor/bin:${{ env.PATH }}
 
     - name: Generate Documentation
-      run: ./vendor/bin/phpdoc -d src -t docs
+      run: phpdoc -d src -t docs
 
     - name: Upload documentation artifact
       uses: actions/upload-pages-artifact@v3
