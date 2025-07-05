@@ -7,6 +7,7 @@ use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
 use Fyennyi\AlertsInUa\Exception\ForbiddenError;
 use Fyennyi\AlertsInUa\Exception\InternalServerError;
+use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Exception\NotFoundError;
 use Fyennyi\AlertsInUa\Exception\RateLimitError;
 use Fyennyi\AlertsInUa\Exception\UnauthorizedError;
@@ -196,6 +197,8 @@ class AlertsClient
      *
      * @param  string|int  $identifier  Identifier
      * @return int Location UID
+     *
+     * @throws InvalidParameterException If location name is unknown
      */
     private function resolveUid(string|int $identifier) : int
     {
@@ -206,7 +209,7 @@ class AlertsClient
                 $result = (new LocationUidResolver)->resolveUid($identifier);
 
                 if ($result === 'Unknown UID') {
-                    throw new \Fyennyi\AlertsInUa\Exception\InvalidParameterException("Unknown location: {$identifier}");
+                    throw new InvalidParameterException("Unknown location: {$identifier}");
                 }
 
                 return $result;
