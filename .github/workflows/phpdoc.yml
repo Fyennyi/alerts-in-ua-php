@@ -3,26 +3,20 @@ name: Generate PHP Documentation
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  generate-docs:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - uses: actions/checkout@v4
 
@@ -30,16 +24,6 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.3'
-        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
-
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
@@ -53,13 +37,29 @@ jobs:
     - name: Create docs directory
       run: mkdir -p docs
 
+    - name: Debug - Check source files
+      run: |
+        echo "Contents of src directory:"
+        find src/ -name "*.php" -exec echo "File: {}" \; -exec head -20 {} \; -exec echo "---" \; || echo "No PHP files found"
+
     - name: Generate documentation
-      run: phpdoc
+      run: |
+        echo "Running phpDocumentor with verbose output..."
+        phpdoc --directory=src --target=docs --title="Alerts in UA PHP Library" --template=clean -v || echo "phpDocumentor failed, trying alternative approach"
+        
+        # Fallback: try without config file
+        if [ ! -f docs/index.html ]; then
+          echo "Trying without config file..."
+          rm -f phpdoc.xml
+          phpdoc --directory=src --target=docs --title="Alerts in UA PHP Library" --template=clean -v
+        fi
 
     - name: Debug - List generated files
       run: |
         echo "Contents of docs directory:"
         ls -la docs/
+        echo "All files in docs:"
+        find docs/ -type f || echo "No files found"
         echo "Looking for index.html:"
         find docs/ -name "index.html" || echo "No index.html found"
 
@@ -73,33 +73,57 @@ jobs:
         <head>
           <title>Alerts in UA PHP Library Documentation</title>
           <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .warning { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .file-list { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+            pre { background: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+          </style>
         </head>
         <body>
           <h1>Alerts in UA PHP Library Documentation</h1>
-          <p>Documentation is being generated...</p>
-          <p>Available files:</p>
-          <ul>
+          <div class="warning">
+            <strong>⚠️ Documentation not generated</strong><br>
+            phpDocumentor could not generate documentation. This usually means:
+            <ul>
+              <li>PHP files don't have DocBlock comments</li>
+              <li>Configuration issues</li>
+              <li>Files structure problems</li>
+            </ul>
+          </div>
+          
+          <h2>Available files in docs directory:</h2>
+          <div class="file-list">
         EOF
+          
+          echo "<ul>" >> docs/index.html
           for file in docs/*; do
-            if [ -f "$file" ]; then
+            if [ -f "$file" ] && [ "$(basename "$file")" != "index.html" ]; then
               basename_file=$(basename "$file")
               echo "    <li><a href=\"$basename_file\">$basename_file</a></li>" >> docs/index.html
             fi
           done
-          echo "  </ul></body></html>" >> docs/index.html
+          echo "</ul>" >> docs/index.html
+          
+          echo "<h2>Source files found:</h2><pre>" >> docs/index.html
+          find src/ -name "*.php" 2>/dev/null | head -20 >> docs/index.html || echo "No PHP files found" >> docs/index.html
+          echo "</pre>" >> docs/index.html
+          
+          echo "</div></body></html>" >> docs/index.html
         fi
 
-    - name: Setup Pages
-      if: github.ref == 'refs/heads/main'
-      uses: actions/configure-pages@v4
-
     - name: Upload artifact
-      if: github.ref == 'refs/heads/main'
       uses: actions/upload-pages-artifact@v3
       with:
         path: './docs'
 
-    - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      id: deployment
-      uses: actions/deploy-pages@v4
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
