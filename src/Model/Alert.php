@@ -10,13 +10,13 @@ class Alert
 
     public string $location_title;
 
-    public string $location_type;
+    public ?string $location_type;
 
-    public ?string $started_at;
+    public ?\DateTimeInterface $started_at;
 
-    public ?string $finished_at;
+    public ?\DateTimeInterface $finished_at;
 
-    public ?string $updated_at;
+    public ?\DateTimeInterface $updated_at;
 
     public string $alert_type;
 
@@ -37,7 +37,7 @@ class Alert
      *
      * @param  array  $data  Raw alert data from API
      */
-    public function __construct($data)
+    public function __construct(array $data)
     {
         $this->id = $data['id'] ?? null;
         $this->location_title = $data['location_title'] ?? null;
