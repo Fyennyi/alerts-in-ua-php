@@ -57,7 +57,8 @@ jobs:
                --title="Alerts in UA PHP Library" \
                --defaultpackagename="AlertsInUa" \
                --template=clean \
-               --ignore="*.md,*.txt,*.json,*.xml,*.yml,*.yaml"
+               --ignore="*.md,*.txt,*.json,*.xml,*.yml,*.yaml" \
+               --config=none
 
     - name: Setup Pages
       if: github.ref == 'refs/heads/main'
