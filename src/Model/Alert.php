@@ -6,31 +6,31 @@ use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alert
 {
-    public $id;
+    public int $id;
 
-    public $location_title;
+    public string $location_title;
 
-    public $location_type;
+    public string $location_type;
 
-    public $started_at;
+    public ?string $started_at;
 
-    public $finished_at;
+    public ?string $finished_at;
 
-    public $updated_at;
+    public ?string $updated_at;
 
-    public $alert_type;
+    public string $alert_type;
 
-    public $location_uid;
+    public string $location_uid;
 
-    public $location_oblast;
+    public string $location_oblast;
 
-    public $location_oblast_uid;
+    public string $location_oblast_uid;
 
-    public $location_raion;
+    public ?string $location_raion;
 
-    public $notes;
+    public ?string $notes;
 
-    public $calculated;
+    public bool $calculated;
 
     /**
      * Constructor for Alert
