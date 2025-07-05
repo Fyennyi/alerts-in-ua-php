@@ -4,7 +4,8 @@ namespace Fyennyi\AlertsInUa\Model;
 
 class AirRaidAlertOblastStatuses
 {
-    private $statuses;
+    /** @var AirRaidAlertOblastStatus[] */
+    private array $statuses;
 
     /**
      * Constructor for AirRaidAlertOblastStatuses
@@ -12,7 +13,7 @@ class AirRaidAlertOblastStatuses
      * @param  string  $data  Raw status data string
      * @param  bool  $oblast_level_only  Filter for only oblast level alerts
      */
-    public function __construct($data, $oblast_level_only)
+    public function __construct(string $data, bool $oblast_level_only)
     {
         $this->statuses = [];
         $oblasts = [
@@ -38,7 +39,7 @@ class AirRaidAlertOblastStatuses
      *
      * @return array Array of AirRaidAlertOblastStatus objects
      */
-    public function getStatuses()
+    public function getStatuses() : array
     {
         return $this->statuses;
     }
