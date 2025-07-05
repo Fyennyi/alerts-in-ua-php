@@ -19,24 +19,24 @@ use GuzzleHttp\Promise\Utils;
 
 class AlertsClient
 {
-    private $client;
+    private Client $client;
 
-    private $token;
+    private string $token;
 
-    private $baseUrl = 'https://api.alerts.in.ua/v1/';
+    private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
-    private $cache = [];
+    private array $cache = [];
 
-    private $promises = [];
+    private array $promises = [];
 
-    private $fibers = [];
+    private array $fibers = [];
 
     /**
      * Constructor for alerts.in.ua API client
      *
      * @param  string  $token  API token
      */
-    public function __construct($token)
+    public function __construct(string $token)
     {
         $this->client = new Client;
         $this->token = $token;
@@ -48,7 +48,7 @@ class AlertsClient
      * @param  bool  $use_cache  Use cache
      * @return Fiber Fiber with result
      */
-    public function getActiveAlerts($use_cache = true)
+    public function getActiveAlerts(bool $use_cache = true) : Fiber
     {
         return $this->createFiber('alerts/active.json', $use_cache, fn ($data) => new Alerts($data));
     }
@@ -61,7 +61,7 @@ class AlertsClient
      * @param  bool  $use_cache  Use cache
      * @return Fiber Fiber with result
      */
-    public function getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = true)
+    public function getAlertsHistory(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : Fiber
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
@@ -77,7 +77,7 @@ class AlertsClient
      * @param  callable  $processor  Response processing function
      * @return Fiber Fiber with result
      */
-    private function createFiber($endpoint, $use_cache, callable $processor)
+    private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
             $fiber = new Fiber(fn () => call_user_func($processor, $this->cache[$endpoint]));
@@ -125,7 +125,7 @@ class AlertsClient
     /**
      * Wait for all async requests to complete
      */
-    public function wait()
+    public function wait() : void
     {
         if (empty($this->promises)) {
             return;
@@ -158,7 +158,7 @@ class AlertsClient
      * @throws InternalServerError If the response status is 500
      * @throws ApiError For any other or unknown errors
      */
-    private function processError($error)
+    private function processError(\Exception $error) : void
     {
         if ($error instanceof RequestException) {
             $response = $error->getResponse();
@@ -194,7 +194,7 @@ class AlertsClient
      * @param  string|int  $identifier  Identifier
      * @return int Location UID
      */
-    private function resolveUid($identifier)
+    private function resolveUid(string|int $identifier) : int
     {
         if (is_string($identifier)) {
             if (ctype_digit($identifier)) {
