@@ -211,9 +211,9 @@ class Alerts
     /**
      * Get last updated timestamp
      *
-     * @return DateTime|null Last updated timestamp
+     * @return \DateTime|null Last updated timestamp
      */
-    public function getLastUpdatedAt() : DateTime|null
+    public function getLastUpdatedAt() : \DateTime|null
     {
         return $this->last_updated_at;
     }
