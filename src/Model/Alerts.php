@@ -8,7 +8,7 @@ class Alerts
 {
     private array $alerts;
 
-    private ?string $last_updated_at;
+    private ?\DateTime $last_updated_at;
 
     private ?string $disclaimer;
 
