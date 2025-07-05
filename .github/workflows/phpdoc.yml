@@ -53,6 +53,10 @@ jobs:
     - name: Create docs directory
       run: mkdir -p docs
 
+    - name: Remove any existing config files
+      run: |
+        rm -f phpdoc.xml phpdoc.dist.xml .phpdoc.xml .phpdoc.dist.xml
+
     - name: Generate documentation
       run: phpdoc
 
