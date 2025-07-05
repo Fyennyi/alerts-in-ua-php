@@ -25,10 +25,13 @@ class AlertsClient
 
     private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
+    /** @var array<string, mixed> */
     private array $cache = [];
 
+    /** @var array<\GuzzleHttp\Promise\PromiseInterface> */
     private array $promises = [];
 
+    /** @var array<Fiber<mixed, mixed, mixed, mixed>> */
     private array $fibers = [];
 
     /**
@@ -46,7 +49,7 @@ class AlertsClient
      * Get active alerts using fibers
      *
      * @param  bool  $use_cache  Use cache
-     * @return Fiber Fiber with result
+     * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
      */
     public function getActiveAlerts(bool $use_cache = true) : Fiber
     {
@@ -59,7 +62,7 @@ class AlertsClient
      * @param  string|int  $oblast_uid_or_location_title  Region unique identifier or name
      * @param  string  $period  Alert history period
      * @param  bool  $use_cache  Use cache
-     * @return Fiber Fiber with result
+     * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
      */
     public function getAlertsHistory(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : Fiber
     {
@@ -75,7 +78,7 @@ class AlertsClient
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
      * @param  callable  $processor  Response processing function
-     * @return Fiber Fiber with result
+     * @return Fiber<mixed, mixed, mixed, mixed> Fiber with result
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
