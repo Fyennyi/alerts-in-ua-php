@@ -59,7 +59,7 @@ class Alert
      *
      * @return bool True if alert has finished_at date set
      */
-    public function isFinished()
+    public function isFinished() : bool
     {
         return null !== $this->finished_at;
     }
