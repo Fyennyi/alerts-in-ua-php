@@ -2,13 +2,15 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use DateTime;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alerts
 {
+    /** @var array<Alert> */
     private array $alerts;
 
-    private ?\DateTime $last_updated_at;
+    private ?DateTime $last_updated_at;
 
     private ?string $disclaimer;
 
@@ -211,9 +213,9 @@ class Alerts
     /**
      * Get last updated timestamp
      *
-     * @return \DateTime|null Last updated timestamp
+     * @return DateTime|null Last updated timestamp
      */
-    public function getLastUpdatedAt() : \DateTime|null
+    public function getLastUpdatedAt() : DateTime|null
     {
         return $this->last_updated_at;
     }
