@@ -30,14 +30,16 @@ jobs:
     - name: Generate changelog
       id: changelog
       run: |
-        # Generate changelog between tags
         PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
         if [ -z "$PREV_TAG" ]; then
           echo "changelog=First release" >> $GITHUB_OUTPUT
         else
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          git log --pretty=format:"- %s" $PREV_TAG..HEAD >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          CHANGELOG=$(git log --pretty=format:"- %s" "$PREV_TAG"..HEAD)
+          # Escape newlines for GITHUB_OUTPUT
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
         fi
 
     - name: Create Release
