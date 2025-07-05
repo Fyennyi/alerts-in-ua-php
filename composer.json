@@ -1,6 +1,8 @@
 {
     "name": "fyennyi/alerts-in-ua-php",
     "description": "PHP client library for the alerts.in.ua API.",
+    "type": "library",
+    "license": "LicenseRef-CSSM-Unlimited-2.0",
     "require": {
         "guzzlehttp/guzzle": "^7.9.3"
     },
@@ -12,8 +14,14 @@
             "Fyennyi\\AlertsInUa\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Fyennyi\\AlertsInUa\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "license": "LicenseRef-CSSM-Unlimited-2.0",
-    "version": "0.1.8"
+    "prefer-stable": true
 }
