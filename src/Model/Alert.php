@@ -22,7 +22,7 @@ class Alert
 
     public ?string $location_uid;
 
-    public string $location_oblast;
+    public ?string $location_oblast;
 
     public string $location_oblast_uid;
 
