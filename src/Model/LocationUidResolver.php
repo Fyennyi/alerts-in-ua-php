@@ -51,21 +51,33 @@ class LocationUidResolver
      * Resolve location title to UID
      *
      * @param  string  $location_title  Location title to resolve
-     * @return int|string UID for the location or 'Unknown UID' if not found
+     * @return int UID for the location
+     *
+     * @throws InvalidParameterException If location is not found
      */
     public function resolveUid(string $location_title) : int|string
     {
-        return $this->location_to_uid[$location_title] ?? 'Unknown UID';
+        if (! isset($this->location_to_uid[$location_title])) {
+            throw new InvalidParameterException("Unknown location: {$location_title}");
+        }
+
+        return $this->location_to_uid[$location_title];
     }
 
     /**
      * Resolve UID to location title
      *
      * @param  int  $uid  UID to resolve
-     * @return string Location title or 'Unknown location' if not found
+     * @return string Location title
+     *
+     * @throws InvalidParameterException If UID is not found
      */
-    public function resolveLocationTitle(int $uid) : string
+    public function resolveLocationTitle(int $uid): string
     {
-        return $this->uid_to_location[$uid] ?? 'Unknown location';
+        if (! isset($this->uid_to_location[$uid])) {
+            throw new InvalidParameterException("Unknown UID: {$uid}");
+        }
+        
+        return $this->uid_to_location[$uid];
     }
 }
