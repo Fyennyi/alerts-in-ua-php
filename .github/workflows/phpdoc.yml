@@ -1,37 +1,57 @@
-name: Generate PHPDoc
+name: Generate phpDocumentor Documentation
 
 on:
   push:
+    branches: [ "main" ]
+  pull_request:
     branches: [ "main" ]
 
 permissions:
   contents: write
 
 jobs:
-  build-docs:
+  build-and-deploy-docs:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.3'
 
-    - name: Install project dependencies
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Install phpDocumentor globally
-      run: composer global require phpdocumentor/phpdocumentor:^3.4
+    - name: Install phpDocumentor
+      run: composer require --dev phpdocumentor/phpdocumentor:"^4.0"
 
-    - name: Generate PHPDoc
-      run: |
-        mkdir -p docs
-        ~/.composer/vendor/bin/phpdoc -d src -t docs
+    - name: Generate Documentation
+      run: ./vendor/bin/phpdoc -d src -t docs
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Upload documentation artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
+        path: docs
+
+  deploy-pages:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-docs
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
