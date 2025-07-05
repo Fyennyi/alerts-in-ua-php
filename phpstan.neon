@@ -4,8 +4,6 @@ parameters:
         - src
     excludePaths:
         - tests
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         # Ignore specific patterns if needed
@@ -16,7 +14,3 @@ parameters:
     checkTooWideReturnTypesInProtectedAndPublicMethods: true
     checkUninitializedProperties: true
     checkDynamicProperties: true
-    
-    # Symfony integration if needed
-    # symfony:
-    #     container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml
