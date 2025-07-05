@@ -44,8 +44,9 @@ jobs:
 
     - name: Install phpDocumentor Globally
       run: composer global require phpdocumentor/phpdocumentor:"^3.0" --prefer-dist --no-progress
-      env:
-        PATH: ${{ github.home }}/.composer/vendor/bin:${{ env.PATH }}
+
+    - name: Add Composer Global Bin to PATH
+      run: echo "${{ github.home }}/.composer/vendor/bin" >> $GITHUB_PATH
 
     - name: Generate Documentation
       run: phpdoc -d src -t docs
