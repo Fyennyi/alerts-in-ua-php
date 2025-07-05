@@ -32,7 +32,7 @@ class Alerts
      * @param  mixed  ...$args  Alternating field names and values to filter by
      * @return array Filtered alerts array
      */
-    public function filter(...$args) : array
+    public function filter(mixed ...$args) : array
     {
         $filtered_alerts = $this->alerts;
         for ($i = 0; $i < count($args); $i += 2) {
