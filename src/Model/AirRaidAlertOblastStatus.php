@@ -4,9 +4,9 @@ namespace Fyennyi\AlertsInUa\Model;
 
 class AirRaidAlertOblastStatus
 {
-    private $oblast;
+    private string $oblast;
 
-    private $status;
+    private string $status;
 
     /**
      * Constructor for AirRaidAlertOblastStatus
@@ -14,7 +14,7 @@ class AirRaidAlertOblastStatus
      * @param  string  $oblast  Oblast name
      * @param  string  $status  Alert status code
      */
-    public function __construct($oblast, $status)
+    public function __construct(string $oblast, string $status)
     {
         $this->oblast = $oblast;
         $this->status = $status;
@@ -25,7 +25,7 @@ class AirRaidAlertOblastStatus
      *
      * @return string Oblast name
      */
-    public function getOblast()
+    public function getOblast() : string
     {
         return $this->oblast;
     }
@@ -35,7 +35,7 @@ class AirRaidAlertOblastStatus
      *
      * @return string Alert status code
      */
-    public function getStatus()
+    public function getStatus() : string
     {
         return $this->status;
     }
