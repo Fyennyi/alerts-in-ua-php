@@ -6,18 +6,18 @@ use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alerts
 {
-    private $alerts;
+    private array $alerts;
 
-    private $last_updated_at;
+    private ?string $last_updated_at;
 
-    private $disclaimer;
+    private ?string $disclaimer;
 
     /**
      * Constructor for Alerts collection
      *
      * @param  array  $data  Raw alerts data from API
      */
-    public function __construct($data)
+    public function __construct(array $data)
     {
         $this->alerts = array_map(fn ($alert) => new Alert($alert), $data['alerts'] ?? []);
         $meta = $data['meta'] ?? [];
@@ -32,7 +32,7 @@ class Alerts
      * @param  mixed  ...$args  Alternating field names and values to filter by
      * @return array Filtered alerts array
      */
-    public function filter(...$args)
+    public function filter(...$args) : array
     {
         $filtered_alerts = $this->alerts;
         for ($i = 0; $i < count($args); $i += 2) {
@@ -47,7 +47,7 @@ class Alerts
      *
      * @return array Alerts for oblast level
      */
-    public function getOblastAlerts()
+    public function getOblastAlerts() : array
     {
         return $this->getAlertsByLocationType('oblast');
     }
@@ -57,7 +57,7 @@ class Alerts
      *
      * @return array Alerts for raion level
      */
-    public function getRaionAlerts()
+    public function getRaionAlerts() : array
     {
         return $this->getAlertsByLocationType('raion');
     }
@@ -67,7 +67,7 @@ class Alerts
      *
      * @return array Alerts for hromada level
      */
-    public function getHromadaAlerts()
+    public function getHromadaAlerts() : array
     {
         return $this->getAlertsByLocationType('hromada');
     }
@@ -77,7 +77,7 @@ class Alerts
      *
      * @return array Alerts for city level
      */
-    public function getCityAlerts()
+    public function getCityAlerts() : array
     {
         return $this->getAlertsByLocationType('city');
     }
@@ -88,7 +88,7 @@ class Alerts
      * @param  string  $alert_type  Type of alert to filter by
      * @return array Filtered alerts
      */
-    public function getAlertsByAlertType($alert_type)
+    public function getAlertsByAlertType(string $alert_type) : array
     {
         return $this->filter('alert_type', $alert_type);
     }
@@ -99,7 +99,7 @@ class Alerts
      * @param  string  $location_title  Location title to filter by
      * @return array Filtered alerts
      */
-    public function getAlertsByLocationTitle($location_title)
+    public function getAlertsByLocationTitle(string $location_title) : array
     {
         return $this->filter('location_title', $location_title);
     }
@@ -110,7 +110,7 @@ class Alerts
      * @param  string  $location_type  Location type to filter by
      * @return array Filtered alerts
      */
-    public function getAlertsByLocationType($location_type)
+    public function getAlertsByLocationType(string $location_type) : array
     {
         return $this->filter('location_type', $location_type);
     }
@@ -121,7 +121,7 @@ class Alerts
      * @param  string  $oblast_title  Oblast title to filter by
      * @return array Filtered alerts
      */
-    public function getAlertsByOblast($oblast_title)
+    public function getAlertsByOblast(string $oblast_title) : array
     {
         return $this->filter('location_oblast', $oblast_title);
     }
@@ -132,7 +132,7 @@ class Alerts
      * @param  string  $oblast_uid  Oblast UID to filter by
      * @return array Filtered alerts
      */
-    public function getAlertsByOblastUid($oblast_uid)
+    public function getAlertsByOblastUid(string $oblast_uid) : array
     {
         return $this->filter('location_oblast_uid', $oblast_uid);
     }
@@ -143,7 +143,7 @@ class Alerts
      * @param  string  $location_uid  Location UID to filter by
      * @return array Filtered alerts
      */
-    public function getAlertsByLocationUid($location_uid)
+    public function getAlertsByLocationUid(string $location_uid) : array
     {
         return $this->filter('location_uid', $location_uid);
     }
@@ -153,7 +153,7 @@ class Alerts
      *
      * @return array Air raid alerts
      */
-    public function getAirRaidAlerts()
+    public function getAirRaidAlerts() : array
     {
         return $this->getAlertsByAlertType('air_raid');
     }
@@ -163,7 +163,7 @@ class Alerts
      *
      * @return array Artillery shelling alerts
      */
-    public function getArtilleryShellingAlerts()
+    public function getArtilleryShellingAlerts() : array
     {
         return $this->getAlertsByAlertType('artillery_shelling');
     }
@@ -173,7 +173,7 @@ class Alerts
      *
      * @return array Urban fights alerts
      */
-    public function getUrbanFightsAlerts()
+    public function getUrbanFightsAlerts() : array
     {
         return $this->getAlertsByAlertType('urban_fights');
     }
@@ -183,7 +183,7 @@ class Alerts
      *
      * @return array Nuclear alerts
      */
-    public function getNuclearAlerts()
+    public function getNuclearAlerts() : array
     {
         return $this->getAlertsByAlertType('nuclear');
     }
@@ -193,7 +193,7 @@ class Alerts
      *
      * @return array Chemical alerts
      */
-    public function getChemicalAlerts()
+    public function getChemicalAlerts() : array
     {
         return $this->getAlertsByAlertType('chemical');
     }
@@ -203,7 +203,7 @@ class Alerts
      *
      * @return array All alerts
      */
-    public function getAllAlerts()
+    public function getAllAlerts() : array
     {
         return $this->alerts;
     }
@@ -213,7 +213,7 @@ class Alerts
      *
      * @return DateTime|null Last updated timestamp
      */
-    public function getLastUpdatedAt()
+    public function getLastUpdatedAt() : DateTime|null
     {
         return $this->last_updated_at;
     }
@@ -223,7 +223,7 @@ class Alerts
      *
      * @return string Disclaimer text
      */
-    public function getDisclaimer()
+    public function getDisclaimer() : string
     {
         return $this->disclaimer;
     }
@@ -233,7 +233,7 @@ class Alerts
      *
      * @return \ArrayIterator Iterator for alerts
      */
-    public function __iter()
+    public function __iter() : \ArrayIterator
     {
         return new \ArrayIterator($this->alerts);
     }
@@ -243,7 +243,7 @@ class Alerts
      *
      * @return string JSON encoded alerts array
      */
-    public function __repr()
+    public function __repr() : string
     {
         return json_encode($this->alerts);
     }
@@ -253,7 +253,7 @@ class Alerts
      *
      * @return int Number of alerts
      */
-    public function __len()
+    public function __len() : int
     {
         return count($this->alerts);
     }
