@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<phpdoc>
-    <title>API Client for alerts.in.ua in PHP</title>
-    <paths>
-        <directory>src</directory>
-    </paths>
-    <target>docs</target>
-</phpdoc>
