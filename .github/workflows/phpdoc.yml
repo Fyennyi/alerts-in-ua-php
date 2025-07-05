@@ -53,12 +53,41 @@ jobs:
     - name: Create docs directory
       run: mkdir -p docs
 
-    - name: Remove any existing config files
-      run: |
-        rm -f phpdoc.xml phpdoc.dist.xml .phpdoc.xml .phpdoc.dist.xml
-
     - name: Generate documentation
       run: phpdoc
+
+    - name: Debug - List generated files
+      run: |
+        echo "Contents of docs directory:"
+        ls -la docs/
+        echo "Looking for index.html:"
+        find docs/ -name "index.html" || echo "No index.html found"
+
+    - name: Create index.html if missing
+      run: |
+        if [ ! -f docs/index.html ]; then
+          echo "Creating fallback index.html"
+          cat > docs/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Alerts in UA PHP Library Documentation</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1>Alerts in UA PHP Library Documentation</h1>
+          <p>Documentation is being generated...</p>
+          <p>Available files:</p>
+          <ul>
+        EOF
+          for file in docs/*; do
+            if [ -f "$file" ]; then
+              basename_file=$(basename "$file")
+              echo "    <li><a href=\"$basename_file\">$basename_file</a></li>" >> docs/index.html
+            fi
+          done
+          echo "  </ul></body></html>" >> docs/index.html
+        fi
 
     - name: Setup Pages
       if: github.ref == 'refs/heads/main'
