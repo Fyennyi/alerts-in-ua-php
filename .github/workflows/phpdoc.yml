@@ -18,10 +18,10 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up PHP
+    - name: Set up PHP # Цей крок все ще потрібен для встановлення залежностей вашого проекту
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.3'
+        php-version: '8.3' # Або потрібна тобі версія PHP
 
     - name: Clear Composer Cache
       run: composer clear-cache
@@ -42,14 +42,15 @@ jobs:
     - name: Install Project Dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Install phpDocumentor Globally
-      run: composer global require phpdocumentor/phpdocumentor:"^3.0" --prefer-dist --no-progress
+    - name: Generate Documentation with Docker
+      # Використовуємо офіційний образ phpDocumentor
+      # -v "${{ github.workspace }}:/data" монтує ваш репозиторій у контейнер
+      # /data - це робочий каталог у контейнері
+      # phpdoc -c phpdoc.xml.dist запускає phpdoc з вашим конфігураційним файлом
+      run: docker run --rm -v "${{ github.workspace }}:/data" phpdocumentor/phpdocumentor:3 phpdoc -c phpdoc.xml.dist
+      # Якщо виникнуть проблеми з дозволами, спробуйте додати --user $(id -u):$(id -g) після --rm
+      # run: docker run --rm --user $(id -u):$(id -g) -v "${{ github.workspace }}:/data" phpdocumentor/phpdocumentor:3 phpdoc -c phpdoc.xml.dist
 
-    - name: Add Composer Global Bin to PATH
-      run: echo "${{ github.home }}/.composer/vendor/bin" >> $GITHUB_PATH
-
-    - name: Generate Documentation
-      run: phpdoc -c phpdoc.xml.dist
 
     - name: Upload documentation artifact
       uses: actions/upload-pages-artifact@v3
