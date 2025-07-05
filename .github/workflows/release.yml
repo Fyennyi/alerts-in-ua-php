@@ -25,7 +25,7 @@ jobs:
       run: composer install --prefer-dist --no-progress --no-dev
 
     - name: Run tests
-      run: composer test
+      run: composer run-script test
 
     - name: Generate changelog
       id: changelog
