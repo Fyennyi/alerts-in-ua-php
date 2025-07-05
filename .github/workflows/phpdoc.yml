@@ -35,7 +35,7 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Install phpDocumentor
-      run: composer require --dev phpdocumentor/phpdocumentor:"^4.0"
+      run: composer require --dev phpdocumentor/phpdocumentor:"^3.3"
 
     - name: Generate Documentation
       run: ./vendor/bin/phpdoc -d src -t docs
