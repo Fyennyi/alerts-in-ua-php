@@ -22,7 +22,7 @@ jobs:
         php-version: '8.3'
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-dev
+      run: composer install --prefer-dist --no-progress
 
     - name: Run tests
       run: composer run-script test
