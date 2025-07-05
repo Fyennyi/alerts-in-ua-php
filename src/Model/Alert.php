@@ -35,7 +35,7 @@ class Alert
     /**
      * Constructor for Alert
      *
-     * @param  array  $data  Raw alert data from API
+     * @param  array<string, mixed>  $data  Raw alert data from API
      */
     public function __construct(array $data)
     {
