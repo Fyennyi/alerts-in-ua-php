@@ -12,12 +12,12 @@ class Alerts
 
     private ?DateTime $last_updated_at;
 
-    private ?string $disclaimer;
+    private string $disclaimer;
 
     /**
      * Constructor for Alerts collection
      *
-     * @param  array  $data  Raw alerts data from API
+     * @param  array<string, mixed>  $data  Raw alerts data from API
      */
     public function __construct(array $data)
     {
@@ -32,7 +32,7 @@ class Alerts
      * Filter alerts by specified criteria
      *
      * @param  mixed  ...$args  Alternating field names and values to filter by
-     * @return array Filtered alerts array
+     * @return Alert[] Filtered alerts array
      */
     public function filter(mixed ...$args) : array
     {
@@ -47,7 +47,7 @@ class Alerts
     /**
      * Get alerts for oblast level
      *
-     * @return array Alerts for oblast level
+     * @return Alert[] Alerts for oblast level
      */
     public function getOblastAlerts() : array
     {
@@ -57,7 +57,7 @@ class Alerts
     /**
      * Get alerts for raion level
      *
-     * @return array Alerts for raion level
+     * @return Alert[] Alerts for raion level
      */
     public function getRaionAlerts() : array
     {
@@ -67,7 +67,7 @@ class Alerts
     /**
      * Get alerts for hromada level
      *
-     * @return array Alerts for hromada level
+     * @return Alert[] Alerts for hromada level
      */
     public function getHromadaAlerts() : array
     {
@@ -77,7 +77,7 @@ class Alerts
     /**
      * Get alerts for city level
      *
-     * @return array Alerts for city level
+     * @return Alert[] Alerts for city level
      */
     public function getCityAlerts() : array
     {
@@ -88,7 +88,7 @@ class Alerts
      * Get alerts by alert type
      *
      * @param  string  $alert_type  Type of alert to filter by
-     * @return array Filtered alerts
+     * @return Alert[] Filtered alerts
      */
     public function getAlertsByAlertType(string $alert_type) : array
     {
@@ -99,7 +99,7 @@ class Alerts
      * Get alerts by location title
      *
      * @param  string  $location_title  Location title to filter by
-     * @return array Filtered alerts
+     * @return Alert[] Filtered alerts
      */
     public function getAlertsByLocationTitle(string $location_title) : array
     {
@@ -110,7 +110,7 @@ class Alerts
      * Get alerts by location type
      *
      * @param  string  $location_type  Location type to filter by
-     * @return array Filtered alerts
+     * @return Alert[] Filtered alerts
      */
     public function getAlertsByLocationType(string $location_type) : array
     {
@@ -121,7 +121,7 @@ class Alerts
      * Get alerts by oblast
      *
      * @param  string  $oblast_title  Oblast title to filter by
-     * @return array Filtered alerts
+     * @return Alert[] Filtered alerts
      */
     public function getAlertsByOblast(string $oblast_title) : array
     {
@@ -132,7 +132,7 @@ class Alerts
      * Get alerts by oblast UID
      *
      * @param  string  $oblast_uid  Oblast UID to filter by
-     * @return array Filtered alerts
+     * @return Alert[] Filtered alerts
      */
     public function getAlertsByOblastUid(string $oblast_uid) : array
     {
@@ -143,7 +143,7 @@ class Alerts
      * Get alerts by location UID
      *
      * @param  string  $location_uid  Location UID to filter by
-     * @return array Filtered alerts
+     * @return Alert[] Filtered alerts
      */
     public function getAlertsByLocationUid(string $location_uid) : array
     {
@@ -153,7 +153,7 @@ class Alerts
     /**
      * Get air raid alerts
      *
-     * @return array Air raid alerts
+     * @return Alert[] Air raid alerts
      */
     public function getAirRaidAlerts() : array
     {
@@ -163,7 +163,7 @@ class Alerts
     /**
      * Get artillery shelling alerts
      *
-     * @return array Artillery shelling alerts
+     * @return Alert[] Artillery shelling alerts
      */
     public function getArtilleryShellingAlerts() : array
     {
@@ -173,7 +173,7 @@ class Alerts
     /**
      * Get urban fights alerts
      *
-     * @return array Urban fights alerts
+     * @return Alert[] Urban fights alerts
      */
     public function getUrbanFightsAlerts() : array
     {
@@ -183,7 +183,7 @@ class Alerts
     /**
      * Get nuclear alerts
      *
-     * @return array Nuclear alerts
+     * @return Alert[] Nuclear alerts
      */
     public function getNuclearAlerts() : array
     {
@@ -193,7 +193,7 @@ class Alerts
     /**
      * Get chemical alerts
      *
-     * @return array Chemical alerts
+     * @return Alert[] Chemical alerts
      */
     public function getChemicalAlerts() : array
     {
@@ -203,7 +203,7 @@ class Alerts
     /**
      * Get all alerts in collection
      *
-     * @return array All alerts
+     * @return Alert[] All alerts
      */
     public function getAllAlerts() : array
     {
@@ -233,7 +233,7 @@ class Alerts
     /**
      * Get iterator for alerts collection
      *
-     * @return \ArrayIterator Iterator for alerts
+     * @return \ArrayIterator<int, Alert> Iterator for alerts
      */
     public function __iter() : \ArrayIterator
     {
