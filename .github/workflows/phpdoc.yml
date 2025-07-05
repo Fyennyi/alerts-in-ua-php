@@ -20,7 +20,9 @@ jobs:
         php-version: '8.3'
 
     - name: Install dependencies
-      run: composer install --no-progress
+      run: |
+        rm -rf vendor composer.lock
+        composer install --prefer-dist --no-progress
 
     - name: Generate PHPDoc
       run: |
