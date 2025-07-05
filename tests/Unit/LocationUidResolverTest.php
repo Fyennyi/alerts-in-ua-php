@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use PHPUnit\Framework\TestCase;
 
