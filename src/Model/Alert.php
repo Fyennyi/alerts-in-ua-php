@@ -39,7 +39,7 @@ class Alert
      */
     public function __construct(array $data)
     {
-        $this->id = $data['id'] ?? null;
+        $this->id = $data['id'] ?? 0;
         $this->location_title = $data['location_title'] ?? null;
         $this->location_type = $data['location_type'] ?? null;
         $this->started_at = UaDateParser::parseDate($data['started_at'] ?? null);
