@@ -4,7 +4,7 @@ namespace Fyennyi\AlertsInUa\Model;
 
 class LocationUidResolver
 {
-    private $uid_to_location = [
+    private array $uid_to_location = [
         3 => 'Хмельницька область',
         4 => 'Вінницька область',
         5 => 'Рівненська область',
@@ -34,7 +34,7 @@ class LocationUidResolver
         31 => 'м. Київ',
     ];
 
-    private $location_to_uid;
+    private array $location_to_uid;
 
     /**
      * Constructor for LocationUidResolver
@@ -51,7 +51,7 @@ class LocationUidResolver
      * @param  string  $location_title  Location title to resolve
      * @return int|string UID for the location or 'Unknown UID' if not found
      */
-    public function resolveUid($location_title)
+    public function resolveUid(string $location_title) : int|string
     {
         return $this->location_to_uid[$location_title] ?? 'Unknown UID';
     }
@@ -62,7 +62,7 @@ class LocationUidResolver
      * @param  int  $uid  UID to resolve
      * @return string Location title or 'Unknown location' if not found
      */
-    public function resolveLocationTitle($uid)
+    public function resolveLocationTitle(int $uid) : string
     {
         return $this->uid_to_location[$uid] ?? 'Unknown location';
     }
