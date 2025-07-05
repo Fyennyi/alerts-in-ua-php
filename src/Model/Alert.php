@@ -46,12 +46,12 @@ class Alert
         $this->finished_at = UaDateParser::parseDate($data['finished_at'] ?? null);
         $this->updated_at = UaDateParser::parseDate($data['updated_at'] ?? null);
         $this->alert_type = $data['alert_type'] ?? null;
-        $this->location_uid = $data['location_uid'] ?? null;
+        $this->location_uid = isset($data['location_uid']) ? (int) $data['location_uid'] : null;
         $this->location_oblast = $data['location_oblast'] ?? null;
-        $this->location_oblast_uid = $data['location_oblast_uid'] ?? null;
+        $this->location_oblast_uid = isset($data['location_oblast_uid']) ? (int) $data['location_oblast_uid'] : null;
         $this->location_raion = $data['location_raion'] ?? null;
         $this->notes = $data['notes'] ?? null;
-        $this->calculated = $data['calculated'] ?? false;
+        $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
     }
 
     /**
