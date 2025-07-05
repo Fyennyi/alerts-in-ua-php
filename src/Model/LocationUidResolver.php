@@ -2,6 +2,8 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
+
 class LocationUidResolver
 {
     /** @var array<int, string> */
