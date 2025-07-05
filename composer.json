@@ -21,7 +21,8 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "docs": "phpdoc -d src -t docs"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
