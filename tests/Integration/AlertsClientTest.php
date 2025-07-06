@@ -156,11 +156,8 @@ class AlertsClientTest extends TestCase
         $result = $fiber->getReturn();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
-        // Optionally, check the internal states of the AirRaidAlertOblastStatuses model
-        $this->assertTrue(
-            method_exists($result, 'getStatuses') || method_exists($result, 'getAllStatuses'),
-            'AirRaidAlertOblastStatuses should have a method to get statuses'
-        );
+        // Check the internal states of the AirRaidAlertOblastStatuses model
+        $this->assertTrue(method_exists($result, 'getStatuses'), 'AirRaidAlertOblastStatuses should have a method to get statuses');
     }
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
