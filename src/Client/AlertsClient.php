@@ -205,15 +205,9 @@ class AlertsClient
         if (is_string($identifier)) {
             if (ctype_digit($identifier)) {
                 return (int) $identifier;
-            } else {
-                $result = (new LocationUidResolver)->resolveUid($identifier);
-
-                if ($result === 'Unknown UID') {
-                    throw new InvalidParameterException("Unknown location: {$identifier}");
-                }
-
-                return $result;
             }
+
+            return (new LocationUidResolver)->resolveUid($identifier);
         }
 
         return $identifier;
