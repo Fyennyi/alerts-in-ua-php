@@ -27,13 +27,13 @@ class AlertsClient
 
     private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
-    /** @var array<string, mixed> */
+    /** @var array<string, array<string, mixed>> */
     private array $cache = [];
 
-    /** @var array<\GuzzleHttp\Promise\PromiseInterface> */
+    /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
     private array $promises = [];
 
-    /** @var array<Fiber<mixed, mixed, Alerts, mixed>> */
+    /** @var list<Fiber<mixed, mixed, Alerts, mixed>> */
     private array $fibers = [];
 
     /**
@@ -65,6 +65,8 @@ class AlertsClient
      * @param  string  $period  Alert history period
      * @param  bool  $use_cache  Use cache
      * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
+     *
+     * @throws InvalidParameterException If location is not found
      */
     public function getAlertsHistory(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : Fiber
     {
@@ -152,6 +154,8 @@ class AlertsClient
 
     /**
      * Wait for all async requests to complete
+     *
+     * @return void
      */
     public function wait() : void
     {
@@ -177,6 +181,7 @@ class AlertsClient
      * Process API errors
      *
      * @param  \Exception  $error  Request error
+     * @return void
      *
      * @throws UnauthorizedError If the response status is 401
      * @throws ForbiddenError If the response status is 403
@@ -221,6 +226,8 @@ class AlertsClient
      *
      * @param  string|int  $identifier  Identifier
      * @return int Location UID
+     *
+     * @throws InvalidParameterException If location is not found
      */
     private function resolveUid(string|int $identifier) : int
     {
