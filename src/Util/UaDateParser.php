@@ -14,9 +14,9 @@ class UaDateParser
      * @param  string  $time_format  Expected format of the date string
      * @return DateTime|null DateTime object in Kyiv timezone or null if parsing fails
      */
-    public static function parseDate($date_string, $time_format = 'Y-m-d\TH:i:s.u\Z') : DateTime|null
+    public static function parseDate(string $date_string, string $time_format = 'Y-m-d\TH:i:s.u\Z') : DateTime|null
     {
-        if (empty($date_string) || ! is_string($date_string)) {
+        if (empty($date_string)) {
             return null;
         }
 
