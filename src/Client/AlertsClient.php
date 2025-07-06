@@ -90,11 +90,6 @@ class AlertsClient
             /** @var Fiber<mixed, mixed, Alerts, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
                 $cachedData = $this->cache[$endpoint];
-                assert(is_array($cachedData));
-
-                /** @var array<string, mixed> $cachedData */
-                $cachedData = $cachedData;
-
                 return call_user_func($processor, $cachedData);
             });
 
@@ -174,7 +169,7 @@ class AlertsClient
             unset($this->fibers[$key]);
         }
 
-        $this->fibers = [];
+        $this->fibers = [...$this->fibers, $fiber];
     }
 
     /**
