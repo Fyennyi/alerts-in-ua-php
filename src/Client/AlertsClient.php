@@ -87,6 +87,7 @@ class AlertsClient
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
+            /** @var Fiber<mixed, mixed, Alerts, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
                 $cachedData = $this->cache[$endpoint];
                 return call_user_func($processor, $cachedData);
@@ -97,6 +98,7 @@ class AlertsClient
             return $fiber;
         }
 
+        /** @var Fiber<mixed, mixed, Alerts, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) : Alerts {
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
@@ -122,6 +124,7 @@ class AlertsClient
                     throw new ApiError('Invalid JSON response received');
                 }
 
+                /** @var array<string, mixed> $data */
                 if ($use_cache) {
                     $this->cache[$endpoint] = $data;
                 }
