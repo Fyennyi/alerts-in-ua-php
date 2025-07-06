@@ -16,7 +16,7 @@ class UaDateParser
      */
     public static function parseDate($date_string, $time_format = 'Y-m-d\TH:i:s.u\Z') : DateTime|null
     {
-        if (empty($date_string)) {
+        if (empty($date_string) || ! is_string($date_string)) {
             return null;
         }
 
