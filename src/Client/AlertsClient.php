@@ -84,8 +84,8 @@ class AlertsClient
      * @param  callable(array<string, mixed>): Alerts  $processor  Response processing function
      * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
      *
-     * @throws ApiError When cache is missing or response is invalid
-     * @throws \Throwable For other exceptions thrown during request or processing
+     * @throws ApiError If response is invalid or unexpected error occurs
+     * @throws \Exception If request fails with a known error
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
@@ -137,8 +137,11 @@ class AlertsClient
 
                 return call_user_func($processor, $data);
             } catch (\Throwable $e) {
-                $exception = $e instanceof \Exception ? $e : new \Exception($e->getMessage(), $e->getCode(), $e);
-                $this->processError($exception);
+                if ($e instanceof \Exception) {
+                    $this->processError($e);
+                } else {
+                    throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
+                }
                 throw $e;
             }
         });
