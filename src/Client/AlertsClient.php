@@ -140,7 +140,7 @@ class AlertsClient
      *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
-     * @param  callable(array<string, mixed>|string):T  $processor  Callback to process response data
+     * @param  callable(array<string, mixed>): T  $processor  Callback to process response data
      * @return Fiber<mixed, mixed, T, mixed> Fiber with result of type T
      *
      * @throws ApiError If response is invalid or unexpected error occurs
