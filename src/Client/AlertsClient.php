@@ -32,7 +32,7 @@ class AlertsClient
     /** @var array<\GuzzleHttp\Promise\PromiseInterface> */
     private array $promises = [];
 
-    /** @var array<Fiber<mixed, mixed, mixed, mixed>> */
+    /** @var array<Fiber<mixed, mixed, Alerts, mixed>> */
     private array $fibers = [];
 
     /**
@@ -79,7 +79,7 @@ class AlertsClient
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
      * @param  callable  $processor  Response processing function
-     * @return Fiber<mixed, mixed, mixed, mixed> Fiber with result
+     * @return Fiber<mixed, mixed, Fiber, mixed> Fiber with result
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
@@ -105,7 +105,12 @@ class AlertsClient
 
             try {
                 $response = $promise->wait();
-                $data = json_decode($response->getBody()->getContents(), true);
+                if (! $response instanceof ResponseInterface) {
+                    throw new ApiError('Invalid response received');
+                }
+
+                $body = $response->getBody();
+                $data = json_decode($body->getContents(), true);
 
                 if ($use_cache) {
                     $this->cache[$endpoint] = $data;
@@ -114,6 +119,7 @@ class AlertsClient
                 return call_user_func($processor, $data);
             } catch (\Exception $e) {
                 $this->processError($e);
+                throw $e;
             }
         });
 
