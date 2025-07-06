@@ -65,6 +65,9 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     {
         $filtered_alerts = $this->alerts;
         for ($i = 0; $i < count($args); $i += 2) {
+            if (! isset($args[$i]) || !isset($args[$i + 1])) {
+                break;
+            }
             $filtered_alerts = array_filter($filtered_alerts, fn ($alert) => $alert->{$args[$i]} == $args[$i + 1]);
         }
 
@@ -270,7 +273,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get count of alerts in collection
      *
-     * @return int Number of alerts
+     * @return int<0, max> Number of alerts
      */
     public function count() : int
     {
