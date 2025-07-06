@@ -9,6 +9,9 @@ use IteratorAggregate;
 use JsonSerializable;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 
+/**
+ * @implements IteratorAggregate<int, Alert>
+ */
 class Alerts implements IteratorAggregate, Countable, JsonSerializable
 {
     /** @var array<Alert> */
