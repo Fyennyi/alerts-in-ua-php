@@ -148,21 +148,21 @@ class AlertsClient
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
+
         if ($use_cache && isset($this->cache[$endpoint])) {
-            /** @var Fiber<mixed, mixed, T, mixed> */
-            $fiber = new Fiber(function () use ($processor, $endpoint) {
-                if (! isset($this->cache[$endpoint])) {
-                    throw new ApiError('Cache data not found');
-                }
-                $cachedData = $this->cache[$endpoint];
-
-                /** @var T */
-                return call_user_func($processor, $cachedData);
-            });
-
-            $fiber->start();
-
-            return $fiber;
+            /** @var array<string, mixed> $cachedData */
+            $cachedData = $this->cache[$endpoint];
+            if (! is_array($cachedData)) {
+                unset($this->cache[$endpoint]);
+            } else {
+                /** @var Fiber<mixed, mixed, T, mixed> */
+                $fiber = new Fiber(function () use ($processor, $cachedData) {
+                    /** @var T */
+                    return $processor($cachedData);
+                });
+                $fiber->start();
+                return $fiber;
+            }
         }
 
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
@@ -185,15 +185,17 @@ class AlertsClient
 
                 $body = $response->getBody();
                 $data = json_decode($body->getContents(), true);
+                if (! is_array($data)) {
+                    throw new ApiError('Invalid JSON response received');
+                }
 
-                $toCache = is_array($data) ? $data : (string) $body;
-
+                /** @var array<string, mixed> $data */
                 if ($use_cache) {
-                    $this->cache[$endpoint] = $toCache;
+                    $this->cache[$endpoint] = $data;
                 }
 
                 /** @var T */
-                return call_user_func($processor, $toCache);
+                return $processor($data);
             } catch (\Throwable $e) {
                 if ($e instanceof \Exception) {
                     $this->processError($e);
@@ -205,6 +207,10 @@ class AlertsClient
         });
 
         $fiber->start();
+
+        if ($fiber->isSuspended()) {
+            $this->fibers[] = $fiber;
+        }
 
         return $fiber;
     }
