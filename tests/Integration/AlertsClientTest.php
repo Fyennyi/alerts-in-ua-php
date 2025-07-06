@@ -139,7 +139,7 @@ class AlertsClientTest extends TestCase
         $result = $fiber->getReturn();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-        $this->assertEquals("Kharkivska oblast", $result->getLocationTitle());
+        $this->assertEquals("Kharkivska oblast", $result->getOblast());
         $this->assertEquals("air_raid", $result->getStatus());
     }
 
