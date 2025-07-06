@@ -28,11 +28,29 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      */
     public function __construct(array $data)
     {
-        $this->alerts = array_map(fn ($alert) => new Alert($alert), $data['alerts'] ?? []);
+        $alerts_data = $data['alerts'] ?? [];
+        if (! is_array($alerts_data)) {
+            $alerts_data = [];
+        }
+
+        $this->alerts = array_map(function ($alert) {
+            if (! is_array($alert)) {
+                return new Alert([]);
+            }
+
+            return new Alert($alert);
+        }, $alerts_data);
+
         $meta = $data['meta'] ?? [];
+        if (! is_array($meta)) {
+            $meta = [];
+        }
+
         $last_updated_at = $meta['last_updated_at'] ?? null;
-        $this->last_updated_at = UaDateParser::parseDate($last_updated_at);
-        $this->disclaimer = $data['disclaimer'] ?? '';
+        $this->last_updated_at = is_string($last_updated_at) ? UaDateParser::parseDate($last_updated_at) : null;
+
+        $disclaimer = $data['disclaimer'] ?? '';
+        $this->disclaimer = is_string($disclaimer) ? $disclaimer : '';
     }
 
     /**
