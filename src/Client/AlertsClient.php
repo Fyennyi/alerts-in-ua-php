@@ -17,6 +17,7 @@ use Fyennyi\AlertsInUa\Util\UserAgent;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\Utils;
+use Psr\Http\Message\ResponseInterface;
 
 class AlertsClient
 {
@@ -79,7 +80,7 @@ class AlertsClient
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
      * @param  callable  $processor  Response processing function
-     * @return Fiber<mixed, mixed, Fiber, mixed> Fiber with result
+     * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
@@ -203,8 +204,6 @@ class AlertsClient
      *
      * @param  string|int  $identifier  Identifier
      * @return int Location UID
-     *
-     * @throws InvalidParameterException If location name is unknown
      */
     private function resolveUid(string|int $identifier) : int
     {
