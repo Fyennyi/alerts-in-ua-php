@@ -35,7 +35,7 @@ class AlertsClient
     /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
     private array $promises = [];
 
-    /** @var array<int, Fiber<mixed, mixed, Alerts|AirRaidAlertOblastStatus|AirRaidAlertOblastStatuses, mixed>> */
+    /** @var array<int, Fiber<mixed, mixed, mixed, mixed>> */
     private array $fibers = [];
 
     /**
