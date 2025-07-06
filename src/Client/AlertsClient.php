@@ -77,6 +77,42 @@ class AlertsClient
     }
 
     /**
+     * Get air raid alert status for specific region using fibers
+     *
+     * @param  string|int  $oblast_uid_or_location_title  Region unique identifier or name
+     * @param  bool  $oblast_level_only  Return only oblast-level alerts
+     * @param  bool  $use_cache  Use cache
+     * @return Fiber<mixed, mixed, AirRaidAlertOblastStatus, mixed> Fiber with result
+     *
+     * @throws InvalidParameterException If location is not found
+     */
+    public function getAirRaidAlertStatus(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = true) : Fiber
+    {
+        $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
+        $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
+
+        return $this->createFiber($url, $use_cache, function ($data) use ($oblast_uid) {
+            $locationTitle = (new LocationUidResolver)->resolveLocationTitle($oblast_uid);
+
+            return new AirRaidAlertOblastStatus($locationTitle, is_string($data) ? $data : '');
+        });
+    }
+
+    /**
+     * Get air raid alert statuses for all regions using fibers
+     *
+     * @param  bool  $oblast_level_only  Return only oblast-level alerts
+     * @param  bool  $use_cache  Use cache
+     * @return Fiber<mixed, mixed, AirRaidAlertOblastStatuses, mixed> Fiber with result
+     */
+    public function getAirRaidAlertStatusesByOblast(bool $oblast_level_only = false, bool $use_cache = true) : Fiber
+    {
+        return $this->createFiber('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function ($data) use ($oblast_level_only) {
+            return new AirRaidAlertOblastStatuses(is_string($data) ? $data : '', $oblast_level_only);
+        });
+    }
+
+    /**
      * Create fiber for API request
      *
      * @param  string  $endpoint  API endpoint
