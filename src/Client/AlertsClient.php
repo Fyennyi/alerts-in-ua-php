@@ -167,7 +167,7 @@ class AlertsClient
             unset($this->fibers[$key]);
         }
 
-        $this->fibers = [...$this->fibers, $fiber];
+        $this->fibers = [];
     }
 
     /**
