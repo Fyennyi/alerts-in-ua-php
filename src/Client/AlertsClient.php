@@ -33,7 +33,7 @@ class AlertsClient
     /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
     private array $promises = [];
 
-    /** @var list<Fiber<mixed, mixed, Alerts, mixed>> */
+    /** @var array<int, Fiber<mixed, mixed, Alerts, mixed>> */
     private array $fibers = [];
 
     /**
@@ -87,7 +87,6 @@ class AlertsClient
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
-            /** @var Fiber<mixed, mixed, Alerts, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
                 $cachedData = $this->cache[$endpoint];
                 return call_user_func($processor, $cachedData);
@@ -98,7 +97,6 @@ class AlertsClient
             return $fiber;
         }
 
-        /** @var Fiber<mixed, mixed, Alerts, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) : Alerts {
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
@@ -123,9 +121,6 @@ class AlertsClient
                 if (! is_array($data)) {
                     throw new ApiError('Invalid JSON response received');
                 }
-
-                /** @var array<string, mixed> $data */
-                $data = $data;
 
                 if ($use_cache) {
                     $this->cache[$endpoint] = $data;
