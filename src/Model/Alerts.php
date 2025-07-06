@@ -180,7 +180,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get air raid alerts
      *
-     * @return list<Alert> Air raid alerts
+     * @return list<Alert> Air raid alerts (alert_type = 'air_raid')
      */
     public function getAirRaidAlerts() : array
     {
