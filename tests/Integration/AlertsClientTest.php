@@ -130,7 +130,7 @@ class AlertsClientTest extends TestCase
     {
         $oblast_uid = 22;
         $responseBody = json_encode([
-            "Kharkivska oblast" => "air_raid"
+            "Харківська область" => "air_raid"
         ]);
         $this->mockHandler->append(new Response(200, [], $responseBody));
 
@@ -139,15 +139,15 @@ class AlertsClientTest extends TestCase
         $result = $fiber->getReturn();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-        $this->assertEquals("Kharkivska oblast", $result->getOblast());
+        $this->assertEquals("Харківська область", $result->getOblast());
         $this->assertEquals("air_raid", $result->getStatus());
     }
 
     public function testGetAirRaidAlertStatusesByOblast()
     {
         $responseBody = json_encode([
-            "Kharkivska oblast" => "air_raid",
-            "Poltavska oblast" => "no_alert"
+            "Харківська область" => "air_raid",
+            "Полтавська область" => "no_alert"
         ]);
         $this->mockHandler->append(new Response(200, [], $responseBody));
 
