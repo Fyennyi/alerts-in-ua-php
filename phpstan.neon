@@ -14,3 +14,8 @@ parameters:
     checkTooWideReturnTypesInProtectedAndPublicMethods: true
     checkUninitializedProperties: true
     checkDynamicProperties: true
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    checkExplicitMixed: true
+    checkTypeAliases: true
+    checkFunctionNameCase: true
