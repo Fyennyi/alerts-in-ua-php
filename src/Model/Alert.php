@@ -6,31 +6,31 @@ use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alert
 {
-    public int $id;
+    private int $id;
 
-    public string $location_title;
+    private string $location_title;
 
-    public ?string $location_type;
+    private ?string $location_type;
 
-    public ?\DateTimeInterface $started_at;
+    private ?\DateTimeInterface $started_at;
 
-    public ?\DateTimeInterface $finished_at;
+    private ?\DateTimeInterface $finished_at;
 
-    public ?\DateTimeInterface $updated_at;
+    private ?\DateTimeInterface $updated_at;
 
-    public ?string $alert_type;
+    private ?string $alert_type;
 
-    public ?int $location_uid;
+    private ?int $location_uid;
 
-    public ?string $location_oblast;
+    private ?string $location_oblast;
 
-    public ?int $location_oblast_uid;
+    private ?int $location_oblast_uid;
 
-    public ?string $location_raion;
+    private ?string $location_raion;
 
-    public ?string $notes;
+    private ?string $notes;
 
-    public bool $calculated;
+    private bool $calculated;
 
     /**
      * Constructor for Alert
@@ -52,6 +52,162 @@ class Alert
         $this->location_raion = isset($data['location_raion']) && is_string($data['location_raion']) ? $data['location_raion'] : null;
         $this->notes = isset($data['notes']) && is_string($data['notes']) ? $data['notes'] : null;
         $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
+    }
+
+    /**
+     * Get alert unique identifier
+     *
+     * @return int Alert ID
+     */
+    public function getId() : int
+    {
+        return $this->id;
+    }
+
+    /**
+     * Get location title (name)
+     *
+     * @return string Location title
+     */
+    public function getLocationTitle() : string
+    {
+        return $this->location_title;
+    }
+
+    /**
+     * Get location type (oblast, raion, hromada, city, etc.)
+     *
+     * @return string|null Location type or null if not specified
+     */
+    public function getLocationType() : ?string
+    {
+        return $this->location_type;
+    }
+
+    /**
+     * Get alert start timestamp
+     *
+     * @return \DateTimeInterface|null Alert start date and time in Kyiv timezone or null if not set
+     */
+    public function getStartedAt() : ?\DateTimeInterface
+    {
+        return $this->started_at;
+    }
+
+    /**
+     * Get alert finish timestamp
+     *
+     * @return \DateTimeInterface|null Alert finish date and time in Kyiv timezone or null if still active
+     */
+    public function getFinishedAt() : ?\DateTimeInterface
+    {
+        return $this->finished_at;
+    }
+
+    /**
+     * Get alert last update timestamp
+     *
+     * @return \DateTimeInterface|null Alert last update date and time in Kyiv timezone or null if not set
+     */
+    public function getUpdatedAt() : ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    /**
+     * Get alert type (air_raid, artillery_shelling, urban_fights, nuclear, chemical, etc.)
+     *
+     * @return string|null Alert type or null if not specified
+     */
+    public function getAlertType() : ?string
+    {
+        return $this->alert_type;
+    }
+
+    /**
+     * Get location unique identifier
+     *
+     * @return int|null Location UID or null if not specified
+     */
+    public function getLocationUid() : ?int
+    {
+        return $this->location_uid;
+    }
+
+    /**
+     * Get oblast (region) name where the location is situated
+     *
+     * @return string|null Oblast name or null if not specified
+     */
+    public function getLocationOblast() : ?string
+    {
+        return $this->location_oblast;
+    }
+
+    /**
+     * Get oblast (region) unique identifier
+     *
+     * @return int|null Oblast UID or null if not specified
+     */
+    public function getLocationOblastUid() : ?int
+    {
+        return $this->location_oblast_uid;
+    }
+
+    /**
+     * Get raion (district) name where the location is situated
+     *
+     * @return string|null Raion name or null if not specified
+     */
+    public function getLocationRaion() : ?string
+    {
+        return $this->location_raion;
+    }
+
+    /**
+     * Get additional notes or comments about the alert
+     *
+     * @return string|null Alert notes or null if not specified
+     */
+    public function getNotes() : ?string
+    {
+        return $this->notes;
+    }
+
+    /**
+     * Check if alert is calculated
+     *
+     * @return bool True if alert is calculated, false if it's a real alert
+     */
+    public function isCalculated() : bool
+    {
+        return $this->calculated;
+    }
+
+    /**
+     * Get property value by name (for backward compatibility)
+     *
+     * @param  string  $property  Property name
+     * @return mixed Property value
+     */
+    public function getProperty(string $property) : mixed
+    {
+        return match ($property) {
+            'id' => $this->id,
+            'location_title' => $this->location_title,
+            'location_type' => $this->location_type,
+            'started_at' => $this->started_at,
+            'finished_at' => $this->finished_at,
+            'updated_at' => $this->updated_at,
+            'alert_type' => $this->alert_type,
+            'location_uid' => $this->location_uid,
+            'location_oblast' => $this->location_oblast,
+            'location_oblast_uid' => $this->location_oblast_uid,
+            'location_raion' => $this->location_raion,
+            'notes' => $this->notes,
+            'calculated' => $this->calculated,
+            default => null
+        };
     }
 
     /**
