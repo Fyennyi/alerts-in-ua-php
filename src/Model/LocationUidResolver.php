@@ -57,7 +57,7 @@ class LocationUidResolver
      *
      * @throws InvalidParameterException If location is not found
      */
-    public function resolveUid(string $location_title) : int|string
+    public function resolveUid(string $location_title) : int
     {
         if (! isset($this->location_to_uid[$location_title])) {
             throw new InvalidParameterException("Unknown location: {$location_title}");
