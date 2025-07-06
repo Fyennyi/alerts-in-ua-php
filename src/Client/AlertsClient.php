@@ -29,7 +29,7 @@ class AlertsClient
 
     private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
-    /** @var array<string, array<string, mixed>> */
+    /** @var array<string, array<string, mixed>|string> */
     private array $cache = [];
 
     /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
@@ -93,7 +93,7 @@ class AlertsClient
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
 
-        return $this->createSpecialFiber($url, $use_cache, function ($data) use ($oblast_uid) {
+        return $this->createFiber($url, $use_cache, function ($data) use ($oblast_uid) {
             $locationTitle = (new LocationUidResolver)->resolveLocationTitle($oblast_uid);
 
             if (is_string($data)) {
@@ -118,7 +118,7 @@ class AlertsClient
      */
     public function getAirRaidAlertStatusesByOblast(bool $oblast_level_only = false, bool $use_cache = true) : Fiber
     {
-        return $this->createSpecialFiber('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function ($data) use ($oblast_level_only) {
+        return $this->createFiber('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function ($data) use ($oblast_level_only) {
             if (is_string($data)) {
                 return new AirRaidAlertOblastStatuses($data, $oblast_level_only);
             }
@@ -136,10 +136,12 @@ class AlertsClient
     /**
      * Create fiber for API request
      *
+     * @template T
+     *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
-     * @param  callable(array<string, mixed>): Alerts  $processor  Response processing function
-     * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
+     * @param  callable(array<string, mixed>|string):T  $processor  Callback to process response data
+     * @return Fiber<mixed, mixed, T, mixed> Fiber with result of type T
      *
      * @throws ApiError If response is invalid or unexpected error occurs
      * @throws \Exception If request fails with a known error
@@ -147,92 +149,14 @@ class AlertsClient
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
-            /** @var Fiber<mixed, mixed, Alerts, mixed> */
-            $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
-                if (! isset($this->cache[$endpoint])) {
-                    throw new ApiError('Cache data not found');
-                }
-                $cachedData = $this->cache[$endpoint];
-
-                return call_user_func($processor, $cachedData);
-            });
-
-            $fiber->start();
-
-            return $fiber;
-        }
-
-        /** @var Fiber<mixed, mixed, Alerts, mixed> */
-        $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) : Alerts {
-            $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Accept' => 'application/json',
-                    'User-Agent' => UserAgent::getUserAgent(),
-                ],
-            ]);
-
-            $this->promises[] = $promise;
-            Fiber::suspend();
-
-            try {
-                $response = $promise->wait();
-                if (! $response instanceof ResponseInterface) {
-                    throw new ApiError('Invalid response received');
-                }
-
-                $body = $response->getBody();
-                $data = json_decode($body->getContents(), true);
-
-                if (! is_array($data)) {
-                    throw new ApiError('Invalid JSON response received');
-                }
-
-                /** @var array<string, mixed> $data */
-                if ($use_cache) {
-                    $this->cache[$endpoint] = $data;
-                }
-
-                return call_user_func($processor, $data);
-            } catch (\Throwable $e) {
-                if ($e instanceof \Exception) {
-                    $this->processError($e);
-                } else {
-                    throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
-                }
-                throw $e;
-            }
-        });
-
-        $fiber->start();
-
-        if ($fiber->isSuspended()) {
-            $this->fibers[] = $fiber;
-        }
-
-        return $fiber;
-    }
-
-    /**
-     * Create special fiber for non-Alerts responses
-     *
-     * @param  string  $endpoint  API endpoint
-     * @param  bool  $use_cache  Use cache
-     * @param  callable(mixed): mixed  $processor  Response processing function
-     * @return Fiber Fiber with result
-     *
-     * @throws ApiError If response is invalid or unexpected error occurs
-     * @throws \Exception If request fails with a known error
-     */
-    private function createSpecialFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
-    {
-        if ($use_cache && isset($this->cache[$endpoint])) {
+            /** @var Fiber<mixed, mixed, T, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) {
                 if (! isset($this->cache[$endpoint])) {
                     throw new ApiError('Cache data not found');
                 }
                 $cachedData = $this->cache[$endpoint];
 
+                /** @var T */
                 return call_user_func($processor, $cachedData);
             });
 
@@ -245,8 +169,8 @@ class AlertsClient
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->token,
-                    'Accept' => 'application/json',
-                    'User-Agent' => UserAgent::getUserAgent(),
+                    'Accept'        => 'application/json',
+                    'User-Agent'    => UserAgent::getUserAgent(),
                 ],
             ]);
 
@@ -262,11 +186,14 @@ class AlertsClient
                 $body = $response->getBody();
                 $data = json_decode($body->getContents(), true);
 
+                $toCache = is_array($data) ? $data : (string) $body;
+
                 if ($use_cache) {
-                    $this->cache[$endpoint] = $data;
+                    $this->cache[$endpoint] = $toCache;
                 }
 
-                return call_user_func($processor, $data);
+                /** @var T */
+                return call_user_func($processor, $toCache);
             } catch (\Throwable $e) {
                 if ($e instanceof \Exception) {
                     $this->processError($e);
@@ -278,10 +205,6 @@ class AlertsClient
         });
 
         $fiber->start();
-
-        if ($fiber->isSuspended()) {
-            $this->fibers[] = $fiber;
-        }
 
         return $fiber;
     }
