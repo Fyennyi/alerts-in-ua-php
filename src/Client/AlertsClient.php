@@ -29,7 +29,7 @@ class AlertsClient
 
     private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
-    /** @var array<string, array<string, mixed>|string> */
+    /** @var array<string, array<string, mixed>> */
     private array $cache = [];
 
     /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
