@@ -33,13 +33,15 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
             $alerts_data = [];
         }
 
-        $this->alerts = array_map(function ($alert) {
+        $this->alerts = [];
+        foreach ($alerts_data as $alert) {
             if (! is_array($alert)) {
-                return new Alert([]);
+                continue;
             }
-
-            return new Alert($alert);
-        }, $alerts_data);
+            
+            /** @var array<string, mixed> $alert */
+            $this->alerts[] = new Alert($alert);
+        }
 
         $meta = $data['meta'] ?? [];
         if (! is_array($meta)) {
