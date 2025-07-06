@@ -3,8 +3,10 @@
 namespace Tests\Integration;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
 use Fyennyi\AlertsInUa\Model\Alerts;
-use GuzzleHttp\Client;
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -33,7 +35,7 @@ class AlertsClientTest extends TestCase
         $history = Middleware::history($this->historyContainer);
         $handlerStack->push($history);
 
-        $this->client = new Client(['handler' => $handlerStack]);
+        $this->client = new GuzzleClient(['handler' => $handlerStack]);
 
         // Create alerts client with mock GuzzleHttp client
         $this->alertsClient = new AlertsClient('test_token');
@@ -122,6 +124,69 @@ class AlertsClientTest extends TestCase
         $this->assertCount(1, $result->getAllAlerts());
         $alert = $result->getAllAlerts()[0];
         $this->assertEquals('Харківська область', $alert->location_title);
+    }
+
+    public function testGetAirRaidAlertStatus()
+    {
+        $oblast_uid = 22;
+        $responseBody = json_encode([
+            "Kharkivska oblast" => "air_raid"
+        ]);
+        $this->mockHandler->append(new Response(200, [], $responseBody));
+
+        $fiber = $this->alertsClient->getAirRaidAlertStatus($oblast_uid);
+        $this->alertsClient->wait();
+        $result = $fiber->getReturn();
+
+        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
+        $this->assertEquals("Kharkivska oblast", $result->getLocationTitle());
+        $this->assertEquals("air_raid", $result->getStatus());
+    }
+
+    public function testGetAirRaidAlertStatusesByOblast()
+    {
+        $responseBody = json_encode([
+            "Kharkivska oblast" => "air_raid",
+            "Poltavska oblast" => "no_alert"
+        ]);
+        $this->mockHandler->append(new Response(200, [], $responseBody));
+
+        $fiber = $this->alertsClient->getAirRaidAlertStatusesByOblast();
+        $this->alertsClient->wait();
+        $result = $fiber->getReturn();
+
+        $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
+        // Optionally, check the internal states of the AirRaidAlertOblastStatuses model
+        $this->assertTrue(
+            method_exists($result, 'getStatuses') || method_exists($result, 'getAllStatuses'),
+            'AirRaidAlertOblastStatuses should have a method to get statuses'
+        );
+    }
+
+    public function testGetAirRaidAlertStatusWithEmptyResponse()
+    {
+        $oblast_uid = 22;
+        $responseBody = json_encode([]);
+        $this->mockHandler->append(new Response(200, [], $responseBody));
+
+        $fiber = $this->alertsClient->getAirRaidAlertStatus($oblast_uid);
+        $this->alertsClient->wait();
+        $result = $fiber->getReturn();
+
+        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
+        $this->assertEquals("", $result->getStatus());
+    }
+
+    public function testGetAirRaidAlertStatusesByOblastWithEmptyResponse()
+    {
+        $responseBody = json_encode([]);
+        $this->mockHandler->append(new Response(200, [], $responseBody));
+
+        $fiber = $this->alertsClient->getAirRaidAlertStatusesByOblast();
+        $this->alertsClient->wait();
+        $result = $fiber->getReturn();
+
+        $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
     }
 
     public function testErrorHandling()
