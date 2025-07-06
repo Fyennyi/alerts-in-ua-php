@@ -87,7 +87,10 @@ class AlertsClient
         if ($use_cache && isset($this->cache[$endpoint])) {
             /** @var Fiber<mixed, mixed, Alerts, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
-                return call_user_func($processor, $this->cache[$endpoint]);
+                $cachedData = $this->cache[$endpoint];
+                assert(is_array($cachedData));
+
+                return call_user_func($processor, $cachedData);
             });
 
             $fiber->start();
@@ -116,6 +119,10 @@ class AlertsClient
 
                 $body = $response->getBody();
                 $data = json_decode($body->getContents(), true);
+
+                if (! is_array($data)) {
+                    throw new ApiError('Invalid JSON response received');
+                }
 
                 if ($use_cache) {
                     $this->cache[$endpoint] = $data;
