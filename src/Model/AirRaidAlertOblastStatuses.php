@@ -31,6 +31,9 @@ class AirRaidAlertOblastStatuses
             if ($oblast_level_only && 'A' !== $status) {
                 continue;
             }
+            if (! isset($oblasts[$index])) {
+                continue;
+            }
             $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$index], $status);
         }
     }
