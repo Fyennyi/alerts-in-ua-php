@@ -90,6 +90,9 @@ class AlertsClient
                 $cachedData = $this->cache[$endpoint];
                 assert(is_array($cachedData));
 
+                /** @var array<string, mixed> $cachedData */
+                $cachedData = $cachedData;
+
                 return call_user_func($processor, $cachedData);
             });
 
