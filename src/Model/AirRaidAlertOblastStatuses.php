@@ -4,7 +4,7 @@ namespace Fyennyi\AlertsInUa\Model;
 
 class AirRaidAlertOblastStatuses
 {
-    /** @var AirRaidAlertOblastStatus[] */
+    /** @var list<AirRaidAlertOblastStatus> */
     private array $statuses;
 
     /**
@@ -16,6 +16,7 @@ class AirRaidAlertOblastStatuses
     public function __construct(string $data, bool $oblast_level_only)
     {
         $this->statuses = [];
+        /** @var list<string> */
         $oblasts = [
             'Автономна Республіка Крим', 'Волинська область', 'Вінницька область', 'Дніпропетровська область',
             'Донецька область', 'Житомирська область', 'Закарпатська область', 'Запорізька область',
@@ -37,7 +38,7 @@ class AirRaidAlertOblastStatuses
     /**
      * Get all oblast statuses
      *
-     * @return AirRaidAlertOblastStatus[] Array of AirRaidAlertOblastStatus objects
+     * @return list<AirRaidAlertOblastStatus> Array of AirRaidAlertOblastStatus objects
      */
     public function getStatuses() : array
     {
