@@ -4,7 +4,7 @@ namespace Tests\Integration;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
 use Fyennyi\AlertsInUa\Model\Alerts;
-use GuzzleHttp\Client;
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
@@ -23,7 +23,7 @@ class ApiIntegrationTest extends TestCase
     {
         $this->mockHandler = new MockHandler();
         $handlerStack = HandlerStack::create($this->mockHandler);
-        $this->client = new Client(['handler' => $handlerStack]);
+        $this->client = new GuzzleClient(['handler' => $handlerStack]);
     }
 
     /**
@@ -60,7 +60,7 @@ class ApiIntegrationTest extends TestCase
         $oblastStats = [];
         foreach ($history->getAllAlerts() as $alert) {
             $oblast = $alert->location_oblast;
-            if (!isset($oblastStats[$oblast])) {
+            if (! isset($oblastStats[$oblast])) {
                 $oblastStats[$oblast] = 0;
             }
             $oblastStats[$oblast]++;
