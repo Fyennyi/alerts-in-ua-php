@@ -2,10 +2,14 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use ArrayIterator;
+use Countable;
 use DateTime;
+use IteratorAggregate;
+use JsonSerializable;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 
-class Alerts
+class Alerts implements IteratorAggregate, Countable, JsonSerializable
 {
     /** @var array<Alert> */
     private array $alerts;
@@ -233,21 +237,11 @@ class Alerts
     /**
      * Get iterator for alerts collection
      *
-     * @return \ArrayIterator<int, Alert> Iterator for alerts
+     * @return ArrayIterator<int, Alert> Iterator for alerts
      */
-    public function __iter() : \ArrayIterator
+    public function getIterator() : ArrayIterator
     {
-        return new \ArrayIterator($this->alerts);
-    }
-
-    /**
-     * Get string representation of alerts collection
-     *
-     * @return string JSON encoded alerts array
-     */
-    public function __repr() : string
-    {
-        return json_encode($this->alerts);
+        return new ArrayIterator($this->alerts);
     }
 
     /**
@@ -255,8 +249,35 @@ class Alerts
      *
      * @return int Number of alerts
      */
-    public function __len() : int
+    public function count() : int
     {
         return count($this->alerts);
+    }
+
+    /**
+     * Specify data which should be serialized to JSON
+     *
+     * @return array<mixed> Data to be serialized
+     */
+    public function jsonSerialize() : array
+    {
+        return [
+            'alerts' => $this->alerts,
+            'meta' => [
+                'last_updated_at' => $this->last_updated_at?->format('c'),
+                'count' => $this->count()
+            ],
+            'disclaimer' => $this->disclaimer
+        ];
+    }
+
+    /**
+     * Get string representation of alerts collection
+     *
+     * @return string JSON encoded alerts array
+     */
+    public function __toString() : string
+    {
+        return json_encode($this, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
     }
 }
