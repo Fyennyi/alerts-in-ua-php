@@ -18,6 +18,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\Utils;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 class AlertsClient
 {
@@ -83,12 +84,18 @@ class AlertsClient
      * @param  bool  $use_cache  Use cache
      * @param  callable(array<string, mixed>): Alerts  $processor  Response processing function
      * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
+     *
+     * @throws ApiError When cache is missing or response is invalid
+     * @throws Throwable For other exceptions thrown during request or processing
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
             /** @var Fiber<mixed, mixed, Alerts, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
+                if (! isset($this->cache[$endpoint])) {
+                    throw new ApiError('Cache data not found');
+                }
                 $cachedData = $this->cache[$endpoint];
                 return call_user_func($processor, $cachedData);
             });
@@ -130,7 +137,7 @@ class AlertsClient
                 }
 
                 return call_user_func($processor, $data);
-            } catch (\Exception $e) {
+            } catch (Throwable $e) {
                 $this->processError($e);
                 throw $e;
             }
