@@ -68,7 +68,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
             $filtered_alerts = array_filter($filtered_alerts, fn ($alert) => $alert->{$args[$i]} == $args[$i + 1]);
         }
 
-        return $filtered_alerts;
+        return array_values($filtered_alerts);
     }
 
     /**
