@@ -11,6 +11,8 @@ use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Exception\NotFoundError;
 use Fyennyi\AlertsInUa\Exception\RateLimitError;
 use Fyennyi\AlertsInUa\Exception\UnauthorizedError;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
 use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
