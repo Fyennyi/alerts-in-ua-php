@@ -79,12 +79,13 @@ class AlertsClient
      *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
-     * @param  callable  $processor  Response processing function
+     * @param  callable(array<string, mixed>): Alerts  $processor  Response processing function
      * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
+            /** @var Fiber<mixed, mixed, Alerts, mixed> */
             $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
                 return call_user_func($processor, $this->cache[$endpoint]);
             });
@@ -94,6 +95,7 @@ class AlertsClient
             return $fiber;
         }
 
+        /** @var Fiber<mixed, mixed, Alerts, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) : Alerts {
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
