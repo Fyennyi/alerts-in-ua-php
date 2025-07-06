@@ -14,7 +14,7 @@ use Fyennyi\AlertsInUa\Util\UaDateParser;
  */
 class Alerts implements IteratorAggregate, Countable, JsonSerializable
 {
-    /** @var array<Alert> */
+    /** @var list<Alert> */
     private array $alerts;
 
     private ?DateTime $last_updated_at;
@@ -59,7 +59,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Filter alerts by specified criteria
      *
      * @param  mixed  ...$args  Alternating field names and values to filter by
-     * @return Alert[] Filtered alerts array
+     * @return list<Alert> Filtered alerts array
      */
     public function filter(mixed ...$args) : array
     {
@@ -74,7 +74,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get alerts for oblast level
      *
-     * @return Alert[] Alerts for oblast level
+     * @return list<Alert> Alerts for oblast level
      */
     public function getOblastAlerts() : array
     {
@@ -84,7 +84,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get alerts for raion level
      *
-     * @return Alert[] Alerts for raion level
+     * @return list<Alert> Alerts for raion level
      */
     public function getRaionAlerts() : array
     {
@@ -94,7 +94,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get alerts for hromada level
      *
-     * @return Alert[] Alerts for hromada level
+     * @return list<Alert> Alerts for hromada level
      */
     public function getHromadaAlerts() : array
     {
@@ -104,7 +104,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get alerts for city level
      *
-     * @return Alert[] Alerts for city level
+     * @return list<Alert> Alerts for city level
      */
     public function getCityAlerts() : array
     {
@@ -115,7 +115,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Get alerts by alert type
      *
      * @param  string  $alert_type  Type of alert to filter by
-     * @return Alert[] Filtered alerts
+     * @return list<Alert> Filtered alerts
      */
     public function getAlertsByAlertType(string $alert_type) : array
     {
@@ -126,7 +126,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Get alerts by location title
      *
      * @param  string  $location_title  Location title to filter by
-     * @return Alert[] Filtered alerts
+     * @return list<Alert> Filtered alerts
      */
     public function getAlertsByLocationTitle(string $location_title) : array
     {
@@ -137,7 +137,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Get alerts by location type
      *
      * @param  string  $location_type  Location type to filter by
-     * @return Alert[] Filtered alerts
+     * @return list<Alert> Filtered alerts
      */
     public function getAlertsByLocationType(string $location_type) : array
     {
@@ -148,7 +148,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Get alerts by oblast
      *
      * @param  string  $oblast_title  Oblast title to filter by
-     * @return Alert[] Filtered alerts
+     * @return list<Alert> Filtered alerts
      */
     public function getAlertsByOblast(string $oblast_title) : array
     {
@@ -159,7 +159,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Get alerts by oblast UID
      *
      * @param  string  $oblast_uid  Oblast UID to filter by
-     * @return Alert[] Filtered alerts
+     * @return list<Alert> Filtered alerts
      */
     public function getAlertsByOblastUid(string $oblast_uid) : array
     {
@@ -170,7 +170,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      * Get alerts by location UID
      *
      * @param  string  $location_uid  Location UID to filter by
-     * @return Alert[] Filtered alerts
+     * @return list<Alert> Filtered alerts
      */
     public function getAlertsByLocationUid(string $location_uid) : array
     {
@@ -180,7 +180,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get air raid alerts
      *
-     * @return Alert[] Air raid alerts
+     * @return list<Alert> Air raid alerts
      */
     public function getAirRaidAlerts() : array
     {
@@ -190,7 +190,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get artillery shelling alerts
      *
-     * @return Alert[] Artillery shelling alerts
+     * @return list<Alert> Artillery shelling alerts
      */
     public function getArtilleryShellingAlerts() : array
     {
@@ -200,7 +200,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get urban fights alerts
      *
-     * @return Alert[] Urban fights alerts
+     * @return list<Alert> Urban fights alerts
      */
     public function getUrbanFightsAlerts() : array
     {
@@ -210,7 +210,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get nuclear alerts
      *
-     * @return Alert[] Nuclear alerts
+     * @return list<Alert> Nuclear alerts
      */
     public function getNuclearAlerts() : array
     {
@@ -220,7 +220,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get chemical alerts
      *
-     * @return Alert[] Chemical alerts
+     * @return list<Alert> Chemical alerts
      */
     public function getChemicalAlerts() : array
     {
@@ -230,7 +230,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Get all alerts in collection
      *
-     * @return Alert[] All alerts
+     * @return list<Alert> All alerts
      */
     public function getAllAlerts() : array
     {
@@ -242,7 +242,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      *
      * @return DateTime|null Last updated timestamp
      */
-    public function getLastUpdatedAt() : DateTime|null
+    public function getLastUpdatedAt() : ?DateTime
     {
         return $this->last_updated_at;
     }
@@ -280,7 +280,7 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      *
-     * @return array<mixed> Data to be serialized
+     * @return array{alerts: list<Alert>, meta: array{last_updated_at: string|null, count: int}, disclaimer: string} Data to be serialized
      */
     public function jsonSerialize() : array
     {
