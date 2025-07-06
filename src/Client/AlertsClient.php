@@ -152,19 +152,16 @@ class AlertsClient
         if ($use_cache && isset($this->cache[$endpoint])) {
             /** @var array<string, mixed> $cachedData */
             $cachedData = $this->cache[$endpoint];
-            if (! is_array($cachedData)) {
-                unset($this->cache[$endpoint]);
-            } else {
-                /** @var Fiber<mixed, mixed, T, mixed> */
-                $fiber = new Fiber(function () use ($processor, $cachedData) {
-                    /** @var T */
-                    return $processor($cachedData);
-                });
-                $fiber->start();
-                return $fiber;
-            }
+            /** @var Fiber<mixed, mixed, T, mixed> */
+            $fiber = new Fiber(function () use ($processor, $cachedData) {
+                /** @var T */
+                return $processor($cachedData);
+            });
+            $fiber->start();
+            return $fiber;
         }
 
+        /** @var Fiber<mixed, mixed, T, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
