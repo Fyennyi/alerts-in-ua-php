@@ -5,11 +5,7 @@ parameters:
     excludePaths:
         - tests
     reportUnmatchedIgnoredErrors: false
-    ignoreErrors:
-        # Ignore specific patterns if needed
-        - '#Call to an undefined method#'
-        - '#Access to an undefined property#'
-    
+
     # Additional rules for better analysis
     checkTooWideReturnTypesInProtectedAndPublicMethods: true
     checkUninitializedProperties: true
