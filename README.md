@@ -54,25 +54,36 @@ try {
 #### `getActiveAlerts($use_cache = true)`
 Fetches a list of active alerts asynchronously.
 
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<Alerts>`
+
 #### `getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = true)`
 Fetches the history of alerts for a specific region or location.
 
-- `$oblast_uid_or_location_title` *(string)* – The unique ID or location title of the oblast.
+- `$oblast_uid_or_location_title` *(string|int)* – The unique ID or location title of the oblast or location.
 - `$period` *(string, optional)* – The period for which to fetch the history. Defaults to `'week_ago'`.
 - `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<Alerts>`
 
 #### `getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = true)`
 Fetches the status of air raid alerts for a specific oblast.
 
-- `$oblast_uid_or_location_title` *(string)* – The unique ID or location title of the oblast.
+- `$oblast_uid_or_location_title` *(string|int)* – The unique ID or location title of the oblast or location.
 - `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
 - `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<AirRaidAlertOblastStatus>`
 
 #### `getAirRaidAlertStatusesByOblast($oblast_level_only = false, $use_cache = true)`
 Fetches the status of air raid alerts for all oblasts.
 
 - `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
 - `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<AirRaidAlertOblastStatuses>`
+
+#### `wait()`
+Waits for all asynchronous operations (fibers) to complete.
+
+- **Returns:** `void`
 
 ## Districts and Regions (UIDs)
 
