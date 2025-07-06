@@ -124,6 +124,9 @@ class AlertsClient
                     throw new ApiError('Invalid JSON response received');
                 }
 
+                /** @var array<string, mixed> $data */
+                $data = $data;
+
                 if ($use_cache) {
                     $this->cache[$endpoint] = $data;
                 }
