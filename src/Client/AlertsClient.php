@@ -85,14 +85,16 @@ class AlertsClient
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
         if ($use_cache && isset($this->cache[$endpoint])) {
-            $fiber = new Fiber(fn () => call_user_func($processor, $this->cache[$endpoint]));
+            $fiber = new Fiber(function () use ($processor, $endpoint) : Alerts {
+                return call_user_func($processor, $this->cache[$endpoint]);
+            });
 
             $fiber->start();
 
             return $fiber;
         }
 
-        $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
+        $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) : Alerts {
             $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->token,
