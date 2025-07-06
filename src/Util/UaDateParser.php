@@ -14,7 +14,7 @@ class UaDateParser
      * @param  string  $time_format  Expected format of the date string
      * @return DateTime|null DateTime object in Kyiv timezone or null if parsing fails
      */
-    public static function parseDate(?string $date_string, string $time_format = 'Y-m-d\TH:i:s.u\Z') : DateTime|null
+    public static function parseDate(?string $date_string, string $time_format = 'Y-m-d\TH:i:s.u\Z') : ?DateTime
     {
         if (empty($date_string)) {
             return null;
@@ -24,6 +24,7 @@ class UaDateParser
         $utc_dt = DateTime::createFromFormat($time_format, $date_string, new DateTimeZone('UTC'));
 
         if (false === $utc_dt) {
+            /** @var list<string> */
             $formats = [
                 'Y/m/d H:i:s',
                 'Y/m/d H:i:s e',
