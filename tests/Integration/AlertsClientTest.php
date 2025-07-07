@@ -141,9 +141,9 @@ class AlertsClientTest extends TestCase
         $this->assertEquals('A', $statuses[0]->getStatus());
         $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
 
-        // Check second alert (Dnipropetrovsk Oblast)
+        // Check second alert (Donetsk Oblast)
         $this->assertEquals('A', $statuses[1]->getStatus());
-        $this->assertEquals('Дніпропетровська область', $statuses[1]->getOblast());
+        $this->assertEquals('Донецька область', $statuses[1]->getOblast());
     }
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
