@@ -47,6 +47,7 @@ class InMemoryCache implements CacheInterface
     public function clear() : bool
     {
         $this->cache = [];
+
         return true;
     }
 
