@@ -21,9 +21,9 @@ composer require fyennyi/alerts-in-ua-php
 
 ⚠️ Before you can use this library, you need to obtain an API token by visiting [devs.alerts.in.ua](https://devs.alerts.in.ua/).
 
-### Asynchronous Usage
+### Basic Setup
 
-Here's a basic example of how to use the library to get a list of active alerts asynchronously:
+First, create a client instance with your API token:
 
 ```php
 require 'vendor/autoload.php';
@@ -31,7 +31,13 @@ require 'vendor/autoload.php';
 use Fyennyi\AlertsInUa\Client\AlertsClient;
 
 $client = new AlertsClient('your_token');
+```
 
+### Getting Active Alerts
+
+Here's how to fetch and display all currently active alerts:
+
+```php
 $alertsResult = $client->getActiveAlerts(false);
 $client->wait();
 
@@ -40,8 +46,78 @@ try {
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->alert_type} in {$alert->location_title}\n";
+        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
     }
+} catch (\Exception $e) {
+    echo 'Error: ' . $e->getMessage() . "\n";
+}
+```
+
+### Getting Alerts History
+
+To retrieve historical alert data for a specific region:
+
+```php
+// Get alerts history for Kharkiv Oblast from the last day
+$historyResult = $client->getAlertsHistory('Харківська область', 'day_ago', false);
+$client->wait();
+
+try {
+    $history = $historyResult->getReturn();
+    echo "\nAlerts history for Kharkiv Oblast: " . count($history->getAllAlerts()) . "\n";
+
+    foreach ($history->getAllAlerts() as $alert) {
+        $status = $alert->isFinished() ? 'Finished' : 'Active';
+        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()} - {$status}\n";
+    }
+} catch (\Exception $e) {
+    echo 'Error: ' . $e->getMessage() . "\n";
+}
+```
+
+### Getting Air Raid Alert Statuses
+
+To check the current status of air raid alerts across all oblasts:
+
+```php
+$statusesResult = $client->getAirRaidAlertStatusesByOblast();
+$client->wait();
+
+try {
+    $statuses = $statusesResult->getReturn();
+    echo "\nAir raid alert statuses by oblast:\n";
+
+    foreach ($statuses->getStatuses() as $status) {
+        echo "{$status->getOblast()}: {$status->getStatus()}\n";
+    }
+} catch (\Exception $e) {
+    echo 'Error: ' . $e->getMessage() . "\n";
+}
+```
+
+### Filtering Alerts
+
+The library provides convenient methods to filter alerts by type and location:
+
+```php
+$alertsResult = $client->getActiveAlerts(false);
+$client->wait();
+
+try {
+    $alerts = $alertsResult->getReturn();
+
+    // Get only air raid alerts
+    $airRaidAlerts = $alerts->getAirRaidAlerts();
+    echo "\nAir raid alerts: " . count($airRaidAlerts) . "\n";
+
+    // Get only oblast-level alerts
+    $oblastAlerts = $alerts->getOblastAlerts();
+    echo "Oblast-level alerts: " . count($oblastAlerts) . "\n";
+
+    // Get alerts for a specific oblast
+    $kharkivAlerts = $alerts->getAlertsByOblast('Харківська область');
+    echo "Kharkiv Oblast alerts: " . count($kharkivAlerts) . "\n";
+
 } catch (\Exception $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
 }
