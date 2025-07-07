@@ -126,15 +126,16 @@ class AlertsClient
             'iot/active_air_raid_alerts_by_oblast.json',
             $use_cache,
             function (array $data) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
-                $first_value = '';
-                if (count($data) > 0) {
-                    $first_value = reset($data);
-                    if (! is_string($first_value)) {
-                        $first_value = '';
-                    }
+                if (empty($data) || ! is_string($data[0] ?? null)) {
+                    return new AirRaidAlertOblastStatuses('', $oblast_level_only);
                 }
 
-                return new AirRaidAlertOblastStatuses($first_value, $oblast_level_only);
+                $status_string = $data[0];
+                if (27 !== strlen($status_string)) {
+                    $status_string = substr($status_string, 0, 27);
+                }
+
+                return new AirRaidAlertOblastStatuses($status_string, $oblast_level_only);
             },
             'air_raid_statuses'
         );
