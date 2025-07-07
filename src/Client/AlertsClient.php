@@ -141,16 +141,17 @@ class AlertsClient
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
      * @param  callable(array<mixed, mixed>): T  $processor  Callback to process response data
+     * @param  string  $type  Cache category
      * @return Fiber<mixed, mixed, T, mixed> Fiber with result of type T
      */
-    private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
+    private function createFiber(string $endpoint, bool $use_cache, callable $processor, string $type = 'default') : Fiber
     {
         /** @var Fiber<mixed, mixed, T, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
             return $this->cache_manager->getOrSet(
                 $endpoint,
                 fn () => $this->fetchData($endpoint, $processor),
-                'default',
+                $type,
                 $use_cache
             );
         });
