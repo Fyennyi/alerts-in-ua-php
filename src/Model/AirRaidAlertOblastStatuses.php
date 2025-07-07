@@ -27,14 +27,12 @@ class AirRaidAlertOblastStatuses
             'Черкаська область', 'Чернівецька область', 'Чернігівська область',
         ];
 
-        foreach (str_split($data) as $index => $status) {
-            if (! isset($oblasts[$index])) {
+        $statuses = str_split($data);
+        for ($i = 0; $i < min(count($oblasts), count($statuses)); $i++) {
+            if ($oblast_level_only && 'A' !== $statuses[$i]) {
                 continue;
             }
-
-            if (! $oblast_level_only || 'A' === $status) {
-                $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$index], $status);
-            }
+            $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$i], $statuses[$i]);
         }
     }
 
