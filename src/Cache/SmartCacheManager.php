@@ -9,7 +9,7 @@ class SmartCacheManager
 {
     private CacheInterface $cache;
 
-    /** @var array<string, int> */
+    /** @var array<string, int> Time-to-live in seconds per request type */
     private array $ttl_config = [
         'active_alerts' => 30,
         'air_raid_status' => 15,
@@ -18,7 +18,7 @@ class SmartCacheManager
         'location_resolver' => 86400,
     ];
 
-    /** @var array<string, int> */
+    /** @var array<string, int> Last request time by cache key */
     private array $last_request_time = [];
 
     public function __construct(CacheInterface $cache = null)
