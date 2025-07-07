@@ -143,45 +143,40 @@ class AlertsClient
     /**
      * Creates an asynchronous API request
      *
-     * @template T
-     *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Whether to use cached results
-     * @param  callable(array): T  $processor  Function to process the response data
+     * @param  callable(array<string, mixed>): mixed  $processor  Function to process the response data
      * @param  string  $type  Cache type identifier
-     * @return PromiseInterface<T> Promise that resolves to the processed result
+     * @return PromiseInterface Promise that resolves to the processed result
      */
     private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default') : PromiseInterface
     {
-        if ($use_cache && ($cached = $this->cache_manager->get($endpoint, $type))) {
-            return \GuzzleHttp\Promise\promise_for($cached);
-        }
+        return $this->cache_manager->getOrSet(
+            $endpoint,
+            fn () => $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->token,
+                    'Accept'        => 'application/json',
+                    'User-Agent'    => UserAgent::getUserAgent(),
+                ],
+            ])->then(
+                function (ResponseInterface $response) use ($processor) {
+                    $data = json_decode($response->getBody()->getContents(), true);
+                    if (! is_array($data)) {
+                        throw new ApiError('Invalid JSON response');
+                    }
 
-        return $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->token,
-                'Accept'        => 'application/json',
-                'User-Agent'    => UserAgent::getUserAgent(),
-            ],
-        ])->then(
-            function (ResponseInterface $response) use ($processor, $endpoint, $type, $use_cache) {
-                $data = json_decode($response->getBody()->getContents(), true);
-                if (! is_array($data)) {
-                    throw new ApiError('Invalid JSON response');
+                    return $processor($data);
+                },
+                function (\Throwable $reason) {
+                    if ($reason instanceof \Exception) {
+                        $this->processError($reason);
+                    }
+                    throw $reason;
                 }
-                $result = $processor($data);
-                if ($use_cache) {
-                    $this->cache_manager->set($endpoint, $result, $type);
-                }
-
-                return $result;
-            },
-            function (\Throwable $reason) {
-                if ($reason instanceof \Exception) {
-                    $this->processError($reason);
-                }
-                throw $reason;
-            }
+            ),
+            $type,
+            $use_cache
         );
     }
 
