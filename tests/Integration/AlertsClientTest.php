@@ -126,25 +126,39 @@ class AlertsClientTest extends TestCase
         $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
     }
 
-    public function testOblastLevelFilter()
-    {
-        $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
-        $this->mockHandler->append(new Response(200, [], json_encode($testData)));
+public function testOblastLevelFilter()
+{
+    $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
+    $this->mockHandler->append(new Response(200, [], json_encode($testData)));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
-        $statuses = $result->getStatuses();
+    $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(false)->wait(); // false - щоб отримати всі статуси
+    $statuses = $result->getStatuses();
 
-        // Should only contain 'A' statuses (2 in test data)
-        $this->assertCount(2, $statuses);
-
-        // Check first alert (Autonomous Republic of Crimea)
-        $this->assertEquals('A', $statuses[0]->getStatus());
-        $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
-
-        // Check second alert (Donetsk Oblast)
-        $this->assertEquals('A', $statuses[1]->getStatus());
-        $this->assertEquals('Донецька область', $statuses[1]->getOblast());
+    // Дебаг-вивід усіх областей зі статусами
+    echo "\nDebug output - all regions:\n";
+    echo str_pad("Region", 30) . " | Status\n";
+    echo "------------------------------|--------\n";
+    foreach ($statuses as $status) {
+        echo str_pad($status->getOblast(), 30) . " | " . $status->getStatus() . "\n";
     }
+
+    // Тестуємо фільтрацію тільки для A (oblast level)
+    $filteredResult = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
+    $filteredStatuses = $filteredResult->getStatuses();
+
+    // Дебаг-вивід відфільтрованих результатів
+    echo "\nFiltered results (only A statuses):\n";
+    foreach ($filteredStatuses as $status) {
+        echo $status->getOblast() . " (" . $status->getStatus() . ")\n";
+    }
+
+    // Перевірки
+    $this->assertCount(2, $filteredStatuses);
+    $this->assertEquals('A', $filteredStatuses[0]->getStatus());
+    $this->assertEquals('Автономна Республіка Крим', $filteredStatuses[0]->getOblast());
+    $this->assertEquals('A', $filteredStatuses[1]->getStatus());
+    $this->assertEquals('Донецька область', $filteredStatuses[1]->getOblast());
+}
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
     {
