@@ -43,6 +43,26 @@ class FileCache implements CacheInterface
         return $item['value'];
     }
 
+    public function getStale(string $key) : mixed
+    {
+        $filename = $this->getCacheFilename($key);
+        if (! file_exists($filename)) {
+            return null;
+        }
+
+        $data = file_get_contents($filename);
+        if (false === $data) {
+            return null;
+        }
+
+        $item = @unserialize($data);
+        if (! is_array($item) || ! isset($item['value'])) {
+            return null;
+        }
+
+        return $item['value'];
+    }
+
     public function set(string $key, mixed $value, int $ttl = 3600) : bool
     {
         $filename = $this->getCacheFilename($key);
