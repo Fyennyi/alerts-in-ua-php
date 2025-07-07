@@ -31,7 +31,7 @@ class AlertTest extends TestCase
         $this->assertEquals(123, $alert->getId());
         $this->assertEquals('Київ', $alert->getLocationTitle());
         $this->assertEquals('city', $alert->getLocationType());
-        $this->assertEquals('air_raid', $alert->getAlertType);
+        $this->assertEquals('air_raid', $alert->getAlertType());
         $this->assertEquals(31, $alert->getLocationUid());
         $this->assertEquals('м. Київ', $alert->getLocationOblast());
         $this->assertEquals(31, $alert->getLocationOblastUid());
