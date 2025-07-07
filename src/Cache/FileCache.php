@@ -96,14 +96,15 @@ class FileCache implements CacheInterface
             }
 
             $item = @unserialize($data);
-            if (! is_array($item) || ! isset($item['key'])) {
+            if (! is_array($item) || ! isset($item['key']) || ! is_string($item['key'])) {
                 continue;
             }
 
             $keys[] = $item['key'];
         }
 
-        return $keys;
+        /** @var list<string> */
+        return array_values($keys);
     }
 
     /**
