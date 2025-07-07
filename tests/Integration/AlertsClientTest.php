@@ -83,8 +83,8 @@ class AlertsClientTest extends TestCase
         $this->assertInstanceOf(Alerts::class, $result);
         $this->assertCount(1, $result->getAllAlerts());
         $alert = $result->getAllAlerts()[0];
-        $this->assertEquals('Київ', $alert->location_title);
-        $this->assertEquals('air_raid', $alert->alert_type);
+        $this->assertEquals('Київ', $alert->getLocationTitle());
+        $this->assertEquals('air_raid', $alert->getAlertType());
     }
 
     public function testGetAlertsHistory()
@@ -123,7 +123,7 @@ class AlertsClientTest extends TestCase
         $this->assertInstanceOf(Alerts::class, $result);
         $this->assertCount(1, $result->getAllAlerts());
         $alert = $result->getAllAlerts()[0];
-        $this->assertEquals('Харківська область', $alert->location_title);
+        $this->assertEquals('Харківська область', $alert->getLocationTitle());
     }
 
     public function testGetAirRaidAlertStatus()
