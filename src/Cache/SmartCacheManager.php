@@ -11,11 +11,11 @@ class SmartCacheManager
 
     /** @var array<string, int> Time-to-live in seconds per request type */
     private array $ttl_config = [
-        'active_alerts' => 30,
-        'air_raid_status' => 15,
-        'air_raid_statuses' => 15,
-        'alerts_history' => 300,
-        'location_resolver' => 86400,
+        'active_alerts' => 30,        // 30 seconds
+        'air_raid_status' => 15,      // 15 seconds
+        'air_raid_statuses' => 15,    // 15 seconds
+        'alerts_history' => 300,      // 5 minutes
+        'location_resolver' => 86400, // 24 hours
     ];
 
     /** @var array<string, int> Last request time by cache key */
