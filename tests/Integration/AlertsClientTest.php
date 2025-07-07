@@ -152,7 +152,7 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusesByOblastWithEmptyResponse()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode(["invalid"])));
+        $this->mockHandler->append(new Response(200, [], json_encode([])));
 
         $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
 
