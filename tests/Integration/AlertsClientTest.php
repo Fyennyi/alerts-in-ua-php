@@ -112,14 +112,32 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusesByOblast()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([
-            "Харківська область" => "air_raid",
-            "Полтавська область" => "no_alert"
-        ])));
+        $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
+        $this->mockHandler->append(new Response(200, [], json_encode($testData)));
 
         $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
+        $statuses = $result->getStatuses();
+    
+        // Basic structure validation
+        $this->assertCount(27, $statuses);
+        $this->assertEquals('A', $statuses[0]->getStatus());
+        $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
+    }
+
+    public function testOblastLevelFilter()
+    {
+        $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
+        $this->mockHandler->append(new Response(200, [], json_encode($testData)));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
+        $statuses = $result->getStatuses();
+
+        // Should only contain 'A' statuses (2 in test data)
+        $this->assertCount(2, $statuses);
+        $this->assertEquals('A', $statuses[0]->getStatus());
+        $this->assertEquals('A', $statuses[1]->getStatus());
     }
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
@@ -134,11 +152,12 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusesByOblastWithEmptyResponse()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([])));
+        $this->mockHandler->append(new Response(200, [], json_encode(["invalid"])));
 
         $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
+        $this->assertCount(0, $result->getStatuses());
     }
 
     public function testErrorHandling()
