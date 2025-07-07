@@ -265,41 +265,6 @@ class Alert
     }
 
     /**
-     * Get the duration in human-readable format (e.g. "2 hours 15 minutes")
-     *
-     * @return string|null Human-readable duration or null if couldn't calculate
-     */
-    public function getHumanReadableDuration() : ?string
-    {
-        $interval = $this->getDuration();
-        if (null === $interval) {
-            return null;
-        }
-
-        $parts = [];
-        if ($interval->y > 0) {
-            $parts[] = $interval->y . ' ' . ($interval->y === 1 ? 'year' : 'years');
-        }
-        if ($interval->m > 0) {
-            $parts[] = $interval->m . ' ' . ($interval->m === 1 ? 'month' : 'months');
-        }
-        if ($interval->d > 0) {
-            $parts[] = $interval->d . ' ' . ($interval->d === 1 ? 'day' : 'days');
-        }
-        if ($interval->h > 0) {
-            $parts[] = $interval->h . ' ' . ($interval->h === 1 ? 'hour' : 'hours');
-        }
-        if ($interval->i > 0) {
-            $parts[] = $interval->i . ' ' . ($interval->i === 1 ? 'minute' : 'minutes');
-        }
-        if ($interval->s > 0 && count($parts) === 0) {
-            $parts[] = $interval->s . ' ' . ($interval->s === 1 ? 'second' : 'seconds');
-        }
-
-        return implode(' ', $parts) ?: 'less than a second';
-    }
-
-    /**
      * Check if alert is of specific type
      *
      * @param  string  $type  Alert type to check (air_raid, artillery_shelling, etc.)
@@ -346,7 +311,6 @@ class Alert
             'calculated' => $this->calculated,
             'is_active' => $this->isActive(),
             'duration' => $this->getDurationInSeconds(),
-            'human_readable_duration' => $this->getHumanReadableDuration(),
         ];
     }
 
