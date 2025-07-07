@@ -47,4 +47,11 @@ interface CacheInterface
      * @return bool True if exists and not expired
      */
     public function has(string $key) : bool;
+
+    /**
+     * Get all cache keys
+     *
+     * @return list<string> List of all available cache keys
+     */
+    public function keys() : array;
 }
