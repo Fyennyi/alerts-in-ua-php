@@ -76,7 +76,7 @@ class FileCache implements CacheInterface
 
     public function has(string $key) : bool
     {
-        return $this->get($key) !== null;
+        return null !== $this->get($key);
     }
 
     /**
