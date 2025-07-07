@@ -27,6 +27,11 @@ class InMemoryCache implements CacheInterface
         return $item['value'];
     }
 
+    public function getStale(string $key) : mixed
+    {
+        return $this->cache[$key]['value'] ?? null;
+    }
+
     public function set(string $key, mixed $value, int $ttl = 3600) : bool
     {
         $this->cache[$key] = [
