@@ -18,7 +18,7 @@ class SmartCacheManager
         'location_resolver' => 86400,
     ];
 
-    /** @var array<string, int> Last request time by cache key */
+    /** @var array<string, int> */
     private array $last_request_time = [];
 
     public function __construct(CacheInterface $cache = null)
@@ -32,7 +32,7 @@ class SmartCacheManager
      * @param  string  $key  Cache key
      * @param  callable(): mixed  $callback  Callback to generate fresh data
      * @param  string  $type  Request type (for TTL)
-     * @param  bool  $useCache  Whether to use cache
+     * @param  bool  $use_cache  Whether to use cache
      * @return mixed Cached or fresh result
      */
     public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : mixed
