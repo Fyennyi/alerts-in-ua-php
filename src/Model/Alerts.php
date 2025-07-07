@@ -71,6 +71,10 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
             $field = $args[$i];
             $value = $args[$i + 1];
 
+            if (! is_string($field)) {
+                continue;
+            }
+
             $filtered_alerts = array_filter($filtered_alerts, fn ($alert) => $alert->getProperty($field) == $value);
         }
 
