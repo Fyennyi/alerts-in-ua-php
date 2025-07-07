@@ -29,11 +29,13 @@ class SmartCacheManager
     /**
      * Get cached value or use fallback callback if expired or missing
      *
+     * @template T
+     *
      * @param  string  $key  Cache key
-     * @param  callable(): mixed  $callback  Callback to generate fresh data
+     * @param  callable(): T  $callback  Callback to generate fresh data
      * @param  string  $type  Request type (for TTL)
      * @param  bool  $use_cache  Whether to use cache
-     * @return mixed Cached or fresh result
+     * @return T Cached or fresh result
      */
     public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : mixed
     {
