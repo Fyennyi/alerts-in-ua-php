@@ -116,10 +116,6 @@ class SmartCacheManager
      */
     public function getStaleData(string $key) : mixed
     {
-        if (method_exists($this->cache, 'getStale')) {
-            return $this->cache->getStale($key);
-        }
-
-        return null;
+        return $this->cache->getStale($key);
     }
 }
