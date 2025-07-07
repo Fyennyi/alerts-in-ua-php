@@ -140,7 +140,7 @@ class AlertsClient
      *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Use cache
-     * @param  callable(array<string, mixed>): T  $processor  Callback to process response data
+     * @param  callable(array<mixed, mixed>): T  $processor  Callback to process response data
      * @return Fiber<mixed, mixed, T, mixed> Fiber with result of type T
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
@@ -170,7 +170,7 @@ class AlertsClient
      * @template T
      *
      * @param  string  $endpoint  Relative API endpoint (e.g., "alerts/active.json")
-     * @param  callable(array<string, mixed>): T  $processor  Callback function that transforms the decoded response data into a model object
+     * @param  callable(array<mixed, mixed>): T  $processor  Callback function that transforms the decoded response data into a model object
      * @return T Processed result of type T
      *
      * @throws ApiError If the response is invalid, cannot be decoded, or unexpected error occurs
