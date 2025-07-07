@@ -28,13 +28,13 @@ class AirRaidAlertOblastStatuses
         ];
 
         foreach (str_split($data) as $index => $status) {
-            if ($oblast_level_only && 'A' !== $status) {
-                continue;
-            }
             if (! isset($oblasts[$index])) {
                 continue;
             }
-            $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$index], $status);
+
+            if (! $oblast_level_only || 'A' === $status) {
+                $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$index], $status);
+            }
         }
     }
 
