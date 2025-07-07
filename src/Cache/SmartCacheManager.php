@@ -114,9 +114,12 @@ class SmartCacheManager
      * @param  string  $key  Cache key
      * @return mixed|null Stale value or null if unavailable
      */
-    private function getStaleData(string $key) : mixed
+    public function getStaleData(string $key) : mixed
     {
-        // Not implemented for InMemoryCache
+        if (method_exists($this->cache, 'getStale')) {
+            return $this->cache->getStale($key);
+        }
+
         return null;
     }
 }
