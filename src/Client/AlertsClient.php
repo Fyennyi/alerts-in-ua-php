@@ -3,6 +3,8 @@
 namespace Fyennyi\AlertsInUa\Client;
 
 use Fiber;
+use Fyennyi\AlertsInUa\Cache\CacheInterface;
+use Fyennyi\AlertsInUa\Cache\InMemoryCache;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
