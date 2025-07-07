@@ -49,6 +49,14 @@ interface CacheInterface
     public function has(string $key) : bool;
 
     /**
+     * Retrieve stale (expired) cache value, if available
+     *
+     * @param  string  $key  Cache key
+     * @return mixed|null Stale value or null if not retrievable
+     */
+    public function getStale(string $key) : mixed;
+
+    /**
      * Get all cache keys
      *
      * @return list<string> List of all available cache keys
