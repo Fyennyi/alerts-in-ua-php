@@ -229,7 +229,7 @@ class Alert
      */
     public function isActive() : bool
     {
-        return null === $this->finished_at
+        return null === $this->finished_at;
     }
 
     /**
