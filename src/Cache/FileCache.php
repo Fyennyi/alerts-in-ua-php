@@ -25,7 +25,7 @@ class FileCache implements CacheInterface
         }
 
         $data = file_get_contents($filename);
-        if ($data === false) {
+        if (false === $data) {
             return null;
         }
 
@@ -63,7 +63,7 @@ class FileCache implements CacheInterface
     public function clear() : bool
     {
         $files = glob($this->cache_dir . '/*.cache');
-        if ($files === false) {
+        if (false === $files) {
             return false;
         }
 
@@ -77,6 +77,32 @@ class FileCache implements CacheInterface
     public function has(string $key) : bool
     {
         return null !== $this->get($key);
+    }
+
+    public function keys() : array
+    {
+        $files = glob($this->cache_dir . '/*.cache');
+        if (false === $files) {
+            return [];
+        }
+
+        $keys = [];
+
+        foreach ($files as $file) {
+            $data = file_get_contents($file);
+            if (false === $data) {
+                continue;
+            }
+
+            $item = @unserialize($data);
+            if (! is_array($item) || ! isset($item['key'])) {
+                continue;
+            }
+
+            $keys[] = $item['key'];
+        }
+
+        return $keys;
     }
 
     /**
