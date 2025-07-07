@@ -61,7 +61,12 @@ class AlertsClient
      */
     public function getActiveAlerts(bool $use_cache = true) : Fiber
     {
-        return $this->createFiber('alerts/active.json', $use_cache, fn ($data) => new Alerts($data));
+        return $this->createFiber(
+            'alerts/active.json',
+            $use_cache,
+            fn ($data) => new Alerts($data),
+            'active_alerts'
+        );
     }
 
     /**
@@ -79,7 +84,12 @@ class AlertsClient
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
-        return $this->createFiber($url, $use_cache, fn ($data) => new Alerts($data));
+        return $this->createFiber(
+            $url,
+            $use_cache,
+            fn ($data) => new Alerts($data),
+            'alerts_history'
+        );
     }
 
     /**
@@ -97,18 +107,23 @@ class AlertsClient
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
 
-        return $this->createFiber($url, $use_cache, function (array $data) use ($oblast_uid) : AirRaidAlertOblastStatus {
-            $location_title = (new LocationUidResolver)->resolveLocationTitle($oblast_uid);
-            $first_value = '';
-            if (count($data) > 0) {
-                $first_value = reset($data);
-                if (! is_string($first_value)) {
-                    $first_value = '';
+        return $this->createFiber(
+            $url,
+            $use_cache,
+            function (array $data) use ($oblast_uid) : AirRaidAlertOblastStatus {
+                $location_title = (new LocationUidResolver)->resolveLocationTitle($oblast_uid);
+                $first_value = '';
+                if (count($data) > 0) {
+                    $first_value = reset($data);
+                    if (! is_string($first_value)) {
+                        $first_value = '';
+                    }
                 }
-            }
 
-            return new AirRaidAlertOblastStatus($location_title, $first_value);
-        });
+                return new AirRaidAlertOblastStatus($location_title, $first_value);
+            },
+            'air_raid_status'
+        );
     }
 
     /**
@@ -120,17 +135,22 @@ class AlertsClient
      */
     public function getAirRaidAlertStatusesByOblast(bool $oblast_level_only = false, bool $use_cache = true): Fiber
     {
-        return $this->createFiber('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (array $data) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
-            $first_value = '';
-            if (count($data) > 0) {
-                $first_value = reset($data);
-                if (! is_string($first_value)) {
-                    $first_value = '';
+        return $this->createFiber(
+            'iot/active_air_raid_alerts_by_oblast.json',
+            $use_cache,
+            function (array $data) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
+                $first_value = '';
+                if (count($data) > 0) {
+                    $first_value = reset($data);
+                    if (! is_string($first_value)) {
+                        $first_value = '';
+                    }
                 }
-            }
 
-            return new AirRaidAlertOblastStatuses($first_value, $oblast_level_only);
-        });
+                return new AirRaidAlertOblastStatuses($first_value, $oblast_level_only);
+            },
+            'air_raid_statuses'
+        );
     }
 
     /**
