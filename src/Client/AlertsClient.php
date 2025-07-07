@@ -147,7 +147,7 @@ class AlertsClient
     {
         /** @var Fiber<mixed, mixed, T, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
-            return $this->cacheManager->getOrSet(
+            return $this->cache_manager->getOrSet(
                 $endpoint,
                 fn () => $this->fetchData($endpoint, $processor),
                 'default',
