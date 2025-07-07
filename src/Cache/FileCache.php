@@ -104,7 +104,7 @@ class FileCache implements CacheInterface
         }
 
         /** @var list<string> */
-        return array_values($keys);
+        return $keys;
     }
 
     /**
