@@ -76,18 +76,18 @@ class AlertsTest extends TestCase
 
         $chemicalAlerts = $this->alerts->getChemicalAlerts();
         $this->assertCount(1, $chemicalAlerts);
-        $this->assertEquals('chemical', $chemicalAlerts[array_key_first($chemicalAlerts)]->alert_type);
+        $this->assertEquals('chemical', $chemicalAlerts[array_key_first($chemicalAlerts)]->getAlertType());
     }
 
     public function testFilteringByLocationType()
     {
         $oblastAlerts = $this->alerts->getOblastAlerts();
         $this->assertCount(2, $oblastAlerts);
-        $this->assertEquals('oblast', $oblastAlerts[array_key_first($oblastAlerts)]->location_type);
+        $this->assertEquals('oblast', $oblastAlerts[array_key_first($oblastAlerts)]->getLocationType());
 
         $cityAlerts = $this->alerts->getCityAlerts();
         $this->assertCount(2, $cityAlerts);
-        $this->assertEquals('city', $cityAlerts[array_key_first($cityAlerts)]->location_type);
+        $this->assertEquals('city', $cityAlerts[array_key_first($cityAlerts)]->getLocationType());
     }
 
     public function testFilteringByOblast()
@@ -103,7 +103,7 @@ class AlertsTest extends TestCase
     {
         $kharkivCityAlerts = $this->alerts->getAlertsByLocationTitle('Харків');
         $this->assertCount(1, $kharkivCityAlerts);
-        $this->assertEquals('Харків', $kharkivCityAlerts[array_key_first($kharkivCityAlerts)]->location_title);
+        $this->assertEquals('Харків', $kharkivCityAlerts[array_key_first($kharkivCityAlerts)]->getLocationTitle());
     }
 
     public function testFilteringByMultipleParameters()
