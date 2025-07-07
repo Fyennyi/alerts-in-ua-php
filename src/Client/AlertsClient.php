@@ -240,6 +240,51 @@ class AlertsClient
     }
 
     /**
+     * Set TTL values for request types
+     *
+     * @param  array<string, int>  $ttl_config  Request type => TTL in seconds
+     * @return void
+     */
+    public function configureCacheTtl(array $ttl_config) : void
+    {
+        foreach ($ttl_config as $type => $ttl) {
+            $this->cache_manager->setTtl($type, $ttl);
+        }
+    }
+
+    /**
+     * Clear cache entries matching a pattern
+     *
+     * @param  string|null  $pattern  Pattern to match keys (e.g. '*'), or null to clear all
+     * @return void
+     */
+    public function clearCache(?string $pattern = null) : void
+    {
+        $this->cache_manager->invalidatePattern($pattern ?? '*');
+    }
+
+    /**
+     * Resolve UID by location name
+     *
+     * @param  string|int  $identifier  Identifier
+     * @return int Location UID
+     *
+     * @throws InvalidParameterException If location is not found
+     */
+    private function resolveUid(string|int $identifier) : int
+    {
+        if (is_string($identifier)) {
+            if (ctype_digit($identifier)) {
+                return (int) $identifier;
+            }
+
+            return (new LocationUidResolver)->resolveUid($identifier);
+        }
+
+        return $identifier;
+    }
+
+    /**
      * Process API errors
      *
      * @param  \Exception  $error  Request error
@@ -280,40 +325,6 @@ class AlertsClient
             }
         } else {
             throw new ApiError('Unknown error: ' . $error->getMessage());
-        }
-    }
-
-    /**
-     * Resolve UID by location name
-     *
-     * @param  string|int  $identifier  Identifier
-     * @return int Location UID
-     *
-     * @throws InvalidParameterException If location is not found
-     */
-    private function resolveUid(string|int $identifier) : int
-    {
-        if (is_string($identifier)) {
-            if (ctype_digit($identifier)) {
-                return (int) $identifier;
-            }
-
-            return (new LocationUidResolver)->resolveUid($identifier);
-        }
-
-        return $identifier;
-    }
-
-    /**
-     * Set TTL values for request types
-     *
-     * @param  array<string, int>  $ttl_config  Request type => TTL in seconds
-     * @return void
-     */
-    public function configureCacheTtl(array $ttl_config) : void
-    {
-        foreach ($ttl_config as $type => $ttl) {
-            $this->cache_manager->setTtl($type, $ttl);
         }
     }
 }
