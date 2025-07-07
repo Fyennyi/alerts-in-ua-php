@@ -55,4 +55,9 @@ class InMemoryCache implements CacheInterface
     {
         return null !== $this->get($key);
     }
+
+    public function keys() : array
+    {
+        return array_keys($this->cache);
+    }
 }
