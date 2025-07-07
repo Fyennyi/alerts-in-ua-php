@@ -3,6 +3,7 @@
 namespace Fyennyi\AlertsInUa\Client;
 
 use Fiber;
+use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
 use Fyennyi\AlertsInUa\Exception\ForbiddenError;
@@ -29,24 +30,25 @@ class AlertsClient
 
     private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
-    /** @var array<string, array<string, mixed>> */
-    private array $cache = [];
-
     /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
     private array $promises = [];
 
     /** @var array<int, Fiber<mixed, mixed, mixed, mixed>> */
     private array $fibers = [];
 
+    private SmartCacheManager $cache_manager;
+
     /**
      * Constructor for alerts.in.ua API client
      *
      * @param  string  $token  API token
+     * @param  CacheInterface|null  $cache  Optional cache implementation
      */
-    public function __construct(string $token)
+    public function __construct(string $token, CacheInterface $cache = null)
     {
         $this->client = new Client;
         $this->token = $token;
+        $this->cache_manager = new SmartCacheManager($cache ?? new InMemoryCache());
     }
 
     /**
@@ -138,64 +140,17 @@ class AlertsClient
      * @param  bool  $use_cache  Use cache
      * @param  callable(array<string, mixed>): T  $processor  Callback to process response data
      * @return Fiber<mixed, mixed, T, mixed> Fiber with result of type T
-     *
-     * @throws ApiError If response is invalid or unexpected error occurs
-     * @throws \Exception If request fails with a known error
      */
     private function createFiber(string $endpoint, bool $use_cache, callable $processor) : Fiber
     {
-        if ($use_cache && isset($this->cache[$endpoint])) {
-            /** @var array<string, mixed> $cached_data */
-            $cached_data = $this->cache[$endpoint];
-            /** @var Fiber<mixed, mixed, T, mixed> */
-            $fiber = new Fiber(function () use ($processor, $cached_data) {
-                /** @var T */
-                return $processor($cached_data);
-            });
-            $fiber->start();
-            return $fiber;
-        }
-
         /** @var Fiber<mixed, mixed, T, mixed> */
         $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
-            $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Accept'        => 'application/json',
-                    'User-Agent'    => UserAgent::getUserAgent(),
-                ],
-            ]);
-
-            $this->promises[] = $promise;
-            Fiber::suspend();
-
-            try {
-                $response = $promise->wait();
-                if (! $response instanceof ResponseInterface) {
-                    throw new ApiError('Invalid response received');
-                }
-
-                $body = $response->getBody();
-                $data = json_decode($body->getContents(), true);
-                if (! is_array($data)) {
-                    throw new ApiError('Invalid JSON response received');
-                }
-
-                /** @var array<string, mixed> $data */
-                if ($use_cache) {
-                    $this->cache[$endpoint] = $data;
-                }
-
-                /** @var T */
-                return $processor($data);
-            } catch (\Throwable $e) {
-                if ($e instanceof \Exception) {
-                    $this->processError($e);
-                } else {
-                    throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
-                }
-                throw $e;
-            }
+            return $this->cacheManager->getOrSet(
+                $endpoint,
+                fn () => $this->fetchData($endpoint, $processor),
+                'default',
+                $use_cache
+            );
         });
 
         $fiber->start();
@@ -205,6 +160,56 @@ class AlertsClient
         }
 
         return $fiber;
+    }
+
+    /**
+     * Perform an HTTP GET request and process the response using the provided processor
+     *
+     * @template T
+     *
+     * @param  string  $endpoint  Relative API endpoint (e.g., "alerts/active.json")
+     * @param  callable(array<string, mixed>): T  $processor  Callback function that transforms the decoded response data into a model object
+     * @return T Processed result of type T
+     *
+     * @throws ApiError If the response is invalid, cannot be decoded, or unexpected error occurs
+     * @throws \Throwable If any other unhandled error occurs
+     */
+    private function fetchData(string $endpoint, callable $processor) : mixed
+    {
+        $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->token,
+                'Accept'        => 'application/json',
+                'User-Agent'    => UserAgent::getUserAgent(),
+            ],
+        ]);
+
+        $this->promises[] = $promise;
+        Fiber::suspend();
+
+        try {
+            $response = $promise->wait();
+            if (! $response instanceof ResponseInterface) {
+                throw new ApiError('Invalid response received');
+            }
+
+            $body = $response->getBody();
+            $data = json_decode($body->getContents(), true);
+
+            if (! is_array($data)) {
+                throw new ApiError('Invalid JSON response received');
+            }
+
+            /** @var T */
+            return $processor($data);
+        } catch (\Throwable $e) {
+            if ($e instanceof \Exception) {
+                $this->processError($e);
+            } else {
+                throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -295,5 +300,18 @@ class AlertsClient
         }
 
         return $identifier;
+    }
+
+    /**
+     * Set TTL values for request types
+     *
+     * @param  array<string, int>  $ttlConfig  Request type => TTL in seconds
+     * @return void
+     */
+    public function configureCacheTtl(array $ttl_config) : void
+    {
+        foreach ($ttl_config as $type => $ttl) {
+            $this->cache_manager->setTtl($type, $ttl);
+        }
     }
 }
