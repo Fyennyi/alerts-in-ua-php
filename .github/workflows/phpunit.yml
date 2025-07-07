@@ -2,7 +2,7 @@ name: PHP Unit Tests
 
 on:
   push:
-    branches: [ "feature/smart-cache" ]
+    branches: [ "feature/async-client" ]
   pull_request:
     branches: [ "main" ]
 
