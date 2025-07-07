@@ -128,9 +128,10 @@ class AlertsClientTest extends TestCase
 
 public function testOblastLevelFilter()
 {
-    // 1. Підготовка тестових даних
+    // 1. Підготовка тестових даних - додаємо ДВІ відповіді в чергу
     $testResponse = json_encode(["ANPNAPNNNNNNNNNNNNNNNNNNNNN"]);
-    $this->mockHandler->append(new Response(200, [], $testResponse));
+    $this->mockHandler->append(new Response(200, [], $testResponse)); // Для першого виклику
+    $this->mockHandler->append(new Response(200, [], $testResponse)); // Для другого виклику
 
     // 2. Спочатку отримуємо всі статуси без фільтрації
     $allStatuses = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(false, false)->wait();
