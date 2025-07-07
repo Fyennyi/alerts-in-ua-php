@@ -132,25 +132,36 @@ public function testOblastLevelFilter()
     $testResponse = json_encode(["ANPNAPNNNNNNNNNNNNNNNNNNNNN"]);
     $this->mockHandler->append(new Response(200, [], $testResponse));
 
-    // 2. Виклик методу з фільтрацією
-    $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
-    $statuses = $result->getStatuses();
+    // 2. Спочатку отримуємо всі статуси без фільтрації
+    $allStatuses = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(false, false)->wait();
+    
+    // 3. Виводимо всі статуси для дебагу
+    echo "\nAll regions with statuses:\n";
+    echo str_pad("Region", 30) . " | Status\n";
+    echo str_repeat("-", 30) . " | ------\n";
+    foreach ($allStatuses->getStatuses() as $status) {
+        echo str_pad($status->getOblast(), 30) . " | " . $status->getStatus() . "\n";
+    }
 
-    // 3. Дебаг-вивід
-    echo "\nFiltered regions (should be only A statuses):\n";
-    foreach ($statuses as $status) {
+    // 4. Тепер отримуємо тільки фільтровані статуси (A)
+    $filteredResult = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true, false)->wait();
+    $filteredStatuses = $filteredResult->getStatuses();
+
+    // 5. Виводимо фільтровані результати
+    echo "\nFiltered regions (only A statuses):\n";
+    foreach ($filteredStatuses as $status) {
         echo $status->getOblast() . " (" . $status->getStatus() . ")\n";
     }
 
-    // 4. Перевірки
-    $this->assertCount(2, $statuses, 'Should return only 2 oblasts with A status');
+    // 6. Перевірки
+    $this->assertCount(2, $filteredStatuses, 'Should return only 2 oblasts with A status');
     
     $expectedOblasts = [
         'Автономна Республіка Крим',
         'Донецька область'
     ];
     
-    foreach ($statuses as $status) {
+    foreach ($filteredStatuses as $status) {
         $this->assertEquals('A', $status->getStatus());
         $this->assertContains($status->getOblast(), $expectedOblasts);
     }
