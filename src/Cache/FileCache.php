@@ -47,11 +47,12 @@ class FileCache implements CacheInterface
     {
         $filename = $this->getCacheFilename($key);
         $data = serialize([
+            'key' => $key,
             'value' => $value,
             'expires' => $ttl > 0 ? time() + $ttl : 0,
         ]);
 
-        return file_put_contents($filename, $data) !== false;
+        return false !== file_put_contents($filename, $data);
     }
 
     public function delete(string $key) : bool
