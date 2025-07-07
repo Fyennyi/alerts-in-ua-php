@@ -136,9 +136,9 @@ public function testOblastLevelFilter()
     
     // Дебаг-вивід усіх областей
     echo "\nAll regions statuses:\n";
-    foreach ($allStatuses->getStatuses() as $status) {
-        printf("%-25s | %s\n", $status->getOblast(), $status->getStatus());
-    }
+    //foreach ($allStatuses->getStatuses() as $status) {
+    //    printf("%-25s | %s\n", $status->getOblast(), $status->getStatus());
+    //}
 
     // 2. Тестуємо фільтрацію
     $filteredResult = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true, false)->wait();
