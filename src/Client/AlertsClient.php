@@ -307,7 +307,7 @@ class AlertsClient
     /**
      * Set TTL values for request types
      *
-     * @param  array<string, int>  $ttlConfig  Request type => TTL in seconds
+     * @param  array<string, int>  $ttl_config  Request type => TTL in seconds
      * @return void
      */
     public function configureCacheTtl(array $ttl_config) : void
