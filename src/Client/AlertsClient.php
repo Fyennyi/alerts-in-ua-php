@@ -2,7 +2,6 @@
 
 namespace Fyennyi\AlertsInUa\Client;
 
-use Fiber;
 use Fyennyi\AlertsInUa\Cache\CacheInterface;
 use Fyennyi\AlertsInUa\Cache\InMemoryCache;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
@@ -21,23 +20,21 @@ use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise\Utils;
+use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class AlertsClient
 {
+    /** @var Client HTTP client for making requests */
     private Client $client;
 
+    /** @var string API authentication token */
     private string $token;
 
+    /** @var string Base URL for the API */
     private string $baseUrl = 'https://api.alerts.in.ua/v1/';
 
-    /** @var list<\GuzzleHttp\Promise\PromiseInterface> */
-    private array $promises = [];
-
-    /** @var array<int, Fiber<mixed, mixed, mixed, mixed>> */
-    private array $fibers = [];
-
+    /** @var SmartCacheManager Manages caching of API responses */
     private SmartCacheManager $cache_manager;
 
     /**
@@ -54,60 +51,50 @@ class AlertsClient
     }
 
     /**
-     * Get active alerts using fibers
+     * Retrieves active alerts asynchronously
      *
-     * @param  bool  $use_cache  Use cache
-     * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
+     * @param  bool  $use_cache  Whether to use cached results if available
+     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
      */
-    public function getActiveAlerts(bool $use_cache = true) : Fiber
+    public function getActiveAlertsAsync(bool $use_cache = true) : PromiseInterface
     {
-        return $this->createFiber(
-            'alerts/active.json',
-            $use_cache,
-            fn ($data) => new Alerts($data),
-            'active_alerts'
-        );
+        return $this->createAsync('alerts/active.json', $use_cache, fn ($data) => new Alerts($data), 'active_alerts');
     }
 
     /**
-     * Get alert history for specific region using fibers
+     * Retrieves alert history for a specific region asynchronously
      *
-     * @param  string|int  $oblast_uid_or_location_title  Region unique identifier or name
-     * @param  string  $period  Alert history period
-     * @param  bool  $use_cache  Use cache
-     * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
+     * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
+     * @param  string  $period  Time period for history (default: 'week_ago')
+     * @param  bool  $use_cache  Whether to use cached results if available
+     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
      *
-     * @throws InvalidParameterException If location is not found
+     * @throws InvalidParameterException If the location cannot be resolved
      */
-    public function getAlertsHistory(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : Fiber
+    public function getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : PromiseInterface
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
-        return $this->createFiber(
-            $url,
-            $use_cache,
-            fn ($data) => new Alerts($data),
-            'alerts_history'
-        );
+        return $this->createAsync($url, $use_cache, fn ($data) => new Alerts($data), 'alerts_history');
     }
 
     /**
-     * Get air raid alert status for specific region using fibers
+     * Retrieves air raid alert status for a specific region asynchronously
      *
-     * @param  string|int  $oblast_uid_or_location_title  Region unique identifier or name
-     * @param  bool  $oblast_level_only  Return only oblast-level alerts
-     * @param  bool  $use_cache  Use cache
-     * @return Fiber<mixed, mixed, AirRaidAlertOblastStatus, mixed> Fiber with result
+     * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
+     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
+     * @param  bool  $use_cache  Whether to use cached results if available
+     * @return PromiseInterface<AirRaidAlertOblastStatus> Promise that resolves to an AirRaidAlertOblastStatus object
      *
-     * @throws InvalidParameterException If location is not found
+     * @throws InvalidParameterException If the location cannot be resolved
      */
-    public function getAirRaidAlertStatus(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = true) : Fiber
+    public function getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = true) : PromiseInterface
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
 
-        return $this->createFiber(
+        return $this->createAsync(
             $url,
             $use_cache,
             function (array $data) use ($oblast_uid) : AirRaidAlertOblastStatus {
@@ -127,15 +114,15 @@ class AlertsClient
     }
 
     /**
-     * Get air raid alert statuses for all regions using fibers
+     * Retrieves air raid alert statuses for all regions asynchronously
      *
-     * @param  bool  $oblast_level_only  Return only oblast-level alerts
-     * @param  bool  $use_cache  Use cache
-     * @return Fiber<mixed, mixed, AirRaidAlertOblastStatuses, mixed> Fiber with result
+     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
+     * @param  bool  $use_cache  Whether to use cached results if available
+     * @return PromiseInterface<AirRaidAlertOblastStatuses> Promise that resolves to an AirRaidAlertOblastStatuses object
      */
-    public function getAirRaidAlertStatusesByOblast(bool $oblast_level_only = false, bool $use_cache = true): Fiber
+    public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = true) : PromiseInterface
     {
-        return $this->createFiber(
+        return $this->createAsync(
             'iot/active_air_raid_alerts_by_oblast.json',
             $use_cache,
             function (array $data) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
@@ -154,143 +141,57 @@ class AlertsClient
     }
 
     /**
-     * Create fiber for API request
+     * Creates an asynchronous API request
      *
      * @template T
      *
      * @param  string  $endpoint  API endpoint
-     * @param  bool  $use_cache  Use cache
-     * @param  callable(array<mixed, mixed>): T  $processor  Callback to process response data
-     * @param  string  $type  Cache category
-     * @return Fiber<mixed, mixed, T, mixed> Fiber with result of type T
+     * @param  bool  $use_cache  Whether to use cached results
+     * @param  callable(array): T  $processor  Function to process the response data
+     * @param  string  $type  Cache type identifier
+     * @return PromiseInterface<T> Promise that resolves to the processed result
      */
-    private function createFiber(string $endpoint, bool $use_cache, callable $processor, string $type = 'default') : Fiber
+    private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default') : PromiseInterface
     {
-        /** @var Fiber<mixed, mixed, T, mixed> */
-        $fiber = new Fiber(function () use ($type, $endpoint, $use_cache, $processor) {
-            return $this->cache_manager->getOrSet(
-                $endpoint,
-                fn () => $this->fetchData($endpoint, $processor),
-                $type,
-                $use_cache
-            );
-        });
-
-        $fiber->start();
-
-        if ($fiber->isSuspended()) {
-            $this->fibers[] = $fiber;
+        if ($use_cache && ($cached = $this->cache_manager->get($endpoint, $type))) {
+            return \GuzzleHttp\Promise\promise_for($cached);
         }
 
-        return $fiber;
-    }
-
-    /**
-     * Perform an HTTP GET request and process the response using the provided processor
-     *
-     * @template T
-     *
-     * @param  string  $endpoint  Relative API endpoint (e.g., "alerts/active.json")
-     * @param  callable(array<mixed, mixed>): T  $processor  Callback function that transforms the decoded response data into a model object
-     * @return T Processed result of type T
-     *
-     * @throws ApiError If the response is invalid, cannot be decoded, or unexpected error occurs
-     * @throws \Throwable If any other unhandled error occurs
-     */
-    private function fetchData(string $endpoint, callable $processor) : mixed
-    {
-        $promise = $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
+        return $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->token,
                 'Accept'        => 'application/json',
                 'User-Agent'    => UserAgent::getUserAgent(),
             ],
-        ]);
+        ])->then(
+            function (ResponseInterface $response) use ($processor, $endpoint, $type, $use_cache) {
+                $data = json_decode($response->getBody()->getContents(), true);
+                if (! is_array($data)) {
+                    throw new ApiError('Invalid JSON response');
+                }
+                $result = $processor($data);
+                if ($use_cache) {
+                    $this->cache_manager->set($endpoint, $result, $type);
+                }
 
-        $this->promises[] = $promise;
-        Fiber::suspend();
-
-        try {
-            $response = $promise->wait();
-            if (! $response instanceof ResponseInterface) {
-                throw new ApiError('Invalid response received');
+                return $result;
+            },
+            function (\Throwable $reason) {
+                if ($reason instanceof \Exception) {
+                    $this->processError($reason);
+                }
+                throw $reason;
             }
-
-            $body = $response->getBody();
-            $data = json_decode($body->getContents(), true);
-
-            if (! is_array($data)) {
-                throw new ApiError('Invalid JSON response received');
-            }
-
-            /** @var T */
-            return $processor($data);
-        } catch (\Throwable $e) {
-            if ($e instanceof \Exception) {
-                $this->processError($e);
-            } else {
-                throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
-            }
-            throw $e;
-        }
+        );
     }
 
     /**
-     * Wait for all async requests to complete
+     * Resolves a location identifier to a UID
      *
-     * @return void
-     */
-    public function wait() : void
-    {
-        if (empty($this->promises)) {
-            return;
-        }
-
-        $results = Utils::settle($this->promises)->wait();
-        $this->promises = [];
-
-        foreach ($this->fibers as $key => $fiber) {
-            if ($fiber->isSuspended()) {
-                $fiber->resume();
-            }
-
-            unset($this->fibers[$key]);
-        }
-
-        $this->fibers = [];
-    }
-
-    /**
-     * Set TTL values for request types
+     * @param  string|int  $identifier  Location identifier (name or UID)
+     * @return int Resolved location UID
      *
-     * @param  array<string, int>  $ttl_config  Request type => TTL in seconds
-     * @return void
-     */
-    public function configureCacheTtl(array $ttl_config) : void
-    {
-        foreach ($ttl_config as $type => $ttl) {
-            $this->cache_manager->setTtl($type, $ttl);
-        }
-    }
-
-    /**
-     * Clear cache entries matching a pattern
-     *
-     * @param  string|null  $pattern  Pattern to match keys (e.g. '*'), or null to clear all
-     * @return void
-     */
-    public function clearCache(?string $pattern = null) : void
-    {
-        $this->cache_manager->invalidatePattern($pattern ?? '*');
-    }
-
-    /**
-     * Resolve UID by location name
-     *
-     * @param  string|int  $identifier  Identifier
-     * @return int Location UID
-     *
-     * @throws InvalidParameterException If location is not found
+     * @throws InvalidParameterException If the location name cannot be resolved
      */
     private function resolveUid(string|int $identifier) : int
     {
@@ -306,18 +207,18 @@ class AlertsClient
     }
 
     /**
-     * Process API errors
+     * Processes API errors and throws appropriate exceptions
      *
-     * @param  \Exception  $error  Request error
+     * @param  \Exception  $error  The caught exception
      * @return void
      *
-     * @throws UnauthorizedError If the response status is 401
-     * @throws ForbiddenError If the response status is 403
-     * @throws NotFoundError If the response status is 404
-     * @throws RateLimitError If the response status is 429
-     * @throws BadRequestError If the response status is 400
-     * @throws InternalServerError If the response status is 500
-     * @throws ApiError For any other or unknown errors
+     * @throws UnauthorizedError For 401 responses
+     * @throws ForbiddenError For 403 responses
+     * @throws NotFoundError For 404 responses
+     * @throws RateLimitError For 429 responses
+     * @throws BadRequestError For 400 responses
+     * @throws InternalServerError For 500 responses
+     * @throws ApiError For other API errors
      */
     private function processError(\Exception $error) : void
     {
@@ -347,5 +248,29 @@ class AlertsClient
         } else {
             throw new ApiError('Unknown error: ' . $error->getMessage());
         }
+    }
+
+    /**
+     * Configures cache TTL (Time To Live) settings for different request types
+     *
+     * @param  array<string, int>  $ttl_config  Associative array of cache types and their TTL in seconds
+     * @return void
+     */
+    public function configureCacheTtl(array $ttl_config) : void
+    {
+        foreach ($ttl_config as $type => $ttl) {
+            $this->cache_manager->setTtl($type, $ttl);
+        }
+    }
+
+    /**
+     * Clears cached items matching a pattern
+     *
+     * @param  string|null  $pattern  Cache key pattern (null clears all)
+     * @return void
+     */
+    public function clearCache(?string $pattern = null) : void
+    {
+        $this->cache_manager->invalidatePattern($pattern ?? '*');
     }
 }
