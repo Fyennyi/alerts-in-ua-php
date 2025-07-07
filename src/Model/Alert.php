@@ -2,6 +2,8 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use DateInterval;
+use DateTimeImmutable;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alert
@@ -218,5 +220,143 @@ class Alert
     public function isFinished() : bool
     {
         return null !== $this->finished_at;
+    }
+
+    /**
+     * Check if alert is currently active
+     *
+     * @return bool True if alert doesn't have finished_at date set
+     */
+    public function isActive() : bool
+    {
+        return null === $this->finished_at
+    }
+
+    /**
+     * Get the duration of the alert
+     *
+     * @return DateInterval|null Duration as DateInterval or null if couldn't calculate
+     */
+    public function getDuration() : ?DateInterval
+    {
+        if (null === $this->started_at) {
+            return null;
+        }
+
+        $end_time = $this->finished_at ?? new DateTimeImmutable();
+
+        return $this->started_at->diff($end_time);
+    }
+
+    /**
+     * Get the duration in seconds
+     *
+     * @return int|null Duration in seconds or null if couldn't calculate
+     */
+    public function getDurationInSeconds() : ?int
+    {
+        if (null === $this->started_at) {
+            return null;
+        }
+
+        $end_time = $this->finished_at ?? new DateTimeImmutable();
+
+        return $end_time->getTimestamp() - $this->started_at->getTimestamp();
+    }
+
+    /**
+     * Get the duration in human-readable format (e.g. "2 hours 15 minutes")
+     *
+     * @return string|null Human-readable duration or null if couldn't calculate
+     */
+    public function getHumanReadableDuration() : ?string
+    {
+        $interval = $this->getDuration();
+        if (null === $interval) {
+            return null;
+        }
+
+        $parts = [];
+        if ($interval->y > 0) {
+            $parts[] = $interval->y . ' ' . ($interval->y === 1 ? 'year' : 'years');
+        }
+        if ($interval->m > 0) {
+            $parts[] = $interval->m . ' ' . ($interval->m === 1 ? 'month' : 'months');
+        }
+        if ($interval->d > 0) {
+            $parts[] = $interval->d . ' ' . ($interval->d === 1 ? 'day' : 'days');
+        }
+        if ($interval->h > 0) {
+            $parts[] = $interval->h . ' ' . ($interval->h === 1 ? 'hour' : 'hours');
+        }
+        if ($interval->i > 0) {
+            $parts[] = $interval->i . ' ' . ($interval->i === 1 ? 'minute' : 'minutes');
+        }
+        if ($interval->s > 0 && count($parts) === 0) {
+            $parts[] = $interval->s . ' ' . ($interval->s === 1 ? 'second' : 'seconds');
+        }
+
+        return implode(' ', $parts) ?: 'less than a second';
+    }
+
+    /**
+     * Check if alert is of specific type
+     *
+     * @param  string  $type  Alert type to check (air_raid, artillery_shelling, etc.)
+     * @return bool True if alert matches the type
+     */
+    public function isType(string $type) : bool
+    {
+        return $type === $this->alert_type;
+    }
+
+    /**
+     * Check if alert is in specific location
+     *
+     * @param  string  $location  Location name to check
+     * @return bool True if alert is in the specified location
+     */
+    public function isInLocation(string $location) : bool
+    {
+        return false !== stripos($this->location_title, $location) 
+            || (null !== $this->location_oblast && false !== stripos($this->location_oblast, $location))
+            || (null !== $this->location_raion && false !== stripos($this->location_raion, $location));
+    }
+
+    /**
+     * Get alert as array representation
+     *
+     * @return array<string, mixed> Array representation of the alert
+     */
+    public function toArray() : array
+    {
+        return [
+            'id' => $this->id,
+            'location_title' => $this->location_title,
+            'location_type' => $this->location_type,
+            'started_at' => $this->started_at?->format('Y-m-d H:i:s'),
+            'finished_at' => $this->finished_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'alert_type' => $this->alert_type,
+            'location_uid' => $this->location_uid,
+            'location_oblast' => $this->location_oblast,
+            'location_oblast_uid' => $this->location_oblast_uid,
+            'location_raion' => $this->location_raion,
+            'notes' => $this->notes,
+            'calculated' => $this->calculated,
+            'is_active' => $this->isActive(),
+            'duration' => $this->getDurationInSeconds(),
+            'human_readable_duration' => $this->getHumanReadableDuration(),
+        ];
+    }
+
+    /**
+     * Get alert as JSON representation
+     *
+     * @return string JSON representation of the alert
+     */
+    public function toJson() : string
+    {
+        return json_encode($this->toArray(), JSON_PRETTY_PRINT);
     }
 }
