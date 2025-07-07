@@ -63,15 +63,20 @@ class SmartCacheManager
     }
 
     /**
-     * Invalidate cache entries matching a pattern (currently clears all)
+     * Invalidate cache entries matching a pattern (supports '*' wildcard)
      *
-     * @param  string  $pattern Pattern or wildcard (e.g. '*')
+     * @param  string  $pattern  Pattern or wildcard (e.g. 'alerts/*', '*')
      * @return void
      */
     public function invalidatePattern(string $pattern) : void
     {
-        // TODO: Pattern-matching invalidation if supported
-        $this->cache->clear();
+        $regex = '/^' . str_replace('\*', '.*', preg_quote($pattern, '/')) . '$/';
+
+        foreach ($this->cache->keys() as $key) {
+            if (preg_match($regex, $key)) {
+                $this->cache->delete($key);
+            }
+        }
     }
 
     /**
