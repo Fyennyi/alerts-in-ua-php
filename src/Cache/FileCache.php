@@ -11,7 +11,7 @@ class FileCache implements CacheInterface
 
     public function __construct(string $cache_dir = '/tmp/alerts_cache')
     {
-        $this->cacheDir = $cache_dir;
+        $this->cache_dir = $cache_dir;
         if (! is_dir($this->cache_dir)) {
             mkdir($this->cache_dir, 0755, true);
         }
