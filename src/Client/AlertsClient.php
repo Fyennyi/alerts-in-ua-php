@@ -167,7 +167,7 @@ class AlertsClient
     private function createFiber(string $endpoint, bool $use_cache, callable $processor, string $type = 'default') : Fiber
     {
         /** @var Fiber<mixed, mixed, T, mixed> */
-        $fiber = new Fiber(function () use ($endpoint, $use_cache, $processor) {
+        $fiber = new Fiber(function () use ($type, $endpoint, $use_cache, $processor) {
             return $this->cache_manager->getOrSet(
                 $endpoint,
                 fn () => $this->fetchData($endpoint, $processor),
