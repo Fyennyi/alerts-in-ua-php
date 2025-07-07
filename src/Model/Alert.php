@@ -354,9 +354,16 @@ class Alert
      * Get alert as JSON representation
      *
      * @return string JSON representation of the alert
+     *
+     * @throws \RuntimeException If JSON encoding fails
+     */
      */
     public function toJson() : string
     {
-        return json_encode($this->toArray(), JSON_PRETTY_PRINT);
+        try {
+            return json_encode($this->toArray(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new \RuntimeException('Failed to encode alert to JSON: ' . $e->getMessage(), 0, $e);
+        }
     }
 }
