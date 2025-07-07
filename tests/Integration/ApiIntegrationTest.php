@@ -59,7 +59,7 @@ class ApiIntegrationTest extends TestCase
         // Step 3: Calculate some statistics (example of business logic)
         $oblastStats = [];
         foreach ($history->getAllAlerts() as $alert) {
-            $oblast = $alert->location_oblast;
+            $oblast = $alert->getLocationOblast();
             if (! isset($oblastStats[$oblast])) {
                 $oblastStats[$oblast] = 0;
             }
