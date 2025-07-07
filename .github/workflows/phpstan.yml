@@ -2,7 +2,7 @@ name: PHPStan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "feature/smart-cache" ]
   pull_request:
     branches: [ "main" ]
 
