@@ -54,7 +54,7 @@ class AlertsClient
      * Retrieves active alerts asynchronously
      *
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
+     * @return PromiseInterface Promise that resolves to an Alerts object
      */
     public function getActiveAlertsAsync(bool $use_cache = true) : PromiseInterface
     {
@@ -67,7 +67,7 @@ class AlertsClient
      * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
      * @param  string  $period  Time period for history (default: 'week_ago')
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
+     * @return PromiseInterface Promise that resolves to an Alerts object
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
@@ -85,7 +85,7 @@ class AlertsClient
      * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
      * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface<AirRaidAlertOblastStatus> Promise that resolves to an AirRaidAlertOblastStatus object
+     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatus object
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
@@ -118,7 +118,7 @@ class AlertsClient
      *
      * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface<AirRaidAlertOblastStatuses> Promise that resolves to an AirRaidAlertOblastStatuses object
+     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatuses object
      */
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = true) : PromiseInterface
     {
@@ -145,7 +145,7 @@ class AlertsClient
      *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Whether to use cached results
-     * @param  callable(array<string, mixed>): mixed  $processor  Function to process the response data
+     * @param  callable(array): mixed  $processor  Function to process the response data
      * @param  string  $type  Cache type identifier
      * @return PromiseInterface Promise that resolves to the processed result
      */
