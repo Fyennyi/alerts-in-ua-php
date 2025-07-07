@@ -134,7 +134,7 @@ public function testOblastLevelFilter()
     $this->mockHandler->append(new Response(200, [], $testResponse)); // Для другого виклику
 
     // 2. Спочатку отримуємо всі статуси без фільтрації
-    $allStatuses = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(false, false)->wait();
+    $allStatuses = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(false)->wait();
     
     // 3. Виводимо всі статуси для дебагу
     echo "\nAll regions with statuses:\n";
@@ -145,7 +145,7 @@ public function testOblastLevelFilter()
     }
 
     // 4. Тепер отримуємо тільки фільтровані статуси (A)
-    $filteredResult = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true, false)->wait();
+    $filteredResult = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
     $filteredStatuses = $filteredResult->getStatuses();
 
     // 5. Виводимо фільтровані результати
