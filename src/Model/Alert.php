@@ -357,7 +357,6 @@ class Alert
      *
      * @throws \RuntimeException If JSON encoding fails
      */
-     */
     public function toJson() : string
     {
         try {
