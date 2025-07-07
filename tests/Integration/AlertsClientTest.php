@@ -128,38 +128,32 @@ class AlertsClientTest extends TestCase
 
 public function testOblastLevelFilter()
 {
-    $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
-    $this->mockHandler->append(new Response(200, [], json_encode($testData)));
+    // 1. Підготовка тестових даних
+    $testResponse = json_encode(["ANPNAPNNNNNNNNNNNNNNNNNNNNN"]);
+    $this->mockHandler->append(new Response(200, [], $testResponse));
 
-    // 1. Спочатку отримуємо всі статуси для дебагу
-    $allStatuses = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(false, false)->wait();
-    
-    // Дебаг-вивід усіх областей
-    echo "\nAll regions statuses:\n";
-    //foreach ($allStatuses->getStatuses() as $status) {
-    //    printf("%-25s | %s\n", $status->getOblast(), $status->getStatus());
-    //}
+    // 2. Виклик методу з фільтрацією
+    $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
+    $statuses = $result->getStatuses();
 
-    // 2. Тестуємо фільтрацію
-    $filteredResult = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true, false)->wait();
-    $filteredStatuses = $filteredResult->getStatuses();
-
-    // Дебаг-вивід відфільтрованих результатів
-    echo "\nFiltered (A only):\n";
-    foreach ($filteredStatuses as $status) {
-        echo $status->getOblast() . "\n";
+    // 3. Дебаг-вивід
+    echo "\nFiltered regions (should be only A statuses):\n";
+    foreach ($statuses as $status) {
+        echo $status->getOblast() . " (" . $status->getStatus() . ")\n";
     }
 
-    // Перевірки
-    $this->assertCount(2, $filteredStatuses, 'Expected only 2 oblast-level alerts (A)');
+    // 4. Перевірки
+    $this->assertCount(2, $statuses, 'Should return only 2 oblasts with A status');
     
-    $expectedRegions = [
+    $expectedOblasts = [
         'Автономна Республіка Крим',
         'Донецька область'
     ];
     
-    $actualRegions = array_map(fn($s) => $s->getOblast(), $filteredStatuses);
-    $this->assertEquals($expectedRegions, $actualRegions, 'Incorrect oblast filtering');
+    foreach ($statuses as $status) {
+        $this->assertEquals('A', $status->getStatus());
+        $this->assertContains($status->getOblast(), $expectedOblasts);
+    }
 }
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
