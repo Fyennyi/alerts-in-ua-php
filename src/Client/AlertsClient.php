@@ -145,7 +145,7 @@ class AlertsClient
      *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Whether to use cached results
-     * @param  callable(array): mixed  $processor  Function to process the response data
+     * @param  callable(array<int|string, mixed>): mixed  $processor  Function to process the response data
      * @param  string  $type  Cache type identifier
      * @return PromiseInterface Promise that resolves to the processed result
      */
