@@ -185,7 +185,8 @@ $client->getActiveAlertsAsync(false)->then(function ($alerts) {
 })->wait();
 ```
 
-> ℹ️ **Tip:** You can use `Utils::settle()` instead of `Utils::all()` if you want to gracefully handle individual request failures without throwing exceptions.
+> [!TIP]
+> You can use `Utils::settle()` instead of `Utils::all()` if you want to gracefully handle individual request failures without throwing exceptions.
 
 You can continue to use individual `->wait()` calls when needed, but using `Utils::all()` allows for better concurrency and performance when dealing with multiple requests.
 
@@ -230,7 +231,8 @@ Returns air raid alert statuses across all oblasts.
 
 ---
 
-> 🔁 **Note:** All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
+> [!NOTE]
+> All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
 
 ## Districts and Regions (UIDs)
 
