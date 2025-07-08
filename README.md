@@ -57,7 +57,7 @@ To retrieve historical alert data for a specific region:
 
 ```php
 try {
-    $history = $client->getAlertsHistoryAsync('Харківська область', 'day_ago', false)->wait();
+    $history = $client->getAlertsHistoryAsync('Харківська область', 'month_ago', false)->wait();
 
     echo "\nAlerts history for Kharkiv Oblast: " . count($history->getAllAlerts()) . "\n";
 
@@ -126,7 +126,7 @@ use GuzzleHttp\Promise\Utils;
 
 $promises = [
     'active' => $client->getActiveAlertsAsync(false),
-    'history' => $client->getAlertsHistoryAsync('Харківська область', 'day_ago', false),
+    'history' => $client->getAlertsHistoryAsync('Харківська область', 'month_ago', false),
 ];
 
 Utils::all($promises)->then(function ($results) {
@@ -206,7 +206,7 @@ Fetches a list of active alerts asynchronously.
 Fetches the alert history for a specific oblast or location.
 
 - `$oblast_uid_or_location_title` – Oblast title or numeric UID.
-- `$period` – Time period to retrieve alerts (e.g. `'day_ago'`, `'week_ago'`).
+- `$period` – Time period to retrieve alerts (e.g. `'month_ago'`, `'week_ago'`).
 - `$use_cache` – Whether to use cached data (default `true`).
 
 ---
