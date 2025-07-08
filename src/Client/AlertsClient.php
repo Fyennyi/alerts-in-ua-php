@@ -154,31 +154,52 @@ class AlertsClient
     {
         return $this->cache_manager->getOrSet(
             $endpoint,
-            fn () => $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
-                'headers' => [
+            function () use ($endpoint, $processor) {
+                $headers = [
                     'Authorization' => 'Bearer ' . $this->token,
                     'Accept'        => 'application/json',
                     'User-Agent'    => UserAgent::getUserAgent(),
-                ],
-            ])->then(
-                function (ResponseInterface $response) use ($processor) {
-                    $body = $response->getBody();
-                    $data = json_decode($body->getContents(), true);
-                    if (! is_array($data)) {
-                        throw new ApiError('Invalid JSON response received');
-                    }
+                ];
 
-                    return $processor($data);
-                },
-                function (\Throwable $e) {
-                    if ($e instanceof \Exception) {
-                        $this->processError($e);
-                    } else {
-                        throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
-                    }
-                    throw $e;
+                $last_modified = $this->cache_manager->getLastModified($endpoint);
+                if ($last_modified) {
+                    $headers['If-Modified-Since'] = $last_modified;
                 }
-            ),
+
+                return $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
+                    'headers' => $headers,
+                ])->then(
+                    function (ResponseInterface $response) use ($endpoint, $processor) {
+                        if (304 === $response->getStatusCode()) {
+                            return $this->cache_manager->getCachedData($endpoint);
+                        }
+
+                        $body = $response->getBody();
+                        $data = json_decode($body->getContents(), true);
+                        if (! is_array($data)) {
+                            throw new ApiError('Invalid JSON response received');
+                        }
+
+                        $last_modified = $response->getHeaderLine('Last-Modified');
+                        if ($last_modified) {
+                            $this->cache_manager->setLastModified($endpoint, $last_modified);
+                        }
+
+                        $processed = $processor($data);
+                        $this->cache_manager->storeProcessedData($endpoint, $processed);
+
+                        return $processed;
+                    },
+                    function (\Throwable $e) {
+                        if ($e instanceof \Exception) {
+                            $this->processError($e);
+                        } else {
+                            throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
+                        }
+                        throw $e;
+                    }
+                );
+            },
             $type,
             $use_cache
         );
