@@ -97,16 +97,16 @@ try {
     $alerts = $client->getActiveAlertsAsync(false)->wait();
 
     // Get only air raid alerts
-    $airRaidAlerts = $alerts->getAirRaidAlerts();
-    echo "\nAir raid alerts: " . count($airRaidAlerts) . "\n";
+    $air_raid_alerts = $alerts->getAirRaidAlerts();
+    echo "\nAir raid alerts: " . count($air_raid_alerts) . "\n";
 
     // Get only oblast-level alerts
-    $oblastAlerts = $alerts->getOblastAlerts();
-    echo "Oblast-level alerts: " . count($oblastAlerts) . "\n";
+    $oblast_alerts = $alerts->getOblastAlerts();
+    echo "Oblast-level alerts: " . count($oblast_alerts) . "\n";
 
     // Get alerts for a specific oblast
-    $kharkivAlerts = $alerts->getAlertsByOblast('Харківська область');
-    echo "Kharkiv Oblast alerts: " . count($kharkivAlerts) . "\n";
+    $kharkiv_alerts = $alerts->getAlertsByOblast('Харківська область');
+    echo "Kharkiv Oblast alerts: " . count($kharkiv_alerts) . "\n";
 
 } catch (\Throwable $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
@@ -157,13 +157,13 @@ $promises = [
 ];
 
 Utils::all($promises)->then(function ($results) {
-    $kyivStatus = $results['kyiv_status'];
-    $allStatuses = $results['all_statuses'];
+    $kyiv_status = $results['kyiv_status'];
+    $all_statuses = $results['all_statuses'];
 
-    echo "Kyiv Oblast air raid status: " . $kyivStatus->getStatus() . "\n";
+    echo "Kyiv Oblast air raid status: " . $kyiv_status->getStatus() . "\n";
 
     echo "\nAir raid alert statuses by oblast:\n";
-    foreach ($allStatuses->getStatuses() as $status) {
+    foreach ($all_statuses->getStatuses() as $status) {
         echo "{$status->getOblast()}: {$status->getStatus()}\n";
     }
 })->wait();
@@ -175,13 +175,13 @@ You can apply filters to the alerts once they are asynchronously retrieved:
 
 ```php
 $client->getActiveAlertsAsync(false)->then(function ($alerts) {
-    $airRaidAlerts = $alerts->getAirRaidAlerts();
-    $oblastAlerts = $alerts->getOblastAlerts();
-    $kharkivAlerts = $alerts->getAlertsByOblast('Харківська область');
+    $air_raid_alerts = $alerts->getAirRaidAlerts();
+    $oblast_alerts = $alerts->getOblastAlerts();
+    $kharkiv_alerts = $alerts->getAlertsByOblast('Харківська область');
 
-    echo "Air raid alerts: " . count($airRaidAlerts) . "\n";
-    echo "Oblast-level alerts: " . count($oblastAlerts) . "\n";
-    echo "Kharkiv Oblast alerts: " . count($kharkivAlerts) . "\n";
+    echo "Air raid alerts: " . count($air_raid_alerts) . "\n";
+    echo "Oblast-level alerts: " . count($oblast_alerts) . "\n";
+    echo "Kharkiv Oblast alerts: " . count($kharkiv_alerts) . "\n";
 })->wait();
 ```
 
