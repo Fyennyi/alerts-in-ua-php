@@ -16,7 +16,7 @@ class AirRaidAlertOblastStatuses
     public function __construct(string $data, bool $oblast_level_only)
     {
         $this->statuses = [];
-        /** @var list<int, string> $oblasts */
+        /** @var array<int, string> $oblasts */
         $oblasts = [
             'Автономна Республіка Крим', 'Волинська область', 'Вінницька область', 'Дніпропетровська область',
             'Донецька область', 'Житомирська область', 'Закарпатська область', 'Запорізька область',
