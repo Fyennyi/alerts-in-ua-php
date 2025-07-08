@@ -161,9 +161,11 @@ class AlertsClient
                     'User-Agent'    => UserAgent::getUserAgent(),
                 ];
 
-                $last_modified = $this->cache_manager->getLastModified($endpoint);
-                if ($last_modified) {
-                    $headers['If-Modified-Since'] = $last_modified;
+                if ($use_cache) {
+                    $last_modified = $this->cache_manager->getLastModified($endpoint);
+                    if ($last_modified) {
+                        $headers['If-Modified-Since'] = $last_modified;
+                    }
                 }
 
                 return $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
@@ -171,7 +173,11 @@ class AlertsClient
                 ])->then(
                     function (ResponseInterface $response) use ($endpoint, $processor) {
                         if (304 === $response->getStatusCode()) {
-                            return $this->cache_manager->getCachedData($endpoint);
+                            if ($use_cache) {
+                                return $this->cache_manager->getCachedData($endpoint);
+                            }
+
+                            throw new ApiError('Received 304 Not Modified but cache is disabled.');
                         }
 
                         $body = $response->getBody();
