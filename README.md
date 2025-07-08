@@ -113,6 +113,82 @@ try {
 }
 ```
 
+## Asynchronous Operations
+
+The library supports asynchronous operations for better performance when handling multiple requests. You can run multiple API calls concurrently without blocking execution.
+
+### Fetching Multiple Alerts Concurrently
+
+You can start multiple requests and handle them all together without blocking:
+
+```php
+use GuzzleHttp\Promise\Utils;
+
+$promises = [
+    'active' => $client->getActiveAlertsAsync(false),
+    'history' => $client->getAlertsHistoryAsync('Харківська область', 'day_ago', false),
+];
+
+Utils::all($promises)->then(function ($results) {
+    $alerts = $results['active'];
+    $history = $results['history'];
+
+    echo "Active alerts: " . count($alerts->getAllAlerts()) . "\n";
+    foreach ($alerts->getAllAlerts() as $alert) {
+        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
+    }
+
+    echo "\nHistory for Kharkiv Oblast:\n";
+    foreach ($history->getAllAlerts() as $alert) {
+        $status = $alert->isFinished() ? 'Finished' : 'Active';
+        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()} - {$status}\n";
+    }
+})->wait();
+```
+
+### Checking Air Raid Alert Statuses Concurrently
+
+You can also query multiple oblasts or summary data at the same time:
+
+```php
+$promises = [
+    'kyiv_status' => $client->getAirRaidAlertStatusAsync('Київська область', true, false),
+    'all_statuses' => $client->getAirRaidAlertStatusesByOblastAsync(true, false),
+];
+
+Utils::all($promises)->then(function ($results) {
+    $kyivStatus = $results['kyiv_status'];
+    $allStatuses = $results['all_statuses'];
+
+    echo "Kyiv Oblast air raid status: " . $kyivStatus->getStatus() . "\n";
+
+    echo "\nAir raid alert statuses by oblast:\n";
+    foreach ($allStatuses->getStatuses() as $status) {
+        echo "{$status->getOblast()}: {$status->getStatus()}\n";
+    }
+})->wait();
+```
+
+### Filtering Alerts After Asynchronous Retrieval
+
+You can apply filters to the alerts once they are asynchronously retrieved:
+
+```php
+$client->getActiveAlertsAsync(false)->then(function ($alerts) {
+    $airRaidAlerts = $alerts->getAirRaidAlerts();
+    $oblastAlerts = $alerts->getOblastAlerts();
+    $kharkivAlerts = $alerts->getAlertsByOblast('Харківська область');
+
+    echo "Air raid alerts: " . count($airRaidAlerts) . "\n";
+    echo "Oblast-level alerts: " . count($oblastAlerts) . "\n";
+    echo "Kharkiv Oblast alerts: " . count($kharkivAlerts) . "\n";
+})->wait();
+```
+
+> ℹ️ **Tip:** You can use `Utils::settle()` instead of `Utils::all()` if you want to gracefully handle individual request failures without throwing exceptions.
+
+You can continue to use individual `.wait()` calls when needed, but using `Utils::all()` allows for better concurrency and performance when dealing with multiple requests.
+
 ## Methods
 
 ### AlertsClient
