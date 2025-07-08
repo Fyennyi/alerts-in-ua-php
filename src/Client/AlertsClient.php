@@ -162,18 +162,21 @@ class AlertsClient
                 ],
             ])->then(
                 function (ResponseInterface $response) use ($processor) {
-                    $data = json_decode($response->getBody()->getContents(), true);
+                    $body = $response->getBody();
+                    $data = json_decode($body->getContents(), true);
                     if (! is_array($data)) {
-                        throw new ApiError('Invalid JSON response');
+                        throw new ApiError('Invalid JSON response received');
                     }
 
                     return $processor($data);
                 },
-                function (\Throwable $reason) {
-                    if ($reason instanceof \Exception) {
-                        $this->processError($reason);
+                function (\Throwable $e) {
+                    if ($e instanceof \Exception) {
+                        $this->processError($e);
+                    } else {
+                        throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
                     }
-                    throw $reason;
+                    throw $e;
                 }
             ),
             $type,
