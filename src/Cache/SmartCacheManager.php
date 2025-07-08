@@ -77,6 +77,8 @@ class SmartCacheManager
         foreach ($this->cache->keys() as $key) {
             if (preg_match($regex, $key)) {
                 $this->cache->delete($key);
+                $this->cache->delete($key . '.last_modified');
+                $this->cache->delete($key . '.processed');
             }
         }
     }
@@ -119,5 +121,51 @@ class SmartCacheManager
     public function getStaleData(string $key) : mixed
     {
         return $this->cache->getStale($key);
+    }
+
+    /**
+     * Stores the Last-Modified HTTP header value for the specified cache key
+     *
+     * @param  string  $key  The base cache key associated with the API endpoint
+     * @param  string  $timestamp  The value of the Last-Modified header (RFC 1123 format)
+     * @return void
+     */
+    public function setLastModified(string $key, string $timestamp): void
+    {
+        $this->cache->set($key . '.last_modified', $timestamp, 86400);
+    }
+
+    /**
+     * Retrieves the previously stored Last-Modified header value for a given cache key
+     *
+     * @param  string  $key  The base cache key associated with the API endpoint
+     * @return string|null The stored Last-Modified header value or null if not available
+     */
+    public function getLastModified(string $key) : ?string
+    {
+        return $this->cache->get($key . '.last_modified');
+    }
+
+    /**
+     * Stores the result of the processed response data for a given cache key
+     *
+     * @param  string  $key  The base cache key associated with the API endpoint
+     * @param  mixed  $data  The processed result (e.g., Alerts, AirRaidAlertStatus, etc.)
+     * @return void
+     */
+    public function storeProcessedData(string $key, mixed $data) : void
+    {
+        $this->cache->set($key . '.processed', $data, 86400);
+    }
+
+    /**
+     * Retrieves the previously stored processed response data for a given cache key
+     *
+     * @param  string  $key  The base cache key associated with the API endpoint
+     * @return mixed The cached processed result or null if not available
+     */
+    public function getCachedData(string $key) : mixed
+    {
+        return $this->cache->get($key . '.processed');
     }
 }
