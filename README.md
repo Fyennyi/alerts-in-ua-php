@@ -76,7 +76,7 @@ To check the current status of air raid alerts across all oblasts:
 
 ```php
 try {
-    $statuses = $client->getAirRaidAlertStatusesByOblastAsync(false, true)->wait();
+    $statuses = $client->getAirRaidAlertStatusesByOblastAsync(false, false)->wait();
 
     echo "\nAir raid alert statuses by oblast:\n";
 
@@ -153,7 +153,7 @@ You can also query multiple oblasts or summary data at the same time:
 ```php
 $promises = [
     'kyiv_status' => $client->getAirRaidAlertStatusAsync('Київська область', true, false),
-    'all_statuses' => $client->getAirRaidAlertStatusesByOblastAsync(true, false),
+    'all_statuses' => $client->getAirRaidAlertStatusesByOblastAsync(false, false),
 ];
 
 Utils::all($promises)->then(function ($results) {
