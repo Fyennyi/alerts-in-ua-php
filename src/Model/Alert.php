@@ -177,9 +177,9 @@ class Alert
     }
 
     /**
-     * Check if alert is calculated
+     * Check if the alert end time is estimated
      *
-     * @return bool True if alert is calculated, false if it's a real alert
+     * @return bool True if the end time is estimated, false if it is the actual end time
      */
     public function isCalculated() : bool
     {
