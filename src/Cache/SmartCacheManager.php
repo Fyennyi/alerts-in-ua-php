@@ -143,7 +143,9 @@ class SmartCacheManager
      */
     public function getLastModified(string $key) : ?string
     {
-        return $this->cache->get($key . '.last_modified');
+        $value = $this->cache->get($key . '.last_modified');
+
+        return is_string($value) ? $value : null;
     }
 
     /**
