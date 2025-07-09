@@ -243,12 +243,12 @@ class AlertsClientTest extends TestCase
         $this->historyContainer = [];
 
         // Append 304 Not Modified response to simulate unchanged data
-        $this->mockHandler->append(new Response(200, []));
+        $this->mockHandler->append(new Response(304, []));
 
         // Second call — should use cached processed data, no new full data fetched
         $second = $this->alertsClient->getActiveAlertsAsync()->wait();
         $this->assertInstanceOf(Alerts::class, $second);
-        $this->assertEquals('Одеська область', $second->getAllAlerts()[0]->getLocationTitle());
+        $this->assertEquals('Житомирська область', $second->getAllAlerts()[0]->getLocationTitle());
 
         // Assert exactly one new HTTP request was sent for the second call
         $this->assertCount(1, $this->historyContainer);
