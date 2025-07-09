@@ -5,7 +5,7 @@ namespace Fyennyi\AlertsInUa\Cache;
 /**
  * File-based persistent cache implementation
  */
-class FileCache implements CacheInterface
+class FileCache implements ExpirableCacheInterface
 {
     private string $cache_dir;
 
@@ -134,5 +134,32 @@ class FileCache implements CacheInterface
     private function getCacheFilename(string $key) : string
     {
         return $this->cache_dir . '/' . md5($key) . '.cache';
+    }
+
+    public function cleanupExpired() : void
+    {
+        $files = glob($this->cache_dir . '/*.cache');
+
+        if (false === $files) {
+            return;
+        }
+
+        $now = time();
+
+        foreach ($files as $file) {
+            $data = @file_get_contents($file);
+            if (false === $data) {
+                continue;
+            }
+
+            $item = @unserialize($data);
+            if (! is_array($item) || ! isset($item['expires'])) {
+                continue;
+            }
+
+            if ($item['expires'] > 0 && $item['expires'] < $now) {
+                @unlink($file);
+            }
+        }
     }
 }
