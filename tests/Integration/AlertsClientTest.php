@@ -56,7 +56,7 @@ class AlertsClientTest extends TestCase
         ])));
 
         // Call method
-        $result = $this->alertsClient->getActiveAlertsAsync(false)->wait();
+        $result = $this->alertsClient->getActiveAlertsAsync()->wait();
 
         // Assert request was made correctly
         $this->assertCount(1, $this->historyContainer);
@@ -85,7 +85,7 @@ class AlertsClientTest extends TestCase
         ])));
 
         // Call method with location title
-        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область', 'day_ago', false)->wait();
+        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область', 'day_ago')->wait();
 
         // Assert request was made correctly
         $this->assertCount(1, $this->historyContainer);
@@ -181,7 +181,7 @@ class AlertsClientTest extends TestCase
         $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
 
         // Call method
-        $this->alertsClient->getActiveAlertsAsync(false)->wait(); // Here the UnauthorizedError will be thrown and the test will pass
+        $this->alertsClient->getActiveAlertsAsync()->wait(); // Here the UnauthorizedError will be thrown and the test will pass
     }
 
     public function testCache()
