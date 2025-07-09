@@ -35,8 +35,6 @@ class FileCache implements CacheInterface
         }
 
         if ($item['expires'] > 0 && $item['expires'] < time()) {
-            unlink($filename);
-
             return null;
         }
 
