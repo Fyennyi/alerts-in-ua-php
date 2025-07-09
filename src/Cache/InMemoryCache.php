@@ -19,8 +19,6 @@ class InMemoryCache implements CacheInterface
         $item = $this->cache[$key];
 
         if ($item['expires'] > 0 && $item['expires'] < time()) {
-            unset($this->cache[$key]);
-
             return null;
         }
 
