@@ -36,7 +36,7 @@ class ApiIntegrationTest extends TestCase
         $this->mockHandler->append(new Response(200, [], $alertsResponseJson));
 
         $alertsClient = $this->createMockAlertsClient();
-        $alerts = $alertsClient->getActiveAlertsAsync(false)->wait();
+        $alerts = $alertsClient->getActiveAlertsAsync()->wait();
 
         // Analyze alerts
         $this->assertGreaterThan(0, count($alerts->getAllAlerts()));
