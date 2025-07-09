@@ -5,7 +5,7 @@ namespace Fyennyi\AlertsInUa\Cache;
 /**
  * Simple in-memory cache implementation
  */
-class InMemoryCache implements CacheInterface
+class InMemoryCache implements ExpirableCacheInterface
 {
     /** @var array<string, array{value: mixed, expires: int}> */
     private array $cache = [];
@@ -62,5 +62,15 @@ class InMemoryCache implements CacheInterface
     public function keys() : array
     {
         return array_keys($this->cache);
+    }
+
+    public function cleanupExpired() : void
+    {
+        $now = time();
+        foreach ($this->cache as $key => $item) {
+            if ($item['expires'] > 0 && $item['expires'] < $now) {
+                unset($this->cache[$key]);
+            }
+        }
     }
 }
