@@ -21,7 +21,7 @@ class SmartCacheManager
     /** @var array<string, int> Last request time by cache key */
     private array $last_request_time = [];
 
-    public function __construct(CacheInterface $cache = null)
+    public function __construct(?CacheInterface $cache = null)
     {
         $this->cache = $cache ?? new InMemoryCache();
     }
