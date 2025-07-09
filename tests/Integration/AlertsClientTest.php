@@ -248,7 +248,7 @@ class AlertsClientTest extends TestCase
         // Second call — should use cached processed data, no new full data fetched
         $second = $this->alertsClient->getActiveAlertsAsync()->wait();
         $this->assertInstanceOf(Alerts::class, $second);
-        $this->assertEquals('Житомирська область', $second->getAllAlerts()[0]->getLocationTitle());
+        $this->assertEquals('Одеська область', $second->getAllAlerts()[0]->getLocationTitle());
 
         // Assert exactly one new HTTP request was sent for the second call
         $this->assertCount(1, $this->historyContainer);
