@@ -154,7 +154,7 @@ class AlertsClient
     {
         return $this->cache_manager->getOrSet(
             $endpoint,
-            function () use ($endpoint, $use_cache, $processor) {
+            function () use ($endpoint, $processor) {
                 $headers = [
                     'Authorization' => 'Bearer ' . $this->token,
                     'Accept'        => 'application/json',
@@ -169,7 +169,7 @@ class AlertsClient
                 return $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
                     'headers' => $headers,
                 ])->then(
-                    function (ResponseInterface $response) use ($endpoint, $use_cache, $processor) {
+                    function (ResponseInterface $response) use ($endpoint, $processor) {
                         if (304 === $response->getStatusCode()) {
                             return $this->cache_manager->getCachedData($endpoint);
                         }
