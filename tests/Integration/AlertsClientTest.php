@@ -207,4 +207,55 @@ class AlertsClientTest extends TestCase
         // Assert only one request was made
         $this->assertCount(1, $this->historyContainer);
     }
+
+    public function testLastModifiedAnd304Handling()
+    {
+        // Create a mock response with Last-Modified
+        $lastModified = 'Sat, 15 Jun 2024 15:16:00 GMT';
+        $responseBody = [
+            'alerts' => [[
+                'id' => 42,
+                'location_title' => 'Одеська область',
+                'location_type' => 'oblast',
+                'started_at' => '2024-06-15T14:25:00.000Z',
+                'finished_at' => '2024-06-15T15:10:00.000Z',
+                'updated_at' => '2024-06-15T15:15:30.000Z',
+                'alert_type' => 'air_raid',
+                'location_uid' => '51',
+                'location_oblast' => 'Одеська область',
+                'location_oblast_uid' => '51',
+                'location_raion' => 'Одеський район',
+                'notes' => 'Інформація з ДСНС',
+                'calculated' => false,
+            ]],
+            'meta' => ['last_updated_at' => '2024-06-15T15:16:00.000Z'],
+        ];
+
+        // Append first response with Last-Modified header
+        $this->mockHandler->append(new Response(200, ['Last-Modified' => $lastModified], json_encode($responseBody)));
+
+        // First call — caches everything (including processed data)
+        $first = $this->alertsClient->getActiveAlertsAsync()->wait();
+        $this->assertInstanceOf(Alerts::class, $first);
+        $this->assertEquals('Одеська область', $first->getAllAlerts()[0]->getLocationTitle());
+
+        // Clear the request history to isolate next request
+        $this->historyContainer = [];
+
+        // Append 304 Not Modified response to simulate unchanged data
+        $this->mockHandler->append(new Response(304, []));
+
+        // Second call — should use cached processed data, no new full data fetched
+        $second = $this->alertsClient->getActiveAlertsAsync()->wait();
+        $this->assertInstanceOf(Alerts::class, $second);
+        $this->assertEquals('Одеська область', $second->getAllAlerts()[0]->getLocationTitle());
+
+        // Assert exactly one new HTTP request was sent for the second call
+        $this->assertCount(1, $this->historyContainer);
+        $sentRequest = $this->historyContainer[0]['request'];
+
+        // Check that If-Modified-Since header was set to previously received Last-Modified
+        $this->assertTrue($sentRequest->hasHeader('If-Modified-Since'));
+        $this->assertEquals($lastModified, $sentRequest->getHeaderLine('If-Modified-Since'));
+    }
 }
