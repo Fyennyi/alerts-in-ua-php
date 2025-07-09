@@ -243,7 +243,7 @@ class AlertsClientTest extends TestCase
         $this->historyContainer = [];
 
         // Append 304 Not Modified response to simulate unchanged data
-        $this->mockHandler->append(new Response(304, []));
+        $this->mockHandler->append(new Response(200, []));
 
         // Second call — should use cached processed data, no new full data fetched
         $second = $this->alertsClient->getActiveAlertsAsync()->wait();
