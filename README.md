@@ -38,7 +38,7 @@ $client = new AlertsClient('your_token');
 Here's how to fetch and display all currently active alerts:
 
 ```php
-$alertsResult = $client->getActiveAlerts(false);
+$alertsResult = $client->getActiveAlerts();
 $client->wait();
 
 try {
@@ -59,7 +59,7 @@ To retrieve historical alert data for a specific region:
 
 ```php
 // Get alerts history for Kharkiv Oblast from the last day
-$historyResult = $client->getAlertsHistory('Харківська область', 'day_ago', false);
+$historyResult = $client->getAlertsHistory('Харківська область', 'month_ago');
 $client->wait();
 
 try {
@@ -100,7 +100,7 @@ try {
 The library provides convenient methods to filter alerts by type and location:
 
 ```php
-$alertsResult = $client->getActiveAlerts(false);
+$alertsResult = $client->getActiveAlerts();
 $client->wait();
 
 try {
@@ -127,33 +127,33 @@ try {
 
 ### AlertsClient
 
-#### `getActiveAlerts($use_cache = true)`
+#### `getActiveAlerts($use_cache = false)`
 Fetches a list of active alerts asynchronously.
 
-- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `false`.
 - **Returns:** `Fiber<Alerts>`
 
-#### `getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = true)`
+#### `getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = false)`
 Fetches the history of alerts for a specific region or location.
 
 - `$oblast_uid_or_location_title` *(string|int)* – The unique ID or location title of the oblast or location.
 - `$period` *(string, optional)* – The period for which to fetch the history. Defaults to `'week_ago'`.
-- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `false`.
 - **Returns:** `Fiber<Alerts>`
 
-#### `getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = true)`
+#### `getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = false)`
 Fetches the status of air raid alerts for a specific oblast.
 
 - `$oblast_uid_or_location_title` *(string|int)* – The unique ID or location title of the oblast or location.
 - `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
-- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `false`.
 - **Returns:** `Fiber<AirRaidAlertOblastStatus>`
 
-#### `getAirRaidAlertStatusesByOblast($oblast_level_only = false, $use_cache = true)`
+#### `getAirRaidAlertStatusesByOblast($oblast_level_only = false, $use_cache = false)`
 Fetches the status of air raid alerts for all oblasts.
 
 - `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
-- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `false`.
 - **Returns:** `Fiber<AirRaidAlertOblastStatuses>`
 
 #### `wait()`

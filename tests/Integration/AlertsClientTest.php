@@ -68,7 +68,7 @@ class AlertsClientTest extends TestCase
         $this->mockHandler->append(new Response(200, [], $responseBody));
 
         // Call method
-        $fiber = $this->alertsClient->getActiveAlerts(false);
+        $fiber = $this->alertsClient->getActiveAlerts();
         $this->alertsClient->wait();
         $result = $fiber->getReturn();
 
@@ -109,7 +109,7 @@ class AlertsClientTest extends TestCase
         $this->mockHandler->append(new Response(200, [], $responseBody));
 
         // Call method with location title
-        $fiber = $this->alertsClient->getAlertsHistory('Харківська область', 'day_ago', false);
+        $fiber = $this->alertsClient->getAlertsHistory('Харківська область');
         $this->alertsClient->wait();
         $result = $fiber->getReturn();
 
@@ -117,7 +117,7 @@ class AlertsClientTest extends TestCase
         $this->assertCount(1, $this->historyContainer);
         $request = $this->historyContainer[0]['request'];
         $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals('/v1/regions/22/alerts/day_ago.json', $request->getUri()->getPath());
+        $this->assertEquals('/v1/regions/22/alerts/week_ago.json', $request->getUri()->getPath());
 
         // Assert response was parsed correctly
         $this->assertInstanceOf(Alerts::class, $result);
@@ -201,7 +201,7 @@ class AlertsClientTest extends TestCase
         $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
 
         // Call method
-        $fiber = $this->alertsClient->getActiveAlerts(false);
+        $fiber = $this->alertsClient->getActiveAlerts();
         $this->alertsClient->wait();
         $fiber->getReturn(); // Here the UnauthorizedError will be thrown and the test will pass
     }
