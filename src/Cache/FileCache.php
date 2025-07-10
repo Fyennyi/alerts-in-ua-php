@@ -35,8 +35,6 @@ class FileCache implements CacheInterface
         }
 
         if ($item['expires'] > 0 && $item['expires'] < time()) {
-            unlink($filename);
-
             return null;
         }
 
@@ -136,5 +134,32 @@ class FileCache implements CacheInterface
     private function getCacheFilename(string $key) : string
     {
         return $this->cache_dir . '/' . md5($key) . '.cache';
+    }
+
+    public function cleanupExpired() : void
+    {
+        $files = glob($this->cache_dir . '/*.cache');
+
+        if (false === $files) {
+            return;
+        }
+
+        $now = time();
+
+        foreach ($files as $file) {
+            $data = @file_get_contents($file);
+            if (false === $data) {
+                continue;
+            }
+
+            $item = @unserialize($data);
+            if (! is_array($item) || ! isset($item['expires'])) {
+                continue;
+            }
+
+            if ($item['expires'] > 0 && $item['expires'] < $now) {
+                @unlink($file);
+            }
+        }
     }
 }
