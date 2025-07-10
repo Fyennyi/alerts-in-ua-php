@@ -85,7 +85,7 @@ class AlertsClientTest extends TestCase
         ])));
 
         // Call method with location title
-        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область', 'day_ago')->wait();
+        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область', 'month_ago')->wait();
 
         // Assert request was made correctly
         $this->assertCount(1, $this->historyContainer);
