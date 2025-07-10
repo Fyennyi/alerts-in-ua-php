@@ -56,7 +56,7 @@ class AlertsClient
      * @param  bool  $use_cache  Whether to use cached results if available
      * @return PromiseInterface Promise that resolves to an Alerts object
      */
-    public function getActiveAlertsAsync(bool $use_cache = true) : PromiseInterface
+    public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('alerts/active.json', $use_cache, fn ($data) => new Alerts($data), 'active_alerts');
     }
@@ -71,7 +71,7 @@ class AlertsClient
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
-    public function getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : PromiseInterface
+    public function getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = false) : PromiseInterface
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
@@ -89,7 +89,7 @@ class AlertsClient
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
-    public function getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = true) : PromiseInterface
+    public function getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
@@ -120,7 +120,7 @@ class AlertsClient
      * @param  bool  $use_cache  Whether to use cached results if available
      * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatuses object
      */
-    public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = true) : PromiseInterface
+    public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync(
             'iot/active_air_raid_alerts_by_oblast.json',
