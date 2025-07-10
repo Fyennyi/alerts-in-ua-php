@@ -5,7 +5,7 @@ namespace Fyennyi\AlertsInUa\Cache;
 /**
  * File-based persistent cache implementation
  */
-class FileCache implements CacheInterface
+class FileCache implements ExpirableCacheInterface
 {
     private string $cache_dir;
 
