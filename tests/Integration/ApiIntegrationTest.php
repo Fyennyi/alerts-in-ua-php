@@ -36,41 +36,48 @@ class ApiIntegrationTest extends TestCase
         $this->mockHandler->append(new Response(200, [], $alertsResponseJson));
 
         $alertsClient = $this->createMockAlertsClient();
-        $alerts = $alertsClient->getActiveAlertsAsync()->wait();
+        $alertsFiber = $alertsClient->getActiveAlerts(false);
+        $alertsClient->wait();
+        $alerts = $alertsFiber->getReturn();
 
         // Analyze alerts
         $this->assertGreaterThan(0, count($alerts->getAllAlerts()));
         $airRaidAlerts = $alerts->getAirRaidAlerts();
         $oblastAlerts = $alerts->getOblastAlerts();
 
-        // Step 2: Get alerts history
+        // Step 2: Get alerts history for a specific region
         $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
         $this->mockHandler->append(new Response(200, [], $historyResponseJson));
 
-        $history = $alertsClient->getAlertsHistoryAsync('Харківська область', 'week_ago')->wait();
+        $historyFiber = $alertsClient->getAlertsHistory('Харківська область', 'week_ago', false);
+        $alertsClient->wait();
+        $history = $historyFiber->getReturn();
 
         // Check history
         $this->assertGreaterThan(0, count($history->getAllAlerts()));
 
-        // Step 3: Analyze history
+        // Step 3: Calculate some statistics (example of business logic)
         $oblastStats = [];
         foreach ($history->getAllAlerts() as $alert) {
             $oblast = $alert->getLocationOblast();
-            $oblastStats[$oblast] = ($oblastStats[$oblast] ?? 0) + 1;
+            if (! isset($oblastStats[$oblast])) {
+                $oblastStats[$oblast] = 0;
+            }
+            $oblastStats[$oblast]++;
         }
 
         $this->assertArrayHasKey('Харківська область', $oblastStats);
     }
 
-    private function createMockAlertsClient() : AlertsClient
+    private function createMockAlertsClient()
     {
         $alertsClient = new AlertsClient($this->token);
 
         // Inject mock client
-        $reflection = new ReflectionClass($alertsClient);
-        $property = $reflection->getProperty('client');
-        $property->setAccessible(true);
-        $property->setValue($alertsClient, $this->client);
+        $reflectionClass = new ReflectionClass($alertsClient);
+        $clientProperty = $reflectionClass->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($alertsClient, $this->client);
 
         return $alertsClient;
     }

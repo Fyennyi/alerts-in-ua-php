@@ -4,7 +4,7 @@ namespace Fyennyi\AlertsInUa\Util;
 
 class UserAgent
 {
-    private const DEFAULT_AGENT = 'alerts-in-ua-php/0.2.6 (+https://github.com/Fyennyi/alerts-in-ua-php)';
+    private const DEFAULT_AGENT = 'aiu-php-client/1.0 (+https://alerts.in.ua)';
 
     /**
      * Get User-Agent string for API requests
