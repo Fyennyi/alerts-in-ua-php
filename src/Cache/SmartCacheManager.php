@@ -56,6 +56,10 @@ class SmartCacheManager
         $data = $callback();
         $ttl = $this->ttl_config[$type] ?? 300;
 
+        if ($this->cache instanceof ExpirableCacheInterface) {
+            $this->cache->cleanupExpired();
+        }
+
         $this->cache->set($key, $data, $ttl);
         $this->last_request_time[$key] = time();
 
