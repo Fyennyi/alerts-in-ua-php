@@ -21,7 +21,7 @@ class SmartCacheManager
     /** @var array<string, int> Last request time by cache key */
     private array $last_request_time = [];
 
-    public function __construct(CacheInterface $cache = null)
+    public function __construct(?CacheInterface $cache = null)
     {
         $this->cache = $cache ?? new InMemoryCache();
     }
@@ -57,6 +57,10 @@ class SmartCacheManager
 
         $data = $callback();
         $ttl = $this->ttl_config[$type] ?? 300;
+
+        if ($this->cache instanceof ExpirableCacheInterface) {
+            $this->cache->cleanupExpired();
+        }
 
         $this->cache->set($key, $data, $ttl);
         $this->last_request_time[$key] = time();
