@@ -2,7 +2,7 @@ name: PHPStan
 
 on:
   push:
-    branches: [ "feature/if-modified-since" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 

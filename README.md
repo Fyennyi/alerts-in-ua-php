@@ -38,15 +38,17 @@ $client = new AlertsClient('your_token');
 Here's how to fetch and display all currently active alerts:
 
 ```php
-try {
-    $alerts = $client->getActiveAlertsAsync()->wait();
+$alertsResult = $client->getActiveAlerts(false);
+$client->wait();
 
+try {
+    $alerts = $alertsResult->getReturn();
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
         echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
     }
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
 }
 ```
@@ -56,16 +58,19 @@ try {
 To retrieve historical alert data for a specific region:
 
 ```php
-try {
-    $history = $client->getAlertsHistoryAsync('Харківська область', 'month_ago')->wait();
+// Get alerts history for Kharkiv Oblast from the last day
+$historyResult = $client->getAlertsHistory('Харківська область', 'day_ago', false);
+$client->wait();
 
+try {
+    $history = $historyResult->getReturn();
     echo "\nAlerts history for Kharkiv Oblast: " . count($history->getAllAlerts()) . "\n";
 
     foreach ($history->getAllAlerts() as $alert) {
         $status = $alert->isFinished() ? 'Finished' : 'Active';
         echo "{$alert->getAlertType()} in {$alert->getLocationTitle()} - {$status}\n";
     }
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
 }
 ```
@@ -75,15 +80,17 @@ try {
 To check the current status of air raid alerts across all oblasts:
 
 ```php
-try {
-    $statuses = $client->getAirRaidAlertStatusesByOblastAsync()->wait();
+$statusesResult = $client->getAirRaidAlertStatusesByOblast();
+$client->wait();
 
+try {
+    $statuses = $statusesResult->getReturn();
     echo "\nAir raid alert statuses by oblast:\n";
 
     foreach ($statuses->getStatuses() as $status) {
         echo "{$status->getOblast()}: {$status->getStatus()}\n";
     }
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
 }
 ```
@@ -93,146 +100,66 @@ try {
 The library provides convenient methods to filter alerts by type and location:
 
 ```php
+$alertsResult = $client->getActiveAlerts(false);
+$client->wait();
+
 try {
-    $alerts = $client->getActiveAlertsAsync()->wait();
+    $alerts = $alertsResult->getReturn();
 
     // Get only air raid alerts
-    $air_raid_alerts = $alerts->getAirRaidAlerts();
-    echo "\nAir raid alerts: " . count($air_raid_alerts) . "\n";
+    $airRaidAlerts = $alerts->getAirRaidAlerts();
+    echo "\nAir raid alerts: " . count($airRaidAlerts) . "\n";
 
     // Get only oblast-level alerts
-    $oblast_alerts = $alerts->getOblastAlerts();
-    echo "Oblast-level alerts: " . count($oblast_alerts) . "\n";
+    $oblastAlerts = $alerts->getOblastAlerts();
+    echo "Oblast-level alerts: " . count($oblastAlerts) . "\n";
 
     // Get alerts for a specific oblast
-    $kharkiv_alerts = $alerts->getAlertsByOblast('Харківська область');
-    echo "Kharkiv Oblast alerts: " . count($kharkiv_alerts) . "\n";
+    $kharkivAlerts = $alerts->getAlertsByOblast('Харківська область');
+    echo "Kharkiv Oblast alerts: " . count($kharkivAlerts) . "\n";
 
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
 }
 ```
-
-## Asynchronous Operations
-
-The library supports asynchronous operations for better performance when handling multiple requests. You can run multiple API calls concurrently without blocking execution.
-
-### Fetching Multiple Alerts Concurrently
-
-You can start multiple requests and handle them all together without blocking:
-
-```php
-use GuzzleHttp\Promise\Utils;
-
-$promises = [
-    'active' => $client->getActiveAlertsAsync(),
-    'history' => $client->getAlertsHistoryAsync('Харківська область', 'month_ago'),
-];
-
-Utils::all($promises)->then(function ($results) {
-    $alerts = $results['active'];
-    $history = $results['history'];
-
-    echo "Active alerts: " . count($alerts->getAllAlerts()) . "\n";
-    foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
-    }
-
-    echo "\nHistory for Kharkiv Oblast:\n";
-    foreach ($history->getAllAlerts() as $alert) {
-        $status = $alert->isFinished() ? 'Finished' : 'Active';
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()} - {$status}\n";
-    }
-})->wait();
-```
-
-### Checking Air Raid Alert Statuses Concurrently
-
-You can also query multiple oblasts or summary data at the same time:
-
-```php
-$promises = [
-    'kyiv_status' => $client->getAirRaidAlertStatusAsync('Київська область', true),
-    'all_statuses' => $client->getAirRaidAlertStatusesByOblastAsync(),
-];
-
-Utils::all($promises)->then(function ($results) {
-    $kyiv_status = $results['kyiv_status'];
-    $all_statuses = $results['all_statuses'];
-
-    echo "Kyiv Oblast air raid status: " . $kyiv_status->getStatus() . "\n";
-
-    echo "\nAir raid alert statuses by oblast:\n";
-    foreach ($all_statuses->getStatuses() as $status) {
-        echo "{$status->getOblast()}: {$status->getStatus()}\n";
-    }
-})->wait();
-```
-
-### Filtering Alerts After Asynchronous Retrieval
-
-You can apply filters to the alerts once they are asynchronously retrieved:
-
-```php
-$client->getActiveAlertsAsync()->then(function ($alerts) {
-    $air_raid_alerts = $alerts->getAirRaidAlerts();
-    $oblast_alerts = $alerts->getOblastAlerts();
-    $kharkiv_alerts = $alerts->getAlertsByOblast('Харківська область');
-
-    echo "Air raid alerts: " . count($air_raid_alerts) . "\n";
-    echo "Oblast-level alerts: " . count($oblast_alerts) . "\n";
-    echo "Kharkiv Oblast alerts: " . count($kharkiv_alerts) . "\n";
-})->wait();
-```
-
-> [!TIP]
-> You can use `Utils::settle()` instead of `Utils::all()` if you want to gracefully handle individual request failures without throwing exceptions.
-
-You can continue to use individual `->wait()` calls when needed, but using `Utils::all()` allows for better concurrency and performance when dealing with multiple requests.
 
 ## Methods
 
 ### AlertsClient
 
-#### `getActiveAlertsAsync(bool $use_cache = false): Promise<Alerts>`
-
+#### `getActiveAlerts($use_cache = true)`
 Fetches a list of active alerts asynchronously.
 
-- `$use_cache` – Whether to use cached data (default `false`).
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<Alerts>`
 
----
+#### `getAlertsHistory($oblast_uid_or_location_title, $period = 'week_ago', $use_cache = true)`
+Fetches the history of alerts for a specific region or location.
 
-#### `getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = false): Promise<Alerts>`
+- `$oblast_uid_or_location_title` *(string|int)* – The unique ID or location title of the oblast or location.
+- `$period` *(string, optional)* – The period for which to fetch the history. Defaults to `'week_ago'`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<Alerts>`
 
-Fetches the alert history for a specific oblast or location.
+#### `getAirRaidAlertStatus($oblast_uid_or_location_title, $oblast_level_only = false, $use_cache = true)`
+Fetches the status of air raid alerts for a specific oblast.
 
-- `$oblast_uid_or_location_title` – Oblast title or numeric UID.
-- `$period` – Time period to retrieve alerts (e.g. `'month_ago'`, `'week_ago'`).
-- `$use_cache` – Whether to use cached data (default `false`).
+- `$oblast_uid_or_location_title` *(string|int)* – The unique ID or location title of the oblast or location.
+- `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<AirRaidAlertOblastStatus>`
 
----
+#### `getAirRaidAlertStatusesByOblast($oblast_level_only = false, $use_cache = true)`
+Fetches the status of air raid alerts for all oblasts.
 
-#### `getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatus>`
+- `$oblast_level_only` *(bool, optional)* – If `true`, returns only oblast-level alerts. Defaults to `false`.
+- `$use_cache` *(bool, optional)* – If `true`, uses cached data when available. Defaults to `true`.
+- **Returns:** `Fiber<AirRaidAlertOblastStatuses>`
 
-Returns air raid alert status for one oblast.
+#### `wait()`
+Waits for all asynchronous operations (fibers) to complete.
 
-- `$oblast_uid_or_location_title` – Oblast title or UID.
-- `$oblast_level_only` – Only oblast-level alerts (default `false`).
-- `$use_cache` – Use cache (default `false`).
-
----
-
-#### `getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatuses>`
-
-Returns air raid alert statuses across all oblasts.
-
-- `$oblast_level_only` – Only oblast-level alerts (default `false`).
-- `$use_cache` – Use cache (default `false`).
-
----
-
-> [!NOTE]
-> All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
+- **Returns:** `void`
 
 ## Districts and Regions (UIDs)
 
