@@ -2,6 +2,8 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use DateInterval;
+use DateTimeImmutable;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 class Alert
@@ -175,9 +177,9 @@ class Alert
     }
 
     /**
-     * Check if alert is calculated
+     * Check if the alert end time is estimated
      *
-     * @return bool True if alert is calculated, false if it's a real alert
+     * @return bool True if the end time is estimated, false if it is the actual end time
      */
     public function isCalculated() : bool
     {
@@ -218,5 +220,113 @@ class Alert
     public function isFinished() : bool
     {
         return null !== $this->finished_at;
+    }
+
+    /**
+     * Check if alert is currently active
+     *
+     * @return bool True if alert doesn't have finished_at date set
+     */
+    public function isActive() : bool
+    {
+        return null === $this->finished_at;
+    }
+
+    /**
+     * Get the duration of the alert
+     *
+     * @return DateInterval|null Duration as DateInterval or null if couldn't calculate
+     */
+    public function getDuration() : ?DateInterval
+    {
+        if (null === $this->started_at) {
+            return null;
+        }
+
+        $end_time = $this->finished_at ?? new DateTimeImmutable();
+
+        return $this->started_at->diff($end_time);
+    }
+
+    /**
+     * Get the duration in seconds
+     *
+     * @return int|null Duration in seconds or null if couldn't calculate
+     */
+    public function getDurationInSeconds() : ?int
+    {
+        if (null === $this->started_at) {
+            return null;
+        }
+
+        $end_time = $this->finished_at ?? new DateTimeImmutable();
+
+        return $end_time->getTimestamp() - $this->started_at->getTimestamp();
+    }
+
+    /**
+     * Check if alert is of specific type
+     *
+     * @param  string  $type  Alert type to check (air_raid, artillery_shelling, etc.)
+     * @return bool True if alert matches the type
+     */
+    public function isType(string $type) : bool
+    {
+        return $type === $this->alert_type;
+    }
+
+    /**
+     * Check if alert is in specific location
+     *
+     * @param  string  $location  Location name to check
+     * @return bool True if alert is in the specified location
+     */
+    public function isInLocation(string $location) : bool
+    {
+        return false !== stripos($this->location_title, $location) 
+            || (null !== $this->location_oblast && false !== stripos($this->location_oblast, $location))
+            || (null !== $this->location_raion && false !== stripos($this->location_raion, $location));
+    }
+
+    /**
+     * Get alert as array representation
+     *
+     * @return array<string, mixed> Array representation of the alert
+     */
+    public function toArray() : array
+    {
+        return [
+            'id' => $this->id,
+            'location_title' => $this->location_title,
+            'location_type' => $this->location_type,
+            'started_at' => $this->started_at?->format('Y-m-d H:i:s'),
+            'finished_at' => $this->finished_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'alert_type' => $this->alert_type,
+            'location_uid' => $this->location_uid,
+            'location_oblast' => $this->location_oblast,
+            'location_oblast_uid' => $this->location_oblast_uid,
+            'location_raion' => $this->location_raion,
+            'notes' => $this->notes,
+            'calculated' => $this->calculated,
+            'is_active' => $this->isActive(),
+            'duration' => $this->getDurationInSeconds(),
+        ];
+    }
+
+    /**
+     * Get alert as JSON representation
+     *
+     * @return string JSON representation of the alert
+     *
+     * @throws \RuntimeException If JSON encoding fails
+     */
+    public function toJson() : string
+    {
+        try {
+            return json_encode($this->toArray(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new \RuntimeException('Failed to encode alert to JSON: ' . $e->getMessage(), 0, $e);
+        }
     }
 }
