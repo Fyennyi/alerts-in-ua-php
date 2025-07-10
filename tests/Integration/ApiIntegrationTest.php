@@ -36,7 +36,7 @@ class ApiIntegrationTest extends TestCase
         $this->mockHandler->append(new Response(200, [], $alertsResponseJson));
 
         $alertsClient = $this->createMockAlertsClient();
-        $alerts = $alertsClient->getActiveAlertsAsync(false)->wait();
+        $alerts = $alertsClient->getActiveAlertsAsync()->wait();
 
         // Analyze alerts
         $this->assertGreaterThan(0, count($alerts->getAllAlerts()));
@@ -47,7 +47,7 @@ class ApiIntegrationTest extends TestCase
         $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
         $this->mockHandler->append(new Response(200, [], $historyResponseJson));
 
-        $history = $alertsClient->getAlertsHistoryAsync('Харківська область', 'week_ago', false)->wait();
+        $history = $alertsClient->getAlertsHistoryAsync('Харківська область', 'week_ago')->wait();
 
         // Check history
         $this->assertGreaterThan(0, count($history->getAllAlerts()));
