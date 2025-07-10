@@ -43,7 +43,11 @@ class AlertsClient
      *
      * @param  string  $token  API token
      */
+<<<<<<< HEAD
     public function __construct(string $token)
+=======
+    public function __construct(string $token, ?CacheInterface $cache = null)
+>>>>>>> feature/smart-cache
     {
         $this->client = new Client;
         $this->token = $token;
@@ -55,7 +59,7 @@ class AlertsClient
      * @param  bool  $use_cache  Use cache
      * @return Fiber<mixed, mixed, Alerts, mixed> Fiber with result
      */
-    public function getActiveAlerts(bool $use_cache = true) : Fiber
+    public function getActiveAlerts(bool $use_cache = false) : Fiber
     {
         return $this->createFiber('alerts/active.json', $use_cache, fn ($data) => new Alerts($data));
     }
@@ -70,7 +74,7 @@ class AlertsClient
      *
      * @throws InvalidParameterException If location is not found
      */
-    public function getAlertsHistory(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = true) : Fiber
+    public function getAlertsHistory(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = false) : Fiber
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
@@ -88,7 +92,7 @@ class AlertsClient
      *
      * @throws InvalidParameterException If location is not found
      */
-    public function getAirRaidAlertStatus(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = true) : Fiber
+    public function getAirRaidAlertStatus(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false) : Fiber
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
@@ -114,7 +118,7 @@ class AlertsClient
      * @param  bool  $use_cache  Use cache
      * @return Fiber<mixed, mixed, AirRaidAlertOblastStatuses, mixed> Fiber with result
      */
-    public function getAirRaidAlertStatusesByOblast(bool $oblast_level_only = false, bool $use_cache = true): Fiber
+    public function getAirRaidAlertStatusesByOblast(bool $oblast_level_only = false, bool $use_cache = false) : Fiber
     {
         return $this->createFiber('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (array $data) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
             $first_value = '';
