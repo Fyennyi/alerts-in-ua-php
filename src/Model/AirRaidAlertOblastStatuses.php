@@ -16,7 +16,7 @@ class AirRaidAlertOblastStatuses
     public function __construct(string $data, bool $oblast_level_only)
     {
         $this->statuses = [];
-        /** @var list<string> */
+        /** @var array<int, string> $oblasts */
         $oblasts = [
             'Автономна Республіка Крим', 'Волинська область', 'Вінницька область', 'Дніпропетровська область',
             'Донецька область', 'Житомирська область', 'Закарпатська область', 'Запорізька область',
@@ -27,14 +27,19 @@ class AirRaidAlertOblastStatuses
             'Черкаська область', 'Чернівецька область', 'Чернігівська область',
         ];
 
-        foreach (str_split($data) as $index => $status) {
-            if ($oblast_level_only && 'A' !== $status) {
+        $statuses = str_split($data);
+        $max_index = min(count($oblasts), count($statuses)) - 1;
+
+        for ($i = 0; $i <= $max_index; $i++) {
+            if (! isset($oblasts[$i], $statuses[$i])) {
                 continue;
             }
-            if (! isset($oblasts[$index])) {
+
+            if ($oblast_level_only && 'A' !== $statuses[$i]) {
                 continue;
             }
-            $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$index], $status);
+
+            $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$i], $statuses[$i]);
         }
     }
 
