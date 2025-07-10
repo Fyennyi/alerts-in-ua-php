@@ -46,7 +46,7 @@ class AlertsClient
      * @param  string  $token  API token
      * @param  CacheInterface|null  $cache  Optional cache implementation
      */
-    public function __construct(string $token, CacheInterface $cache = null)
+    public function __construct(string $token, ?CacheInterface $cache = null)
     {
         $this->client = new Client;
         $this->token = $token;
