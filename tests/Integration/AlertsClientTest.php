@@ -85,13 +85,13 @@ class AlertsClientTest extends TestCase
         ])));
 
         // Call method with location title
-        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область', 'month_ago')->wait();
+        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область')->wait();
 
         // Assert request was made correctly
         $this->assertCount(1, $this->historyContainer);
         $request = $this->historyContainer[0]['request'];
         $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals('/v1/regions/22/alerts/day_ago.json', $request->getUri()->getPath());
+        $this->assertEquals('/v1/regions/22/alerts/week_ago.json', $request->getUri()->getPath());
 
         // Assert response was parsed correctly
         $this->assertInstanceOf(Alerts::class, $result);
