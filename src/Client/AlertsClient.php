@@ -32,7 +32,7 @@ class AlertsClient
     private string $token;
 
     /** @var string Base URL for the API */
-    private string $baseUrl = 'https://api.alerts.in.ua/v1/';
+    private string $base_url = 'https://api.alerts.in.ua/v1/';
 
     /** @var SmartCacheManager Manages caching of API responses */
     private SmartCacheManager $cache_manager;
@@ -166,7 +166,7 @@ class AlertsClient
                     $headers['If-Modified-Since'] = $last_modified;
                 }
 
-                return $this->client->requestAsync('GET', $this->baseUrl . $endpoint, [
+                return $this->client->requestAsync('GET', $this->base_url . $endpoint, [
                     'headers' => $headers,
                 ])->then(
                     function (ResponseInterface $response) use ($endpoint, $processor) {
@@ -176,6 +176,7 @@ class AlertsClient
 
                         $body = $response->getBody();
                         $data = json_decode($body->getContents(), true);
+                        // print_r($data);
                         if (! is_array($data)) {
                             throw new ApiError('Invalid JSON response received');
                         }
