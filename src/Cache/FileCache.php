@@ -16,7 +16,11 @@ class FileCache implements ExpirableCacheInterface
             $caller_file = $backtrace[0]['file'] ?? null;
 
             if (! is_string($caller_file)) {
-                $caller_file = getcwd();
+                $cwd = getcwd();
+                if (! is_string($cwd)) {
+                    throw new \RuntimeException('Cannot determine working directory.');
+                }
+                $caller_file = $cwd;
             }
 
             $base_dir = dirname($caller_file);
