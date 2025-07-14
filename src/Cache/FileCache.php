@@ -9,9 +9,18 @@ class FileCache implements ExpirableCacheInterface
 {
     private string $cache_dir;
 
-    public function __construct(string $cache_dir = '/tmp/alerts_cache')
+    public function __construct(?string $cache_dir = null)
     {
+        if (null === $cache_dir) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+            $caller_file = $backtrace[0]['file'] ?? getcwd();
+            $base_dir = dirname($caller_file);
+
+            $cache_dir = $base_dir . '/tmp/alerts_cache';
+        }
+
         $this->cache_dir = $cache_dir;
+
         if (! is_dir($this->cache_dir)) {
             mkdir($this->cache_dir, 0755, true);
         }
