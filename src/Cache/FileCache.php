@@ -13,9 +13,13 @@ class FileCache implements ExpirableCacheInterface
     {
         if (null === $cache_dir) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
-            $caller_file = isset($backtrace[0]['file']) ? $backtrace[0]['file'] : getcwd();
-            $base_dir = dirname($caller_file);
+            $caller_file = $backtrace[0]['file'] ?? null;
 
+            if (! is_string($caller_file)) {
+                $caller_file = getcwd();
+            }
+
+            $base_dir = dirname($caller_file);
             $cache_dir = $base_dir . '/tmp/alerts_cache';
         }
 
