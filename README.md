@@ -234,6 +234,62 @@ Returns air raid alert statuses across all oblasts.
 > [!NOTE]
 > All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
 
+### Alerts
+
+A collection of `Alert` objects returned by `getActiveAlertsAsync()` and `getAlertsHistoryAsync()`. This object is iterable, so you can use it directly in a `foreach` loop.
+
+#### `getAllAlerts(): Alert[]`
+Returns a plain array of all `Alert` objects in the collection.
+
+#### `getAirRaidAlerts(): Alert[]`
+Filters the collection and returns only air raid alerts.
+
+#### `getOblastAlerts(): Alert[]`
+Filters the collection and returns only oblast-level alerts.
+
+#### `getAlertsByOblast(string $oblast_title): Alert[]`
+Filters the collection and returns alerts for a specific oblast.
+- `$oblast_title` – The name of the oblast to filter by (e.g., `'Харківська область'`).
+
+#### `count(): int`
+Returns the total number of alerts in the collection.
+
+---
+
+### Alert
+
+Represents a single alert with its details.
+
+#### `getLocationTitle(): string`
+Returns the name of the location where the alert is active (e.g., `'Харківська область'`).
+
+#### `getAlertType(): string`
+Returns the type of the alert (e.g., `'air_raid'`).
+
+#### `isFinished(): bool`
+Returns `true` if the alert has finished, or `false` if it is still active.
+
+---
+
+### AirRaidAlertOblastStatuses
+
+A collection of `AirRaidAlertOblastStatus` objects, returned by `getAirRaidAlertStatusesByOblastAsync()`. This object is iterable.
+
+#### `getStatuses(): AirRaidAlertOblastStatus[]`
+Returns a plain array of `AirRaidAlertOblastStatus` objects.
+
+---
+
+### AirRaidAlertOblastStatus
+
+Represents the alert status for a single oblast.
+
+#### `getOblast(): string`
+Returns the name of the oblast.
+
+#### `getStatus(): string`
+Returns the current alert status for the oblast (e.g., `'A'`).
+
 ## Districts and Regions (UIDs)
 
 [Open the table](https://docs.google.com/spreadsheets/u/0/d/1XnTOzcPHd1LZUrarR1Fk43FUyl8Ae6a6M7pcwDRjNdA/htmlview#)
