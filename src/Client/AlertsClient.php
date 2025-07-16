@@ -45,7 +45,7 @@ class AlertsClient
      */
     public function __construct(string $token, ?CacheInterface $cache = null)
     {
-        $this->client = new Client;
+        $this->client = new Client();
         $this->token = $token;
         $this->cache_manager = new SmartCacheManager($cache ?? new InMemoryCache());
     }
