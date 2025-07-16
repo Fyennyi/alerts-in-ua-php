@@ -283,7 +283,7 @@ class Alert
      */
     public function isInLocation(string $location) : bool
     {
-        return false !== stripos($this->location_title, $location) 
+        return false !== stripos($this->location_title, $location)
             || (null !== $this->location_oblast && false !== stripos($this->location_oblast, $location))
             || (null !== $this->location_raion && false !== stripos($this->location_raion, $location));
     }
