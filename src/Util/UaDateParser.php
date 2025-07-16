@@ -47,7 +47,7 @@ class UaDateParser
             if (false === $utc_dt) {
                 $timestamp = strtotime($date_string);
                 if (false !== $timestamp) {
-                    $utc_dt = new DateTime;
+                    $utc_dt = new DateTime();
                     $utc_dt->setTimestamp($timestamp);
                 } else {
                     return null;
