@@ -98,7 +98,7 @@ class AlertsClient
             $url,
             $use_cache,
             function (array $data) use ($oblast_uid) : AirRaidAlertOblastStatus {
-                $location_title = (new LocationUidResolver)->resolveLocationTitle($oblast_uid);
+                $location_title = (new LocationUidResolver())->resolveLocationTitle($oblast_uid);
                 $first_value = '';
                 if (count($data) > 0) {
                     $first_value = reset($data);
@@ -176,7 +176,6 @@ class AlertsClient
 
                         $body = $response->getBody();
                         $data = json_decode($body->getContents(), true);
-                        // print_r($data);
                         if (! is_array($data)) {
                             throw new ApiError('Invalid JSON response received');
                         }
@@ -221,7 +220,7 @@ class AlertsClient
                 return (int) $identifier;
             }
 
-            return (new LocationUidResolver)->resolveUid($identifier);
+            return (new LocationUidResolver())->resolveUid($identifier);
         }
 
         return $identifier;
