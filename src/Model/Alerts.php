@@ -5,9 +5,9 @@ namespace Fyennyi\AlertsInUa\Model;
 use ArrayIterator;
 use Countable;
 use DateTime;
+use Fyennyi\AlertsInUa\Util\UaDateParser;
 use IteratorAggregate;
 use JsonSerializable;
-use Fyennyi\AlertsInUa\Util\UaDateParser;
 
 /**
  * @implements IteratorAggregate<int, Alert>
