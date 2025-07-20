@@ -169,4 +169,13 @@ class FileCacheTest extends TestCase
         $cache->cleanupExpired(); // Should not throw an exception
         $this->assertTrue(true);
     }
+
+    public function testGetWithUnreadableFile()
+    {
+        $key = 'unreadable_key';
+        $fileName = md5($key) . '.cache';
+        $file = vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
+
+        $this->assertNull($this->cache->get($key));
+    }
 }
