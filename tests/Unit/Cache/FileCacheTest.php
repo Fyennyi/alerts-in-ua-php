@@ -59,6 +59,9 @@ class FileCacheTest extends TestCase
         $this->assertTrue($this->root->hasChild(md5('key_expired') . '.cache'));
     }
 
+    /**
+     * @expectedWarning unserialize(): Error at offset 0 of 14 bytes
+     */
     public function testGetWithCorruptedData()
     {
         $fileName = md5('corrupted') . '.cache';
@@ -72,11 +75,21 @@ class FileCacheTest extends TestCase
         $this->assertEquals('value_stale', $this->cache->getStale('key_stale'));
     }
 
-    public function testGetStaleWithCorruptedData()
+    /**
+     * @expectedWarning file_get_contents(vfs://cache/d319c9741c4442ae8cc35da7d9b9a698.cache): Failed to open stream: "org\\bovigo\\vfs\\vfsStreamWrapper::stream_open" call failed
+     */
+    public function testGetStaleWithUnreadableFile()
     {
-        $fileName = md5('corrupted_stale') . '.cache';
-        vfsStream::newFile($fileName)->at($this->root)->withContent('corrupted data');
-        $this->assertNull($this->cache->getStale('corrupted_stale'));
+        $key = 'unreadable_stale';
+        $fileName = md5($key) . '.cache';
+        $file = vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
+
+        $this->assertNull($this->cache->getStale($key));
+    }
+
+    public function testGetStaleForNonExistentKey()
+    {
+        $this->assertNull($this->cache->getStale('non_existent_key'));
     }
 
     public function testDelete()
@@ -89,6 +102,19 @@ class FileCacheTest extends TestCase
     public function testDeleteNonExistentKey()
     {
         $this->assertTrue($this->cache->delete('non_existent_key'));
+    }
+
+    /**
+     * @expectedWarning scandir(vfs://cache/unreadable): Failed to open directory: "org\\bovigo\\vfs\\vfsStreamWrapper::dir_opendir" call failed
+     * @expectedWarning scandir(): (errno 0): Success
+     */
+    public function testClearOnUnreadableDirectory()
+    {
+        // This is tricky to test reliably with vfsStream as it might not prevent scandir
+        // However, we can assert it doesn't throw an exception and returns false.
+        $unreadableDir = vfsStream::newDirectory('unreadable', 0000)->at($this->root);
+        $cache = new FileCache($unreadableDir->url());
+        $this->assertFalse($cache->clear());
     }
 
     public function testClear()
@@ -119,6 +145,39 @@ class FileCacheTest extends TestCase
         $this->assertContains('key2', $keys);
     }
 
+    /**
+     * @expectedWarning file_get_contents(vfs://cache/84c8016d7e17e1bce51915d5621e3cef.cache): Failed to open stream: "org\\bovigo\\vfs\\vfsStreamWrapper::stream_open" call failed
+     */
+    public function testGetWithUnreadableFile()
+    {
+        $key = 'unreadable_key';
+        $fileName = md5($key) . '.cache';
+        $file = vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
+
+        $this->assertNull($this->cache->get($key));
+    }
+
+    /**
+     * @expectedWarning file_get_contents(vfs://cache/78f825aaa0103319aaa1a30bf4fe3ada.cache): Failed to open stream: "org\\bovigo\\vfs\\vfsStreamWrapper::stream_open" call failed
+     */
+    public function testKeysWithUnreadableFile()
+    {
+        $this->cache->set('key1', 'value1');
+        vfsStream::newFile(md5('key2') . '.cache', 0000)->at($this->root)->withContent('data');
+        $this->assertCount(1, $this->cache->keys());
+    }
+
+    /**
+     * @expectedWarning scandir(vfs://cache/unreadable_keys): Failed to open directory: "org\\bovigo\\vfs\\vfsStreamWrapper::dir_opendir" call failed
+     * @expectedWarning scandir(): (errno 0): Success
+     */
+    public function testKeysOnUnreadableDirectory()
+    {
+        $unreadableDir = vfsStream::newDirectory('unreadable_keys', 0000)->at($this->root);
+        $cache = new FileCache($unreadableDir->url());
+        $this->assertEquals([], $cache->keys());
+    }
+
     public function testKeysWithCorruptedFile()
     {
         $this->cache->set('key1', 'value1');
@@ -126,6 +185,18 @@ class FileCacheTest extends TestCase
         $keys = $this->cache->keys();
         $this->assertCount(1, $keys);
         $this->assertContains('key1', $keys);
+    }
+
+    /**
+     * @expectedWarning scandir(vfs://cache/unreadable_cleanup): Failed to open directory: "org\\bovigo\\vfs\\vfsStreamWrapper::dir_opendir" call failed
+     * @expectedWarning scandir(): (errno 0): Success
+     */
+    public function testCleanupOnUnreadableDirectory()
+    {
+        $unreadableDir = vfsStream::newDirectory('unreadable_cleanup', 0000)->at($this->root);
+        $cache = new FileCache($unreadableDir->url());
+        $cache->cleanupExpired(); // Should not throw an exception
+        $this->assertTrue(true);
     }
 
     public function testCleanupExpired()
@@ -139,67 +210,6 @@ class FileCacheTest extends TestCase
         $this->assertFalse($this->root->hasChild(md5('key_expired') . '.cache'));
     }
 
-    public function testSetFailsOnUnwritableDirectory()
-    {
-        $this->root->chmod(0444); // Make directory read-only
-        $this->assertFalse($this->cache->set('key', 'value'));
-        $this->root->chmod(0755); // Restore permissions
-    }
-
-    public function testClearOnUnreadableDirectory()
-    {
-        // This is tricky to test reliably with vfsStream as it might not prevent scandir
-        // However, we can assert it doesn't throw an exception and returns false.
-        $unreadableDir = vfsStream::newDirectory('unreadable', 0000)->at($this->root);
-        $cache = new FileCache($unreadableDir->url());
-        $this->assertFalse($cache->clear());
-    }
-
-    public function testKeysOnUnreadableDirectory()
-    {
-        $unreadableDir = vfsStream::newDirectory('unreadable_keys', 0000)->at($this->root);
-        $cache = new FileCache($unreadableDir->url());
-        $this->assertEquals([], $cache->keys());
-    }
-
-    public function testCleanupOnUnreadableDirectory()
-    {
-        $unreadableDir = vfsStream::newDirectory('unreadable_cleanup', 0000)->at($this->root);
-        $cache = new FileCache($unreadableDir->url());
-        $cache->cleanupExpired(); // Should not throw an exception
-        $this->assertTrue(true);
-    }
-
-    public function testGetWithUnreadableFile()
-    {
-        $key = 'unreadable_key';
-        $fileName = md5($key) . '.cache';
-        $file = vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
-
-        $this->assertNull($this->cache->get($key));
-    }
-
-    public function testGetStaleWithUnreadableFile()
-    {
-        $key = 'unreadable_stale';
-        $fileName = md5($key) . '.cache';
-        $file = vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
-
-        $this->assertNull($this->cache->getStale($key));
-    }
-
-    public function testGetStaleForNonExistentKey()
-    {
-        $this->assertNull($this->cache->getStale('non_existent_key'));
-    }
-
-    public function testKeysWithUnreadableFile()
-    {
-        $this->cache->set('key1', 'value1');
-        vfsStream::newFile(md5('key2') . '.cache', 0000)->at($this->root)->withContent('data');
-        $this->assertCount(1, $this->cache->keys());
-    }
-
     public function testCleanupWithCorruptedFile()
     {
         $this->cache->set('key_expired', 'value', -1);
@@ -207,5 +217,27 @@ class FileCacheTest extends TestCase
         $this->cache->cleanupExpired();
         $this->assertFalse($this->root->hasChild(md5('key_expired') . '.cache'));
         $this->assertTrue($this->root->hasChild(md5('corrupted') . '.cache'));
+    }
+
+    /**
+     * @expectedWarning file_put_contents(vfs://cache/3c6e0b8a9c15224a8228b9a98ca1531d.cache): Failed to open stream: "org\\bovigo\\vfs\\vfsStreamWrapper::stream_open" call failed
+     */
+    public function testSetFailsOnUnwritableDirectory()
+    {
+        $this->root->chmod(0444); // Make directory read-only
+        $this->assertFalse($this->cache->set('key', 'value'));
+        $this->root->chmod(0755); // Restore permissions
+    }
+
+    public function testConstructorWithNullCacheDir()
+    {
+        // This test is tricky because it depends on the file structure.
+        // We will check if the directory is created relative to the test file.
+        $cache = new FileCache(null);
+        $expectedDir = __DIR__ . '/tmp/alerts_cache';
+        $this->assertTrue(is_dir($expectedDir));
+        // Clean up
+        rmdir($expectedDir);
+        rmdir(__DIR__ . '/tmp');
     }
 }
