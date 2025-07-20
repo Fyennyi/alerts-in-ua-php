@@ -41,12 +41,12 @@ class FileCache implements ExpirableCacheInterface
             return null;
         }
 
-        $data = file_get_contents($filename);
+        $data = @file_get_contents($filename);
         if (false === $data) {
             return null;
         }
 
-        $item = unserialize($data);
+        $item = @unserialize($data);
         if (! is_array($item) || ! isset($item['value'], $item['expires'])) {
             return null;
         }
@@ -65,7 +65,7 @@ class FileCache implements ExpirableCacheInterface
             return null;
         }
 
-        $data = file_get_contents($filename);
+        $data = @file_get_contents($filename);
         if (false === $data) {
             return null;
         }
@@ -93,7 +93,7 @@ class FileCache implements ExpirableCacheInterface
             'expires' => $expires,
         ]);
 
-        return false !== file_put_contents($filename, $data);
+        return false !== @file_put_contents($filename, $data);
     }
 
     public function delete(string $key) : bool
@@ -104,7 +104,7 @@ class FileCache implements ExpirableCacheInterface
 
     public function clear() : bool
     {
-        $files = scandir($this->cache_dir);
+        $files = @scandir($this->cache_dir);
         if (false === $files) {
             return false;
         }
@@ -125,7 +125,7 @@ class FileCache implements ExpirableCacheInterface
 
     public function keys() : array
     {
-        $files = scandir($this->cache_dir);
+        $files = @scandir($this->cache_dir);
         if (false === $files) {
             return [];
         }
@@ -137,7 +137,7 @@ class FileCache implements ExpirableCacheInterface
                 continue;
             }
             $file_path = $this->cache_dir . '/' . $file;
-            $data = file_get_contents($file_path);
+            $data = @file_get_contents($file_path);
             if (false === $data) {
                 continue;
             }
@@ -167,7 +167,7 @@ class FileCache implements ExpirableCacheInterface
 
     public function cleanupExpired() : void
     {
-        $files = scandir($this->cache_dir);
+        $files = @scandir($this->cache_dir);
 
         if (false === $files) {
             return;
