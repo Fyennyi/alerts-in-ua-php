@@ -196,7 +196,6 @@ class AlertsClient
                         } else {
                             throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
                         }
-                        throw $e;
                     }
                 );
             },
