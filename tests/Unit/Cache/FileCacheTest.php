@@ -145,4 +145,28 @@ class FileCacheTest extends TestCase
         $this->assertFalse($this->cache->set('key', 'value'));
         $this->root->chmod(0755); // Restore permissions
     }
+
+    public function testClearOnUnreadableDirectory()
+    {
+        // This is tricky to test reliably with vfsStream as it might not prevent scandir
+        // However, we can assert it doesn't throw an exception and returns false.
+        $unreadableDir = vfsStream::newDirectory('unreadable', 0000)->at($this->root);
+        $cache = new FileCache($unreadableDir->url());
+        $this->assertFalse($cache->clear());
+    }
+
+    public function testKeysOnUnreadableDirectory()
+    {
+        $unreadableDir = vfsStream::newDirectory('unreadable_keys', 0000)->at($this->root);
+        $cache = new FileCache($unreadableDir->url());
+        $this->assertEquals([], $cache->keys());
+    }
+
+    public function testCleanupOnUnreadableDirectory()
+    {
+        $unreadableDir = vfsStream::newDirectory('unreadable_cleanup', 0000)->at($this->root);
+        $cache = new FileCache($unreadableDir->url());
+        $cache->cleanupExpired(); // Should not throw an exception
+        $this->assertTrue(true);
+    }
 }
