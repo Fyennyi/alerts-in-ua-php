@@ -30,4 +30,18 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         // All statuses should be included
         $this->assertCount(6, $statuses->getStatuses());
     }
+
+    public function testWithEmptyStatusString()
+    {
+        $statuses = new AirRaidAlertOblastStatuses('', false);
+        $this->assertCount(0, $statuses->getStatuses());
+    }
+
+    public function testWithLongerStatusString()
+    {
+        // 27 is the number of oblasts
+        $data = str_repeat('A', 30);
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+        $this->assertCount(27, $statuses->getStatuses());
+    }
 }
