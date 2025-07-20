@@ -120,6 +120,10 @@ class AlertsTest extends TestCase
         $this->assertCount(0, $invalidData->getAllAlerts());
         $this->assertNull($invalidData->getLastUpdatedAt());
         $this->assertEquals('', $invalidData->getDisclaimer());
+
+        // Test when 'alerts' key is not an array
+        $invalidAlertsField = new Alerts(['alerts' => 'this is not an array']);
+        $this->assertCount(0, $invalidAlertsField->getAllAlerts());
     }
 
     public function testFilteringByAlertType()
