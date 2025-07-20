@@ -4,13 +4,14 @@ namespace Fyennyi\AlertsInUa\Tests\Unit\Cache;
 
 use Fyennyi\AlertsInUa\Cache\FileCache;
 use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
 
 class FileCacheTest extends TestCase
 {
-    private $root;
+    private vfsStreamDirectory $root;
 
-    private $cacheDir;
+    private string $cacheDir;
 
     private FileCache $cache;
 
@@ -21,10 +22,28 @@ class FileCacheTest extends TestCase
         $this->cache = new FileCache($this->cacheDir);
     }
 
+    public function testConstructorCreatesDirectory()
+    {
+        $newCacheDir = $this->cacheDir . '/new_dir';
+        $this->assertFalse($this->root->hasChild('new_dir'));
+        new FileCache($newCacheDir);
+        $this->assertTrue($this->root->hasChild('new_dir'));
+    }
+
     public function testSetAndGet()
     {
         $this->assertTrue($this->cache->set('key1', 'value1', 60));
         $this->assertEquals('value1', $this->cache->get('key1'));
+    }
+
+    public function testSetWithZeroTtlIsPermanent()
+    {
+        $this->cache->set('permanent_key', 'permanent_value', 0);
+        // To test this, we need to inspect the file content
+        $fileName = md5('permanent_key') . '.cache';
+        $data = unserialize($this->root->getChild($fileName)->getContent());
+        $this->assertEquals(0, $data['expires']);
+        $this->assertEquals('permanent_value', $this->cache->get('permanent_key'));
     }
 
     public function testGetNonExistent()
@@ -40,6 +59,26 @@ class FileCacheTest extends TestCase
         $this->assertTrue($this->root->hasChild(md5('key_expired') . '.cache'));
     }
 
+    public function testGetWithCorruptedData()
+    {
+        $fileName = md5('corrupted') . '.cache';
+        vfsStream::newFile($fileName)->at($this->root)->withContent('corrupted data');
+        $this->assertNull($this->cache->get('corrupted'));
+    }
+
+    public function testGetStale()
+    {
+        $this->cache->set('key_stale', 'value_stale', -1); // Expired
+        $this->assertEquals('value_stale', $this->cache->getStale('key_stale'));
+    }
+
+    public function testGetStaleWithCorruptedData()
+    {
+        $fileName = md5('corrupted_stale') . '.cache';
+        vfsStream::newFile($fileName)->at($this->root)->withContent('corrupted data');
+        $this->assertNull($this->cache->getStale('corrupted_stale'));
+    }
+
     public function testDelete()
     {
         $this->cache->set('key_to_delete', 'value_to_delete');
@@ -47,14 +86,20 @@ class FileCacheTest extends TestCase
         $this->assertNull($this->cache->get('key_to_delete'));
     }
 
+    public function testDeleteNonExistentKey()
+    {
+        $this->assertTrue($this->cache->delete('non_existent_key'));
+    }
+
     public function testClear()
     {
         $this->cache->set('key1', 'value1');
         $this->cache->set('key2', 'value2');
+        vfsStream::newFile('not_a_cache_file.txt')->at($this->root)->withContent('some data');
         $this->assertTrue($this->cache->clear());
         $this->assertNull($this->cache->get('key1'));
         $this->assertNull($this->cache->get('key2'));
-        $this->assertCount(0, $this->root->getChildren());
+        $this->assertCount(1, $this->root->getChildren()); // The non-cache file should remain
     }
 
     public function testHas()
@@ -74,6 +119,15 @@ class FileCacheTest extends TestCase
         $this->assertContains('key2', $keys);
     }
 
+    public function testKeysWithCorruptedFile()
+    {
+        $this->cache->set('key1', 'value1');
+        vfsStream::newFile('corrupted.cache')->at($this->root)->withContent('corrupted');
+        $keys = $this->cache->keys();
+        $this->assertCount(1, $keys);
+        $this->assertContains('key1', $keys);
+    }
+
     public function testCleanupExpired()
     {
         $this->cache->set('key_valid', 'value_valid', 3600);
@@ -84,10 +138,11 @@ class FileCacheTest extends TestCase
         $this->assertTrue($this->cache->has('key_valid'));
         $this->assertFalse($this->root->hasChild(md5('key_expired') . '.cache'));
     }
-    
-    public function testGetStale()
+
+    public function testSetFailsOnUnwritableDirectory()
     {
-        $this->cache->set('key_stale', 'value_stale', -1); // Expired
-        $this->assertEquals('value_stale', $this->cache->getStale('key_stale'));
+        $this->root->chmod(0444); // Make directory read-only
+        $this->assertFalse($this->cache->set('key', 'value'));
+        $this->root->chmod(0755); // Restore permissions
     }
 }
