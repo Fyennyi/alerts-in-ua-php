@@ -26,20 +26,19 @@ class AirRaidAlertOblastStatuses
             'Тернопільська область', 'Харківська область', 'Херсонська область', 'Хмельницька область',
             'Черкаська область', 'Чернівецька область', 'Чернігівська область',
         ];
-
         $statuses = str_split($data);
-        $max_index = min(count($oblasts), count($statuses)) - 1;
 
-        for ($i = 0; $i <= $max_index; $i++) {
-            if (! isset($oblasts[$i], $statuses[$i])) {
+        foreach ($oblasts as $i => $oblast) {
+            if (! isset($statuses[$i])) {
+                break;
+            }
+
+            $status = $statuses[$i];
+            if ($oblast_level_only && 'A' !== $status) {
                 continue;
             }
 
-            if ($oblast_level_only && 'A' !== $statuses[$i]) {
-                continue;
-            }
-
-            $this->statuses[] = new AirRaidAlertOblastStatus($oblasts[$i], $statuses[$i]);
+            $this->statuses[] = new AirRaidAlertOblastStatus($oblast, $status);
         }
     }
 
