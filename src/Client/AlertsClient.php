@@ -19,14 +19,15 @@ use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class AlertsClient
 {
-    /** @var Client HTTP client for making requests */
-    private Client $client;
+    /** @var ClientInterface HTTP client for making requests */
+    private ClientInterface $client;
 
     /** @var string API authentication token */
     private string $token;
@@ -42,10 +43,11 @@ class AlertsClient
      *
      * @param  string  $token  API token
      * @param  CacheInterface|null  $cache  Optional cache implementation
+     * @param  ClientInterface|null  $client  Optional Guzzle client instance
      */
-    public function __construct(string $token, ?CacheInterface $cache = null)
+    public function __construct(string $token, ?CacheInterface $cache = null, ?ClientInterface $client = null)
     {
-        $this->client = new Client();
+        $this->client = $client ?? new Client();
         $this->token = $token;
         $this->cache_manager = new SmartCacheManager($cache ?? new InMemoryCache());
     }
