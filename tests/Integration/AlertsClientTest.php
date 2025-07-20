@@ -201,7 +201,7 @@ class AlertsClientTest extends TestCase
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }
 
-    public static function apiErrorProvider(): array
+    public static function apiErrorProvider() : array
     {
         return [
             'Bad Request' => [400, \Fyennyi\AlertsInUa\Exception\BadRequestError::class],
