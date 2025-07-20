@@ -151,4 +151,20 @@ class SmartCacheManagerTest extends TestCase
 
         $manager->getOrSet('test', fn() => 'data');
     }
+
+    public function testRateLimitingReturnsStaleData()
+    {
+        $manager = new SmartCacheManager($this->cacheMock);
+
+        // First call to set the timestamp
+        $this->cacheMock->expects($this->exactly(2))->method('get')->willReturn(null);
+        $this->cacheMock->expects($this->once())->method('set');
+        $manager->getOrSet('rate_limited_key', fn() => 'fresh_data');
+
+        // Second call should be rate-limited
+        $this->cacheMock->expects($this->once())->method('getStale')->willReturn('stale_data');
+
+        $result = $manager->getOrSet('rate_limited_key', fn() => 'new_fresh_data');
+        $this->assertEquals('stale_data', $result);
+    }
 }
