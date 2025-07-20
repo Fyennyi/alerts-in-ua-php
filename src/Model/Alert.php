@@ -6,7 +6,7 @@ use DateInterval;
 use DateTimeImmutable;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 
-class Alert
+class Alert implements \JsonSerializable
 {
     private int $id;
 
@@ -328,5 +328,13 @@ class Alert
         } catch (\JsonException $e) {
             throw new \RuntimeException('Failed to encode alert to JSON: ' . $e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }
