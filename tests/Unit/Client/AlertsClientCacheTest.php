@@ -10,6 +10,7 @@ use ReflectionClass;
 class AlertsClientCacheTest extends TestCase
 {
     private AlertsClient $alertsClient;
+
     private SmartCacheManager $cacheManagerMock;
 
     protected function setUp() : void
