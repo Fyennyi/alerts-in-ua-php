@@ -44,4 +44,11 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $statuses = new AirRaidAlertOblastStatuses($data, false);
         $this->assertCount(27, $statuses->getStatuses());
     }
+
+    public function testWithShorterStatusString()
+    {
+        $data = 'A';
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+        $this->assertCount(1, $statuses->getStatuses());
+    }
 }
