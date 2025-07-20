@@ -11,6 +11,7 @@ use RuntimeException;
 class AlertTest extends TestCase
 {
     private array $activeAlertData;
+
     private array $finishedAlertData;
 
     protected function setUp() : void
@@ -155,7 +156,7 @@ class AlertTest extends TestCase
         $alert = new Alert($this->finishedAlertData);
         $this->assertEquals(2, $alert->getProperty('id'));
         $this->assertEquals('Харківська область', $alert->getProperty('location_title'));
-        $this->assertEquals('OBLAST', $alert->getProperty('location_type'));
+        $this->assertEquals('oblast', $alert->getProperty('location_type'));
         $this->assertInstanceOf(\DateTimeInterface::class, $alert->getProperty('started_at'));
         $this->assertInstanceOf(\DateTimeInterface::class, $alert->getProperty('finished_at'));
         $this->assertInstanceOf(\DateTimeInterface::class, $alert->getProperty('updated_at'));
