@@ -234,10 +234,35 @@ class FileCacheTest extends TestCase
         // This test is tricky because it depends on the file structure.
         // We will check if the directory is created relative to the test file.
         $cache = new FileCache(null);
-        $expectedDir = __DIR__ . '/tmp/alerts_cache';
+        $expectedDir = sys_get_temp_dir() . '/alerts_cache';
         $this->assertTrue(is_dir($expectedDir));
         // Clean up
         rmdir($expectedDir);
-        rmdir(__DIR__ . '/tmp');
+    }
+
+    public function testGetStaleWithInvalidData()
+    {
+        $key = 'invalid_stale';
+        $fileName = md5($key) . '.cache';
+        // Data without 'value' key
+        $data = serialize(['key' => $key, 'expires' => time() + 3600]);
+        vfsStream::newFile($fileName)->at($this->root)->withContent($data);
+
+        $this->assertNull($this->cache->getStale($key));
+    }
+
+    public function testCleanupExpiredWithUnreadableFile()
+    {
+        $this->cache->set('expired_key', 'value', -1);
+        $unreadable_key = 'unreadable_expired';
+        $fileName = md5($unreadable_key) . '.cache';
+        vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
+
+        $this->cache->cleanupExpired();
+
+        // Assert that the readable expired file was deleted
+        $this->assertFalse($this->root->hasChild(md5('expired_key') . '.cache'));
+        // Assert that the unreadable file still exists
+        $this->assertTrue($this->root->hasChild($fileName));
     }
 }
