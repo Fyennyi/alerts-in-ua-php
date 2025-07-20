@@ -4,6 +4,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/fyennyi/alerts-in-ua-php.svg?label=Downloads&logo=packagist)](https://packagist.org/packages/fyennyi/alerts-in-ua-php)
 [![License](https://img.shields.io/packagist/l/fyennyi/alerts-in-ua-php.svg?label=Licence&logo=open-source-initiative)](https://packagist.org/packages/fyennyi/alerts-in-ua-php)
 [![Tests](https://img.shields.io/github/actions/workflow/status/Fyennyi/alerts-in-ua-php/phpunit.yml?label=Tests&logo=github)](https://github.com/Fyennyi/alerts-in-ua-php/actions/workflows/phpunit.yml)
+[![Test Coverage](https://img.shields.io/codecov/c/github/Fyennyi/alerts-in-ua-php?label=Test%20Coverage&logo=codecov)](https://app.codecov.io/gh/Fyennyi/alerts-in-ua-php)
 [![Static Analysis](https://img.shields.io/github/actions/workflow/status/Fyennyi/alerts-in-ua-php/phpstan.yml?label=PHPStan&logo=github)](https://github.com/Fyennyi/alerts-in-ua-php/actions/workflows/phpstan.yml)
 
 The API client for alerts.in.ua is a PHP library that simplifies access to the alerts.in.ua API service. It provides real-time information about air raid alerts in Ukraine. The library supports asynchronous operations, making it easy to integrate with various applications and services.
