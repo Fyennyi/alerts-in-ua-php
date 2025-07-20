@@ -13,6 +13,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -182,6 +183,34 @@ class AlertsClientTest extends TestCase
 
         // Call method
         $this->alertsClient->getActiveAlertsAsync()->wait(); // Here the UnauthorizedError will be thrown and the test will pass
+    }
+
+    #[DataProvider('apiErrorProvider')]
+    public function testApiErrorHandling(int $statusCode, string $expectedException)
+    {
+        $this->mockHandler->append(
+            new RequestException(
+                'API Error',
+                new Request('GET', 'test'),
+                new Response($statusCode, [], json_encode(['error' => 'An error occurred']))
+            )
+        );
+
+        $this->expectException($expectedException);
+
+        $this->alertsClient->getActiveAlertsAsync()->wait();
+    }
+
+    public static function apiErrorProvider(): array
+    {
+        return [
+            'Bad Request' => [400, \Fyennyi\AlertsInUa\Exception\BadRequestError::class],
+            'Forbidden' => [403, \Fyennyi\AlertsInUa\Exception\ForbiddenError::class],
+            'Not Found' => [404, \Fyennyi\AlertsInUa\Exception\NotFoundError::class],
+            'Rate Limit' => [429, \Fyennyi\AlertsInUa\Exception\RateLimitError::class],
+            'Internal Server Error' => [500, \Fyennyi\AlertsInUa\Exception\InternalServerError::class],
+            'Generic Api Error' => [503, \Fyennyi\AlertsInUa\Exception\ApiError::class],
+        ];
     }
 
     public function testCache()
