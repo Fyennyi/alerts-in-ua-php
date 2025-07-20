@@ -3,18 +3,33 @@
 namespace Fyennyi\AlertsInUa\Tests\Unit\Client;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Model\Alerts;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
+use ReflectionMethod;
 
 class AlertsClientTest extends TestCase
 {
+    private MockHandler $mockHandler;
+
+    private AlertsClient $alertsClient;
+
+    protected function setUp() : void
+    {
+        $this->mockHandler = new MockHandler();
+        $handlerStack = HandlerStack::create($this->mockHandler);
+        $guzzleClient = new GuzzleClient(['handler' => $handlerStack]);
+
+        $this->alertsClient = new AlertsClient('test-token', null, $guzzleClient);
+    }
+
     public function testGetActiveAlertsAsyncSuccessfully()
     {
-        // 1. Prepare mock data and objects
+        // 1. Prepare mock response
         $jsonPayload = '{
             "alerts": [
                 {
@@ -24,37 +39,12 @@ class AlertsClientTest extends TestCase
                 }
             ]
         }';
+        $this->mockHandler->append(new Response(200, ['Last-Modified' => date('D, d M Y H:i:s T')], $jsonPayload));
 
-        $mockStream = $this->createMock(StreamInterface::class);
-        $mockStream->method('getContents')->willReturn($jsonPayload);
+        // 2. Call the method and wait for the result
+        $alerts = $this->alertsClient->getActiveAlertsAsync()->wait();
 
-        $mockResponse = $this->createMock(ResponseInterface::class);
-        $mockResponse->method('getStatusCode')->willReturn(200);
-        $mockResponse->method('getBody')->willReturn($mockStream);
-        $mockResponse->method('getHeaderLine')->with('Last-Modified')->willReturn(date('D, d M Y H:i:s T'));
-
-        $mockPromise = $this->createMock(PromiseInterface::class);
-        // Configure then() to immediately call the first argument (onFulfilled)
-        $mockPromise->method('then')->willReturnCallback(function ($onFulfilled) use ($mockResponse) {
-            // Create a new mock promise that will return the processed result
-            $finalPromise = $this->createMock(PromiseInterface::class);
-            $result = $onFulfilled($mockResponse);
-            $finalPromise->method('wait')->willReturn($result);
-
-            return $finalPromise;
-        });
-
-        $mockClient = $this->createMock(ClientInterface::class);
-        $mockClient->method('requestAsync')->willReturn($mockPromise);
-
-        // 2. Create an instance of AlertsClient with the mock client
-        $alertsClient = new AlertsClient('test-token', null, $mockClient);
-
-        // 3. Call the method being tested
-        $resultPromise = $alertsClient->getActiveAlertsAsync();
-        $alerts = $resultPromise->wait();
-
-        // 4. Assert the results
+        // 3. Assert the results
         $this->assertInstanceOf(Alerts::class, $alerts);
         $this->assertCount(1, $alerts->getAllAlerts());
         $this->assertEquals('м. Київ', $alerts->getAllAlerts()[0]->getLocationTitle());
@@ -62,50 +52,28 @@ class AlertsClientTest extends TestCase
 
     public function testResolveUidWithStringDigit()
     {
-        // 1. Create an instance of AlertsClient
-        $alertsClient = new AlertsClient('test-token');
-
-        // 2. Use reflection to make the private method accessible
-        $reflection = new \ReflectionClass(AlertsClient::class);
-        $method = $reflection->getMethod('resolveUid');
+        // Use reflection to make the private method accessible
+        $method = new ReflectionMethod(AlertsClient::class, 'resolveUid');
         $method->setAccessible(true);
 
-        // 3. Call the private method with a string digit
-        $result = $method->invoke($alertsClient, '22');
+        // Call the private method with a string digit
+        $result = $method->invoke($this->alertsClient, '22');
 
-        // 4. Assert the result is the correct integer
+        // Assert the result is the correct integer
         $this->assertSame(22, $result);
     }
 
     public function testApiReturnsInvalidJson()
     {
-        // 1. Prepare mock data with invalid JSON
+        // 1. Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"alerts": [{"id": 1]}}'; // Malformed JSON
-
-        $mockStream = $this->createMock(StreamInterface::class);
-        $mockStream->method('getContents')->willReturn($invalidJsonPayload);
-
-        $mockResponse = $this->createMock(ResponseInterface::class);
-        $mockResponse->method('getStatusCode')->willReturn(200);
-        $mockResponse->method('getBody')->willReturn($mockStream);
-
-        $mockPromise = $this->createMock(PromiseInterface::class);
-        $mockPromise->method('then')->willReturnCallback(function ($onFulfilled) use ($mockResponse) {
-            $finalPromise = $this->createMock(PromiseInterface::class);
-            $result = $onFulfilled($mockResponse);
-            $finalPromise->method('wait')->willReturn($result);
-            return $finalPromise;
-        });
-
-        $mockClient = $this->createMock(ClientInterface::class);
-        $mockClient->method('requestAsync')->willReturn($mockPromise);
+        $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
 
         // 2. Expect an ApiError exception
-        $this->expectException(\Fyennyi\AlertsInUa\Exception\ApiError::class);
+        $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Invalid JSON response received');
 
-        // 3. Create client and call the method
-        $alertsClient = new AlertsClient('test-token', null, $mockClient);
-        $alertsClient->getActiveAlertsAsync()->wait();
+        // 3. Call the method
+        $this->alertsClient->getActiveAlertsAsync()->wait();
     }
 }
