@@ -36,7 +36,7 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Run test suite
-      run: vendor/bin/phpunit --coverage-clover clover.xml
+      run: vendor/bin/phpunit --coverage-clover clover.xml --display-warnings
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
