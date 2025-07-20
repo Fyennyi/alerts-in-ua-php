@@ -369,4 +369,14 @@ class AlertsClientTest extends TestCase
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
         $this->assertCount(27, $result->getStatuses());
     }
+
+    public function testThrowableErrorHandling()
+    {
+        $this->mockHandler->append(new \TypeError('A throwable error'));
+
+        $this->expectException(ApiError::class);
+        $this->expectExceptionMessage('Fatal error: A throwable error');
+
+        $this->alertsClient->getActiveAlertsAsync()->wait();
+    }
 }
