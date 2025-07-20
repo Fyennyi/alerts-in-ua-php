@@ -32,9 +32,14 @@ class InMemoryCache implements ExpirableCacheInterface
 
     public function set(string $key, mixed $value, int $ttl = 3600) : bool
     {
+        $expires = 0;
+        if (0 !== $ttl) {
+            $expires = time() + $ttl;
+        }
+
         $this->cache[$key] = [
             'value' => $value,
-            'expires' => $ttl > 0 ? time() + $ttl : 0,
+            'expires' => $expires,
         ];
 
         return true;
