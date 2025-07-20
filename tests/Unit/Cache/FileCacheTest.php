@@ -187,4 +187,25 @@ class FileCacheTest extends TestCase
 
         $this->assertNull($this->cache->getStale($key));
     }
+
+    public function testGetStaleForNonExistentKey()
+    {
+        $this->assertNull($this->cache->getStale('non_existent_key'));
+    }
+
+    public function testKeysWithUnreadableFile()
+    {
+        $this->cache->set('key1', 'value1');
+        vfsStream::newFile(md5('key2') . '.cache', 0000)->at($this->root)->withContent('data');
+        $this->assertCount(1, $this->cache->keys());
+    }
+
+    public function testCleanupWithCorruptedFile()
+    {
+        $this->cache->set('key_expired', 'value', -1);
+        vfsStream::newFile(md5('corrupted') . '.cache')->at($this->root)->withContent('corrupted');
+        $this->cache->cleanupExpired();
+        $this->assertFalse($this->root->hasChild(md5('key_expired') . '.cache'));
+        $this->assertTrue($this->root->hasChild(md5('corrupted') . '.cache'));
+    }
 }
