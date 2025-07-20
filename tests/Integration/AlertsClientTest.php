@@ -353,4 +353,20 @@ class AlertsClientTest extends TestCase
 
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }
+
+    public function testAirRaidStatusWithNonStringValue()
+    {
+        $this->mockHandler->append(new Response(200, [], json_encode([123])));
+        $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
+        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
+        $this->assertEquals('', $result->getStatus());
+    }
+
+    public function testAirRaidStatusesWithLongString()
+    {
+        $this->mockHandler->append(new Response(200, [], json_encode([str_repeat('A', 30)])));
+        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
+        $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
+        $this->assertCount(27, $result->getStatuses());
+    }
 }
