@@ -81,10 +81,16 @@ class FileCache implements ExpirableCacheInterface
     public function set(string $key, mixed $value, int $ttl = 3600) : bool
     {
         $filename = $this->getCacheFilename($key);
+
+        $expires = 0;
+        if (0 !== $ttl) {
+            $expires = time() + $ttl;
+        }
+
         $data = serialize([
             'key' => $key,
             'value' => $value,
-            'expires' => $ttl > 0 ? time() + $ttl : 0,
+            'expires' => $expires,
         ]);
 
         return false !== file_put_contents($filename, $data);
@@ -98,13 +104,15 @@ class FileCache implements ExpirableCacheInterface
 
     public function clear() : bool
     {
-        $files = glob($this->cache_dir . '/*.cache');
+        $files = scandir($this->cache_dir);
         if (false === $files) {
             return false;
         }
 
         foreach ($files as $file) {
-            @unlink($file);
+            if ($file !== '.' && $file !== '..' && pathinfo($file, PATHINFO_EXTENSION) === 'cache') {
+                @unlink($this->cache_dir . '/' . $file);
+            }
         }
 
         return true;
@@ -117,7 +125,7 @@ class FileCache implements ExpirableCacheInterface
 
     public function keys() : array
     {
-        $files = glob($this->cache_dir . '/*.cache');
+        $files = scandir($this->cache_dir);
         if (false === $files) {
             return [];
         }
@@ -125,7 +133,11 @@ class FileCache implements ExpirableCacheInterface
         $keys = [];
 
         foreach ($files as $file) {
-            $data = file_get_contents($file);
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            $file_path = $this->cache_dir . '/' . $file;
+            $data = file_get_contents($file_path);
             if (false === $data) {
                 continue;
             }
@@ -155,7 +167,7 @@ class FileCache implements ExpirableCacheInterface
 
     public function cleanupExpired() : void
     {
-        $files = glob($this->cache_dir . '/*.cache');
+        $files = scandir($this->cache_dir);
 
         if (false === $files) {
             return;
@@ -164,7 +176,11 @@ class FileCache implements ExpirableCacheInterface
         $now = time();
 
         foreach ($files as $file) {
-            $data = @file_get_contents($file);
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            $file_path = $this->cache_dir . '/' . $file;
+            $data = @file_get_contents($file_path);
             if (false === $data) {
                 continue;
             }
@@ -175,7 +191,7 @@ class FileCache implements ExpirableCacheInterface
             }
 
             if ($item['expires'] > 0 && $item['expires'] < $now) {
-                @unlink($file);
+                @unlink($file_path);
             }
         }
     }
