@@ -10,6 +10,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use ReflectionMethod;
 
 class AlertsClientTest extends TestCase
@@ -20,16 +21,24 @@ class AlertsClientTest extends TestCase
 
     protected function setUp() : void
     {
+        // 1. Create the mock handler
         $this->mockHandler = new MockHandler();
         $handlerStack = HandlerStack::create($this->mockHandler);
         $guzzleClient = new GuzzleClient(['handler' => $handlerStack]);
 
-        $this->alertsClient = new AlertsClient('test-token', null, $guzzleClient);
+        // 2. Create the real AlertsClient
+        $this->alertsClient = new AlertsClient('test-token');
+
+        // 3. Use reflection to inject the mocked Guzzle client
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $clientProperty = $reflectionClass->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->alertsClient, $guzzleClient);
     }
 
     public function testGetActiveAlertsAsyncSuccessfully()
     {
-        // 1. Prepare mock response
+        // Prepare mock response
         $jsonPayload = '{
             "alerts": [
                 {
@@ -41,10 +50,10 @@ class AlertsClientTest extends TestCase
         }';
         $this->mockHandler->append(new Response(200, ['Last-Modified' => date('D, d M Y H:i:s T')], $jsonPayload));
 
-        // 2. Call the method and wait for the result
+        // Call the method and wait for the result
         $alerts = $this->alertsClient->getActiveAlertsAsync()->wait();
 
-        // 3. Assert the results
+        // Assert the results
         $this->assertInstanceOf(Alerts::class, $alerts);
         $this->assertCount(1, $alerts->getAllAlerts());
         $this->assertEquals('м. Київ', $alerts->getAllAlerts()[0]->getLocationTitle());
@@ -65,15 +74,15 @@ class AlertsClientTest extends TestCase
 
     public function testApiReturnsInvalidJson()
     {
-        // 1. Prepare mock response with invalid JSON
+        // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"alerts": [{"id": 1]}}'; // Malformed JSON
         $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
 
-        // 2. Expect an ApiError exception
+        // Expect an ApiError exception
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Invalid JSON response received');
 
-        // 3. Call the method
+        // Call the method
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }
 }
