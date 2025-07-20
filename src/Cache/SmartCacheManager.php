@@ -134,7 +134,7 @@ class SmartCacheManager
      * @param  string  $timestamp  The value of the Last-Modified header (RFC 1123 format)
      * @return void
      */
-    public function setLastModified(string $key, string $timestamp): void
+    public function setLastModified(string $key, string $timestamp) : void
     {
         $this->cache->set($key . '.last_modified', $timestamp, 86400);
     }
