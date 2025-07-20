@@ -178,4 +178,13 @@ class FileCacheTest extends TestCase
 
         $this->assertNull($this->cache->get($key));
     }
+
+    public function testGetStaleWithUnreadableFile()
+    {
+        $key = 'unreadable_stale';
+        $fileName = md5($key) . '.cache';
+        $file = vfsStream::newFile($fileName, 0000)->at($this->root)->withContent('data');
+
+        $this->assertNull($this->cache->getStale($key));
+    }
 }
