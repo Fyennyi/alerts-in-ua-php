@@ -343,4 +343,14 @@ class AlertsClientTest extends TestCase
 
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }
+
+    public function testProcessErrorWithNoResponse()
+    {
+        $this->mockHandler->append(new RequestException('Connection error', new Request('GET', 'test')));
+
+        $this->expectException(ApiError::class);
+        $this->expectExceptionMessage('Request failed: Connection error');
+
+        $this->alertsClient->getActiveAlertsAsync()->wait();
+    }
 }
