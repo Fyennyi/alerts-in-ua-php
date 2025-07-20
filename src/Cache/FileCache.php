@@ -12,19 +12,7 @@ class FileCache implements ExpirableCacheInterface
     public function __construct(?string $cache_dir = null)
     {
         if (null === $cache_dir) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
-            $caller_file = $backtrace[0]['file'] ?? null;
-
-            if (! is_string($caller_file)) {
-                $cwd = getcwd();
-                if (! is_string($cwd)) {
-                    throw new \RuntimeException('Cannot determine working directory.');
-                }
-                $caller_file = $cwd;
-            }
-
-            $base_dir = dirname($caller_file);
-            $cache_dir = $base_dir . '/tmp/alerts_cache';
+            $cache_dir = sys_get_temp_dir() . '/alerts_cache';
         }
 
         $this->cache_dir = $cache_dir;
