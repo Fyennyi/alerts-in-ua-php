@@ -42,3 +42,9 @@ jobs:
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Upload coverage report to Codacy
+      run: |
+        curl -Ls https://coverage.codacy.com/get.sh | bash
+      env:
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
