@@ -85,4 +85,32 @@ class AlertsClientTest extends TestCase
         // Call the method
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }
+
+    public function testAlertsHistoryAsyncThrowsExceptionOnInvalidJson()
+    {
+        // Prepare mock response with invalid JSON
+        $invalidJsonPayload = '{"history": [{"id": 1]}}'; // Malformed JSON
+        $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
+
+        // Expect an ApiError exception
+        $this->expectException(ApiError::class);
+        $this->expectExceptionMessage('Invalid JSON response received');
+
+        // Call the method
+        $this->alertsClient->getAlertsHistoryAsync('м. Київ')->wait();
+    }
+
+    public function testAirRaidAlertStatusAsyncThrowsExceptionOnInvalidJson()
+    {
+        // Prepare mock response with invalid JSON
+        $invalidJsonPayload = '{"status": [{"id": 1]}}'; // Malformed JSON
+        $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
+
+        // Expect an ApiError exception
+        $this->expectException(ApiError::class);
+        $this->expectExceptionMessage('Invalid JSON response received');
+
+        // Call the method
+        $this->alertsClient->getAirRaidAlertStatusAsync('м. Київ')->wait();
+    }
 }
