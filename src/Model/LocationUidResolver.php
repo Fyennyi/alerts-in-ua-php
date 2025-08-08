@@ -7,45 +7,38 @@ use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 class LocationUidResolver
 {
     /** @var array<int, string> */
-    private array $uid_to_location = [
-        3 => 'Хмельницька область',
-        4 => 'Вінницька область',
-        5 => 'Рівненська область',
-        8 => 'Волинська область',
-        9 => 'Дніпропетровська область',
-        10 => 'Житомирська область',
-        11 => 'Закарпатська область',
-        12 => 'Запорізька область',
-        13 => 'Івано-Франківська область',
-        14 => 'Київська область',
-        15 => 'Кіровоградська область',
-        16 => 'Луганська область',
-        17 => 'Миколаївська область',
-        18 => 'Одеська область',
-        19 => 'Полтавська область',
-        20 => 'Сумська область',
-        21 => 'Тернопільська область',
-        22 => 'Харківська область',
-        23 => 'Херсонська область',
-        24 => 'Черкаська область',
-        25 => 'Чернігівська область',
-        26 => 'Чернівецька область',
-        27 => 'Львівська область',
-        28 => 'Донецька область',
-        29 => 'Автономна Республіка Крим',
-        30 => 'м. Севастополь',
-        31 => 'м. Київ',
-    ];
+    private array $uid_to_location = [];
 
     /** @var array<string, int> */
-    private array $location_to_uid;
+    private array $location_to_uid = [];
 
     /**
      * Constructor for LocationUidResolver
-     * Initializes the reverse mapping of locations to UIDs
+     * Loads location data from a JSON file and initializes the UID mappings
+     *
+     * @throws \RuntimeException If the locations file is missing or cannot be read
      */
     public function __construct()
     {
+        $json_path = __DIR__ . '/locations.json';
+
+        if (! file_exists($json_path)) {
+            throw new \RuntimeException("Locations data file not found at {$json_path}");
+        }
+
+        $json_content = file_get_contents($json_path);
+        if (false === $json_content) {
+            throw new \RuntimeException("Could not read locations data file from {$json_path}");
+        }
+
+        /** @var array<int, string>|null $locations */
+        $locations = json_decode($json_content, true);
+
+        if (! is_array($locations)) {
+            throw new \RuntimeException("Failed to decode locations JSON from {$json_path}");
+        }
+
+        $this->uid_to_location = $locations;
         $this->location_to_uid = array_flip($this->uid_to_location);
     }
 
@@ -81,5 +74,15 @@ class LocationUidResolver
         }
         
         return $this->uid_to_location[$uid];
+    }
+
+    /**
+     * Returns the entire UID to location mapping array
+     *
+     * @return array<int, string> The mapping of UIDs to location names
+     */
+    public function getUidToLocationMapping() : array
+    {
+        return $this->uid_to_location;
     }
 }
