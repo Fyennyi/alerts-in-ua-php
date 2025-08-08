@@ -9,9 +9,10 @@ use PHPUnit\Framework\TestCase;
 class LocationUidResolverTest extends TestCase
 {
     private string $locationsPath;
+
     private string $backupPath;
 
-    protected function setUp(): void
+    protected function setUp() : void
     {
         $this->locationsPath = __DIR__ . '/../../src/Model/locations.json';
         $this->backupPath = $this->locationsPath . '.bak';
@@ -27,7 +28,7 @@ class LocationUidResolverTest extends TestCase
         file_put_contents($this->locationsPath, json_encode($testLocations));
     }
 
-    protected function tearDown(): void
+    protected function tearDown() : void
     {
         if (file_exists($this->locationsPath)) {
             unlink($this->locationsPath);
@@ -67,7 +68,7 @@ class LocationUidResolverTest extends TestCase
         $resolver->resolveLocationTitle(999);
     }
 
-    public function testConstructorThrowsExceptionIfLocationsFileNotFound(): void
+    public function testConstructorThrowsExceptionIfLocationsFileNotFound() : void
     {
         unlink($this->locationsPath); // Remove the file to simulate it not being found
 
@@ -77,9 +78,15 @@ class LocationUidResolverTest extends TestCase
         new LocationUidResolver();
     }
 
-    public function testConstructorThrowsExceptionIfJsonIsInvalid(): void
+    /**
+     * Test that the constructor throws a RuntimeException if the JSON content is invalid.
+     * This specifically targets line 31 in src/Model/LocationUidResolver.php,
+     * ensuring that the `!is_array($locations)` condition is met when json_decode fails.
+     */
+    public function testConstructorThrowsExceptionIfJsonIsInvalid() : void
     {
-        file_put_contents($this->locationsPath, 'invalid json'); // Write invalid JSON
+        // Ensure the locations file exists but contains invalid JSON
+        file_put_contents($this->locationsPath, 'this is not valid json');
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage("Failed to decode locations JSON from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
