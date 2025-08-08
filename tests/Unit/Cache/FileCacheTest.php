@@ -237,7 +237,30 @@ class FileCacheTest extends TestCase
         $expectedDir = sys_get_temp_dir() . '/alerts_cache';
         $this->assertTrue(is_dir($expectedDir));
         // Clean up
-        rmdir($expectedDir);
+        self::deleteDirectory($expectedDir);
+    }
+
+    private static function deleteDirectory(string $dir) : bool
+    {
+        if (! file_exists($dir)) {
+            return true;
+        }
+
+        if (! is_dir($dir)) {
+            return unlink($dir);
+        }
+
+        foreach (scandir($dir) as $item) {
+            if ('.' === $item || '..' === $item) {
+                continue;
+            }
+
+            if (! self::deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                return false;
+            }
+        }
+
+        return rmdir($dir);
     }
 
     public function testGetStaleWithInvalidData()

@@ -29,7 +29,9 @@ class LocationUidResolverTest extends TestCase
 
     protected function tearDown(): void
     {
-        unlink($this->locationsPath);
+        if (file_exists($this->locationsPath)) {
+            unlink($this->locationsPath);
+        }
         if (file_exists($this->backupPath)) {
             rename($this->backupPath, $this->locationsPath);
         }
@@ -63,5 +65,25 @@ class LocationUidResolverTest extends TestCase
         $this->expectException(InvalidParameterException::class);
         $this->expectExceptionMessage('Unknown UID: 999');
         $resolver->resolveLocationTitle(999);
+    }
+
+    public function testConstructorThrowsExceptionIfLocationsFileNotFound(): void
+    {
+        unlink($this->locationsPath); // Remove the file to simulate it not being found
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Locations data file not found at " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+
+        new LocationUidResolver();
+    }
+
+    public function testConstructorThrowsExceptionIfJsonIsInvalid(): void
+    {
+        file_put_contents($this->locationsPath, 'invalid json'); // Write invalid JSON
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Failed to decode locations JSON from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+
+        new LocationUidResolver();
     }
 }
