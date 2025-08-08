@@ -2,7 +2,9 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
-class AirRaidAlertOblastStatus
+use JsonSerializable;
+
+class AirRaidAlertOblastStatus implements JsonSerializable
 {
     private string $oblast;
 
@@ -86,5 +88,16 @@ class AirRaidAlertOblastStatus
     public function __toString() : string
     {
         return sprintf("%s:%s", $this->status, $this->oblast);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'oblast' => $this->oblast,
+            'status' => $this->status,
+        ];
     }
 }

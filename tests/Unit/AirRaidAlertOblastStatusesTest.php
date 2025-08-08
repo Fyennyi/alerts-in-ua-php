@@ -46,4 +46,44 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $statuses = new AirRaidAlertOblastStatuses($data, false);
         $this->assertCount(27, $statuses->getStatuses());
     }
+
+    public function testToString()
+    {
+        $data = 'ANP'; // A: active, N: no_alert, P: partly
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+        $expectedJson = json_encode([
+            ['oblast' => 'Автономна Республіка Крим', 'status' => 'active'],
+            ['oblast' => 'Волинська область', 'status' => 'no_alert'],
+            ['oblast' => 'Вінницька область', 'status' => 'partly'],
+        ]);
+        $this->assertJsonStringEqualsJsonString($expectedJson, (string) $statuses);
+    }
+
+    public function testGetIterator()
+    {
+        $data = 'ANP';
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+        $this->assertInstanceOf(\ArrayIterator::class, $statuses->getIterator());
+        $this->assertCount(3, iterator_to_array($statuses));
+    }
+
+    public function testGetNoAlertOblasts()
+    {
+        $data = 'ANNNANNNNNNNANNNNNNNNPNNNNA'; // 27 characters
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+        $noAlerts = array_values($statuses->getNoAlertOblasts());
+        $this->assertCount(22, $noAlerts); // 22 'N's in the data
+        $this->assertEquals('Волинська область', $noAlerts[0]->getOblast());
+        $this->assertEquals('no_alert', $noAlerts[0]->getStatus());
+    }
+
+    public function testGetPartlyActiveAlertOblasts()
+    {
+        $data = 'ANNNANNNNNNNANNNNNNNNPNNNNA'; // 27 characters
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+        $partlyAlerts = array_values($statuses->getPartlyActiveAlertOblasts());
+        $this->assertCount(1, $partlyAlerts); // 1 'P' in the data
+        $this->assertEquals('Харківська область', $partlyAlerts[0]->getOblast());
+        $this->assertEquals('partly', $partlyAlerts[0]->getStatus());
+    }
 }
