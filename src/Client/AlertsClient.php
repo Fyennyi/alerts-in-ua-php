@@ -26,6 +26,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
+use \Throwable;
 
 class AlertsClient
 {
@@ -140,12 +141,13 @@ class AlertsClient
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (ResponseInterface $response) use ($oblast_level_only): AirRaidAlertOblastStatuses {
-            $data = json_decode($response->getBody()->getContents(), true);
-            if (! is_array($data) || empty($data) || ! is_string($data[0] ?? null)) {
+            $raw_response_body = $response->getBody()->getContents();
+            $data = json_decode($raw_response_body, true);
+            if (! is_string($data)) {
                 return new AirRaidAlertOblastStatuses('', $oblast_level_only);
             }
 
-            $status_string = $data[0];
+            $status_string = $data;
             if (27 !== strlen($status_string)) {
                 $status_string = substr($status_string, 0, 27);
             }
@@ -273,8 +275,10 @@ class AlertsClient
      * @throws InternalServerError For 500 responses
      * @throws ApiError For other API errors
      */
-    private function processError(\Exception $error) : void
+    private function processError(
+Throwable $error) : void
     {
+
         if ($error instanceof RequestException) {
             $response = $error->getResponse();
             if ($response) {

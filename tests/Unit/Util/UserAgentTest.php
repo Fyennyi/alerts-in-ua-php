@@ -39,7 +39,7 @@ class UserAgentTest extends TestCase
         // Ensure the environment variable is not set
         putenv('AIU_USER_AGENT');
 
-        $defaultAgent = 'alerts-in-ua-php/0.2.7 (+https://github.com/Fyennyi/alerts-in-ua-php)';
+        $defaultAgent = 'alerts-in-ua-php/0.2.8 (+https://github.com/Fyennyi/alerts-in-ua-php)';
         $this->assertEquals($defaultAgent, UserAgent::getUserAgent());
     }
 }

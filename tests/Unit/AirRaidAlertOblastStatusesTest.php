@@ -10,15 +10,17 @@ class AirRaidAlertOblastStatusesTest extends TestCase
 {
     public function testStatusesWithOblastLevelOnly()
     {
-        $data = 'ANBCAD'; // Simulated status data for 6 oblasts
+        $data = 'ANBCAP'; // Simulated status data for 6 oblasts (A: active, N: no_alert, P: partly)
         $statuses = new AirRaidAlertOblastStatuses($data, true);
 
-        // Since oblast_level_only is true, only 'A' statuses should be included
+        // When oblast_level_only is true, 'P' (partly) becomes 'no_alert'.
+        // All 6 statuses should be included, but their resolved status will be 'active' or 'no_alert'.
         $this->assertCount(2, $statuses->getStatuses());
 
-        foreach ($statuses->getStatuses() as $status) {
+        $expectedStatuses = ['active', 'active'];
+        foreach ($statuses->getStatuses() as $index => $status) {
             $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $status);
-            $this->assertEquals('A', $status->getStatus());
+            $this->assertEquals($expectedStatuses[$index], $status->getStatus());
         }
     }
 

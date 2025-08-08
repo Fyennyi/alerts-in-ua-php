@@ -2,7 +2,13 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
-class AirRaidAlertOblastStatuses
+use Countable;
+use IteratorAggregate;
+
+/**
+ * @implements IteratorAggregate<int, AirRaidAlertOblastStatus>
+ */
+class AirRaidAlertOblastStatuses implements IteratorAggregate, Countable
 {
     /** @var list<AirRaidAlertOblastStatus> */
     private array $statuses;
@@ -34,11 +40,13 @@ class AirRaidAlertOblastStatuses
             }
 
             $status = $statuses[$i];
-            if ($oblast_level_only && 'A' !== $status) {
+            $oblastStatus = new AirRaidAlertOblastStatus($oblast, $status, $oblast_level_only);
+
+            if ($oblast_level_only && ! $oblastStatus->isActive()) {
                 continue;
             }
 
-            $this->statuses[] = new AirRaidAlertOblastStatus($oblast, $status);
+            $this->statuses[] = $oblastStatus;
         }
     }
 
@@ -50,5 +58,68 @@ class AirRaidAlertOblastStatuses
     public function getStatuses() : array
     {
         return $this->statuses;
+    }
+
+    /**
+     * Filter statuses by a specific status value
+     *
+     * @param  string  $status  Status to filter by ('no_alert', 'active', 'partly')
+     * @return array<int, AirRaidAlertOblastStatus> Filtered list of status objects
+     */
+    public function filterByStatus(string $status) : array
+    {
+        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $status);
+    }
+
+    /**
+     * Get all oblasts with active alerts
+     *
+     * @return array<int, AirRaidAlertOblastStatus> List of oblast status objects with active alerts
+     */
+    public function getActiveAlertOblasts() : array
+    {
+        return $this->filterByStatus('active');
+    }
+
+    /**
+     * Get all oblasts with partly active alerts
+     *
+     * @return array<int, AirRaidAlertOblastStatus> List of oblast status objects with partly active alerts
+     */
+    public function getPartlyActiveAlertOblasts() : array
+    {
+        return $this->filterByStatus('partly');
+    }
+
+    /**
+     * Get all oblasts with no alerts
+     *
+     * @return array<int, AirRaidAlertOblastStatus> List of oblast status objects with no alerts
+     */
+    public function getNoAlertOblasts() : array
+    {
+        return $this->filterByStatus('no_alert');
+    }
+
+    /**
+     * @return \Traversable<int, AirRaidAlertOblastStatus>
+     */
+    public function getIterator() : \Traversable
+    {
+        return new \ArrayIterator($this->statuses);
+    }
+
+    public function count() : int
+    {
+        return count($this->statuses);
+    }
+
+    public function __toString() : string
+    {
+        $json = json_encode($this->statuses);
+        if ($json === false) {
+            return ''; // Or throw an exception
+        }
+        return $json;
     }
 }
