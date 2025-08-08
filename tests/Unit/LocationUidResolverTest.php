@@ -31,11 +31,25 @@ class LocationUidResolverTest extends TestCase
     protected function tearDown() : void
     {
         if (file_exists($this->locationsPath)) {
+            // Restore permissions before unlinking to ensure cleanup works
+            chmod($this->locationsPath, 0644);
             unlink($this->locationsPath);
         }
         if (file_exists($this->backupPath)) {
             rename($this->backupPath, $this->locationsPath);
         }
+    }
+
+    public function testConstructorThrowsExceptionIfFileCannotBeRead() : void
+    {
+        // Ensure the file exists and then make it unreadable
+        file_put_contents($this->locationsPath, json_encode(['test' => 'data']));
+        chmod($this->locationsPath, 000);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Could not read locations data file from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+
+        new LocationUidResolver();
     }
 
     public function testResolveUid()
