@@ -15,6 +15,9 @@ use Fyennyi\AlertsInUa\Exception\RateLimitError;
 use Fyennyi\AlertsInUa\Exception\UnauthorizedError;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertStatusResolver;
 use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
@@ -60,7 +63,13 @@ class AlertsClient
      */
     public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
-        return $this->createAsync('alerts/active.json', $use_cache, fn ($data) => new Alerts($data), 'active_alerts');
+        return $this->createAsync('alerts/active.json', $use_cache, function (ResponseInterface $response) {
+            $data = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($data)) {
+                throw new ApiError('Invalid JSON response received');
+            }
+            return new Alerts($data);
+        }, 'active_alerts');
     }
 
     /**
@@ -78,7 +87,13 @@ class AlertsClient
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
-        return $this->createAsync($url, $use_cache, fn ($data) => new Alerts($data), 'alerts_history');
+        return $this->createAsync($url, $use_cache, function (ResponseInterface $response) {
+            $data = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($data)) {
+                throw new ApiError('Invalid JSON response received');
+            }
+            return new Alerts($data);
+        }, 'alerts_history');
     }
 
     /**
@@ -96,23 +111,23 @@ class AlertsClient
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
 
-        return $this->createAsync(
-            $url,
-            $use_cache,
-            function (array $data) use ($oblast_uid) : AirRaidAlertOblastStatus {
-                $location_title = (new LocationUidResolver())->resolveLocationTitle($oblast_uid);
-                $first_value = '';
-                if (count($data) > 0) {
-                    $first_value = reset($data);
-                    if (! is_string($first_value)) {
-                        $first_value = '';
-                    }
-                }
+        return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid): AirRaidAlertOblastStatus {
+            $data = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($data)) {
+                throw new ApiError('Invalid JSON response received');
+            }
 
-                return new AirRaidAlertOblastStatus($location_title, $first_value);
-            },
-            'air_raid_status'
-        );
+            $location_title = (new LocationUidResolver())->resolveLocationTitle($oblast_uid);
+            $first_value = '';
+            if (count($data) > 0) {
+                $first_value = reset($data);
+                if (! is_string($first_value)) {
+                    $first_value = '';
+                }
+            }
+
+            return new AirRaidAlertOblastStatus($location_title, $first_value);
+        }, 'air_raid_status');
     }
 
     /**
@@ -124,31 +139,54 @@ class AlertsClient
      */
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
-        return $this->createAsync(
-            'iot/active_air_raid_alerts_by_oblast.json',
-            $use_cache,
-            function (array $data) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
-                if (empty($data) || ! is_string($data[0] ?? null)) {
-                    return new AirRaidAlertOblastStatuses('', $oblast_level_only);
-                }
+        return $this->createAsync('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (ResponseInterface $response) use ($oblast_level_only): AirRaidAlertOblastStatuses {
+            $data = json_decode($response->getBody()->getContents(), true);
+            if (! is_array($data) || empty($data) || ! is_string($data[0] ?? null)) {
+                return new AirRaidAlertOblastStatuses('', $oblast_level_only);
+            }
 
-                $status_string = $data[0];
-                if (27 !== strlen($status_string)) {
-                    $status_string = substr($status_string, 0, 27);
-                }
+            $status_string = $data[0];
+            if (27 !== strlen($status_string)) {
+                $status_string = substr($status_string, 0, 27);
+            }
 
-                return new AirRaidAlertOblastStatuses($status_string, $oblast_level_only);
-            },
-            'air_raid_statuses'
-        );
+            return new AirRaidAlertOblastStatuses($status_string, $oblast_level_only);
+        }, 'air_raid_statuses');
+    }
+
+    /**
+     * Retrieves air raid alert statuses for all regions asynchronously
+     *
+     * @param  bool  $use_cache  Whether to use cached results if available
+     * @return PromiseInterface Promise that resolves to an AirRaidAlertStatuses object
+     */
+    public function getAirRaidAlertStatusesAsync(bool $use_cache = false) : PromiseInterface
+    {
+        return $this->createAsync('iot/active_air_raid_alerts.json', $use_cache, function (ResponseInterface $response): AirRaidAlertStatuses {
+            $data = $response->getBody()->getContents();
+            $resolved_statuses = AirRaidAlertStatusResolver::resolveStatusString($data, (new LocationUidResolver())->getUidToLocationMapping());
+
+            $statuses = [];
+            foreach ($resolved_statuses as $resolved_status) {
+                $statuses[] = new AirRaidAlertStatus(
+                    $resolved_status['location_title'],
+                    $resolved_status['status'],
+                    $resolved_status['uid']
+                );
+            }
+
+            return new AirRaidAlertStatuses($statuses);
+        }, 'air_raid_statuses_all');
     }
 
     /**
      * Creates an asynchronous API request
      *
+     * @template T
+     *
      * @param  string  $endpoint  API endpoint
      * @param  bool  $use_cache  Whether to use cached results
-     * @param  callable(array<int|string, mixed>): mixed  $processor  Function to process the response data
+     * @param  callable(ResponseInterface): T  $processor  Function to process the response data
      * @param  string  $type  Cache type identifier
      * @return PromiseInterface Promise that resolves to the processed result
      */
@@ -176,18 +214,12 @@ class AlertsClient
                             return $this->cache_manager->getCachedData($endpoint);
                         }
 
-                        $body = $response->getBody();
-                        $data = json_decode($body->getContents(), true);
-                        if (! is_array($data)) {
-                            throw new ApiError('Invalid JSON response received');
-                        }
-
                         $last_modified = $response->getHeaderLine('Last-Modified');
                         if ($last_modified) {
                             $this->cache_manager->setLastModified($endpoint, $last_modified);
                         }
 
-                        $processed = $processor($data);
+                        $processed = $processor($response);
                         $this->cache_manager->storeProcessedData($endpoint, $processed);
 
                         return $processed;
