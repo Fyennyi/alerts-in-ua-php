@@ -116,8 +116,7 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusesByOblast()
     {
-        $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
-        $this->mockHandler->append(new Response(200, [], json_encode($testData)));
+        $this->mockHandler->append(new Response(200, [], json_encode("ANPNAPNNNNNNNNNNNNNNNNNNNNN")));
 
         $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
 
@@ -126,27 +125,26 @@ class AlertsClientTest extends TestCase
     
         // Basic structure validation
         $this->assertCount(27, $statuses);
-        $this->assertEquals('A', $statuses[0]->getStatus());
+        $this->assertEquals('active', $statuses[0]->getStatus());
         $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
     }
 
     public function testOblastLevelFilter()
     {
-        $testData = ["ANPNAPNNNNNNNNNNNNNNNNNNNNN"];
-        $this->mockHandler->append(new Response(200, [], json_encode($testData)));
+        $this->mockHandler->append(new Response(200, [], json_encode("ANPNAPNNNNNNNNNNNNNNNNNNNNN")));
 
         $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
-        $statuses = $result->getStatuses();
+        $statuses = array_values($result->getActiveAlertOblasts());
 
-        // Should only contain 'A' statuses (2 in test data)
+        // Should only contain 'active' statuses (2 in test data)
         $this->assertCount(2, $statuses);
 
         // Check first alert (Autonomous Republic of Crimea)
-        $this->assertEquals('A', $statuses[0]->getStatus());
+        $this->assertEquals('active', $statuses[0]->getStatus());
         $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
 
         // Check second alert (Donetsk Oblast)
-        $this->assertEquals('A', $statuses[1]->getStatus());
+        $this->assertEquals('active', $statuses[1]->getStatus());
         $this->assertEquals('Донецька область', $statuses[1]->getOblast());
     }
 
@@ -157,7 +155,7 @@ class AlertsClientTest extends TestCase
         $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-        $this->assertEquals("", $result->getStatus());
+        $this->assertEquals("no_alert", $result->getStatus());
     }
 
     public function testGetAirRaidAlertStatusesByOblastWithEmptyResponse()
@@ -359,12 +357,12 @@ class AlertsClientTest extends TestCase
         $this->mockHandler->append(new Response(200, [], json_encode([123])));
         $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-        $this->assertEquals('', $result->getStatus());
+        $this->assertEquals('no_alert', $result->getStatus());
     }
 
     public function testAirRaidStatusesWithLongString()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([str_repeat('A', 30)])));
+        $this->mockHandler->append(new Response(200, [], json_encode(str_repeat('A', 30))));
         $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
         $this->assertCount(27, $result->getStatuses());

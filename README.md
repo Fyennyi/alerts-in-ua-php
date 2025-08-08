@@ -317,7 +317,7 @@ Represents the alert status for a single oblast.
 Returns the name of the oblast.
 
 #### `getStatus(): string`
-Returns the current alert status for the oblast (e.g., `'A'`).
+Returns the current alert status for the oblast (e.g., `'active'`, `'partly'`, `'no_alert'`).
 
 ## Districts and Regions (UIDs)
 
