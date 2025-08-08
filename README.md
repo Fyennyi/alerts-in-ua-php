@@ -91,6 +91,24 @@ try {
 }
 ```
 
+### Getting Detailed Air Raid Alert Statuses
+
+To retrieve a detailed list of all air raid alert statuses, including community-level alerts:
+
+```php
+try {
+    $statuses = $client->getAirRaidAlertStatusesAsync()->wait();
+
+    echo "\nDetailed air raid alert statuses:\n";
+
+    foreach ($statuses->getStatuses() as $status) {
+        echo "{$status->getLocationTitle()}: {$status->getStatus()}\n";
+    }
+} catch (\Throwable $e) {
+    echo 'Error: ' . $e->getMessage() . "\n";
+}
+```
+
 ### Filtering Alerts
 
 The library provides convenient methods to filter alerts by type and location:
@@ -231,6 +249,14 @@ Returns air raid alert statuses across all oblasts.
 
 - `$oblast_level_only` – Only oblast-level alerts (default `false`).
 - `$use_cache` – Use cache (default `false`).
+
+---
+
+#### `getAirRaidAlertStatusesAsync(bool $use_cache = false): Promise<AirRaidAlertStatuses>`
+
+Fetches a detailed list of all air raid alert statuses, including community-level alerts.
+
+- `$use_cache` – Whether to use cached data (default `false`).
 
 ---
 
