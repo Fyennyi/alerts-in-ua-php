@@ -26,7 +26,6 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
-use \Throwable;
 
 class AlertsClient
 {
@@ -65,10 +64,12 @@ class AlertsClient
     public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('alerts/active.json', $use_cache, function (ResponseInterface $response) {
-            $data = json_decode($response->getBody()->getContents(), true);
+            $raw_response_body = $response->getBody()->getContents();
+            $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
             }
+
             return new Alerts($data);
         }, 'active_alerts');
     }
@@ -89,10 +90,12 @@ class AlertsClient
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
         return $this->createAsync($url, $use_cache, function (ResponseInterface $response) {
-            $data = json_decode($response->getBody()->getContents(), true);
+            $raw_response_body = $response->getBody()->getContents();
+            $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
             }
+
             return new Alerts($data);
         }, 'alerts_history');
     }
@@ -113,7 +116,8 @@ class AlertsClient
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
 
         return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid): AirRaidAlertOblastStatus {
-            $data = json_decode($response->getBody()->getContents(), true);
+            $raw_response_body = $response->getBody()->getContents();
+            $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
             }
@@ -276,9 +280,8 @@ class AlertsClient
      * @throws ApiError For other API errors
      */
     private function processError(
-Throwable $error) : void
+\Exception $error) : void
     {
-
         if ($error instanceof RequestException) {
             $response = $error->getResponse();
             if ($response) {

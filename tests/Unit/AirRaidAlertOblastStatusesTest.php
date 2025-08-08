@@ -15,9 +15,9 @@ class AirRaidAlertOblastStatusesTest extends TestCase
 
         // When oblast_level_only is true, 'P' (partly) becomes 'no_alert'.
         // All 6 statuses should be included, but their resolved status will be 'active' or 'no_alert'.
-        $this->assertCount(2, $statuses->getStatuses());
+        $this->assertCount(6, $statuses->getStatuses());
 
-        $expectedStatuses = ['active', 'active'];
+        $expectedStatuses = ['active', 'no_alert', 'no_alert', 'no_alert', 'active', 'no_alert'];
         foreach ($statuses->getStatuses() as $index => $status) {
             $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $status);
             $this->assertEquals($expectedStatuses[$index], $status->getStatus());

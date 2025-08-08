@@ -40,13 +40,11 @@ class AirRaidAlertOblastStatuses implements IteratorAggregate, Countable
             }
 
             $status = $statuses[$i];
-            $oblastStatus = new AirRaidAlertOblastStatus($oblast, $status, $oblast_level_only);
+            $oblast_status = new AirRaidAlertOblastStatus($oblast, $status, $oblast_level_only);
 
-            if ($oblast_level_only && ! $oblastStatus->isActive()) {
-                continue;
-            }
+            
 
-            $this->statuses[] = $oblastStatus;
+            $this->statuses[] = $oblast_status;
         }
     }
 
