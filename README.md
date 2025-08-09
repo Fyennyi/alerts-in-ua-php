@@ -263,6 +263,63 @@ Fetches a detailed list of all air raid alert statuses, including community-leve
 > [!NOTE]
 > All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
 
+### Alert
+
+Represents a single alert with its details.
+
+#### `getId(): int`
+Returns the unique identifier of the alert.
+
+#### `getLocationTitle(): string`
+Returns the name of the location where the alert is active (e.g., `'Харківська область'`).
+
+#### `getLocationType(): ?string`
+Returns the type of the location (e.g., `'oblast'`, `'raion'`, `'hromada'`).
+
+#### `getStartedAt(): ?DateTimeInterface`
+Returns the start time of the alert.
+
+#### `getFinishedAt(): ?DateTimeInterface`
+Returns the end time of the alert, or `null` if it is still active.
+
+#### `getUpdatedAt(): ?DateTimeInterface`
+Returns the time of the last update for the alert.
+
+#### `getAlertType(): string`
+Returns the type of the alert (e.g., `'air_raid'`).
+
+#### `getLocationUid(): ?int`
+Returns the unique identifier (UID) of the location.
+
+#### `getLocationOblast(): ?string`
+Returns the name of the oblast where the location is.
+
+#### `getLocationOblastUid(): ?int`
+Returns the unique identifier (UID) of the oblast.
+
+#### `getLocationRaion(): ?string`
+Returns the name of the raion where the location is.
+
+#### `getNotes(): ?string`
+Returns additional notes for the alert.
+
+#### `isCalculated(): bool`
+Returns `true` if the alert's end time was calculated automatically.
+
+#### `isFinished(): bool`
+Returns `true` if the alert has finished, or `false` if it is still active.
+
+#### `isActive(): bool`
+Returns `true` if the alert is still active.
+
+#### `getDuration(): ?DateInterval`
+Returns the duration of the alert as a `DateInterval` object.
+
+#### `getDurationInSeconds(): ?int`
+Returns the duration of the alert in seconds.
+
+---
+
 ### Alerts
 
 A collection of `Alert` objects returned by `getActiveAlertsAsync()` and `getAlertsHistoryAsync()`. This object is iterable, so you can use it directly in a `foreach` loop.
@@ -273,39 +330,46 @@ Returns a plain array of all `Alert` objects in the collection.
 #### `getAirRaidAlerts(): Alert[]`
 Filters the collection and returns only air raid alerts.
 
+#### `getArtilleryShellingAlerts(): Alert[]`
+Returns a filtered list of artillery shelling alerts.
+
+#### `getUrbanFightsAlerts(): Alert[]`
+Returns a filtered list of urban fights alerts.
+
+#### `getNuclearAlerts(): Alert[]`
+Returns a filtered list of nuclear alerts.
+
+#### `getChemicalAlerts(): Alert[]`
+Returns a filtered list of chemical alerts.
+
 #### `getOblastAlerts(): Alert[]`
 Filters the collection and returns only oblast-level alerts.
+
+#### `getRaionAlerts(): Alert[]`
+Returns a filtered list of raion-level alerts.
+
+#### `getHromadaAlerts(): Alert[]`
+Returns a filtered list of hromada-level alerts.
+
+#### `getCityAlerts(): Alert[]`
+Returns a filtered list of city-level alerts.
 
 #### `getAlertsByOblast(string $oblast_title): Alert[]`
 Filters the collection and returns alerts for a specific oblast.
 - `$oblast_title` – The name of the oblast to filter by (e.g., `'Харківська область'`).
 
+#### `getAlertsByLocationUid(int $location_uid): Alert[]`
+Returns a filtered list of alerts for a specific location UID.
+- `$location_uid` – The numeric UID of the location.
+
+#### `getLastUpdatedAt(): ?DateTime`
+Returns the timestamp of the last update.
+
+#### `getDisclaimer(): string`
+Returns the disclaimer text provided with the alerts.
+
 #### `count(): int`
 Returns the total number of alerts in the collection.
-
----
-
-### Alert
-
-Represents a single alert with its details.
-
-#### `getLocationTitle(): string`
-Returns the name of the location where the alert is active (e.g., `'Харківська область'`).
-
-#### `getAlertType(): string`
-Returns the type of the alert (e.g., `'air_raid'`).
-
-#### `isFinished(): bool`
-Returns `true` if the alert has finished, or `false` if it is still active.
-
----
-
-### AirRaidAlertOblastStatuses
-
-A collection of `AirRaidAlertOblastStatus` objects, returned by `getAirRaidAlertStatusesByOblastAsync()`. This object is iterable.
-
-#### `getStatuses(): AirRaidAlertOblastStatus[]`
-Returns a plain array of `AirRaidAlertOblastStatus` objects.
 
 ---
 
@@ -318,6 +382,73 @@ Returns the name of the oblast.
 
 #### `getStatus(): string`
 Returns the current alert status for the oblast (e.g., `'active'`, `'partly'`, `'no_alert'`).
+
+#### `isActive(): bool`
+Returns `true` if the entire oblast has an active alert.
+
+#### `isPartlyActive(): bool`
+Returns `true` if only part of the oblast has an active alert.
+
+#### `isNoAlert(): bool`
+Returns `true` if there are no active alerts in the oblast.
+
+---
+
+### AirRaidAlertOblastStatuses
+
+A collection of `AirRaidAlertOblastStatus` objects, returned by `getAirRaidAlertStatusesByOblastAsync()`. This object is iterable.
+
+#### `getStatuses(): AirRaidAlertOblastStatus[]`
+Returns a plain array of `AirRaidAlertOblastStatus` objects.
+
+#### `getActiveAlertOblasts(): AirRaidAlertOblastStatus[]`
+Returns a filtered list of oblasts with an `active` status.
+
+#### `getPartlyActiveAlertOblasts(): AirRaidAlertOblastStatus[]`
+Returns a filtered list of oblasts with a `partly` active status.
+
+#### `getNoAlertOblasts(): AirRaidAlertOblastStatus[]`
+Returns a filtered list of oblasts with `no_alert` status.
+
+#### `count(): int`
+Returns the total number of oblasts in the collection.
+
+---
+
+### AirRaidAlertStatus
+
+Represents the alert status for a single location.
+
+#### `getLocationTitle(): string`
+Returns the name of the location.
+
+#### `getStatus(): string`
+Returns the current alert status for the location (e.g., `'active'`, `'partly'`, `'no_alert'`).
+
+#### `getUid(): ?int`
+Returns the unique identifier (UID) of the location.
+
+---
+
+### AirRaidAlertStatuses
+
+A collection of `AirRaidAlertStatus` objects, returned by `getAirRaidAlertStatusesAsync()`. This object is iterable and allows array access.
+
+#### `getActiveAlertStatuses(): AirRaidAlertStatus[]`
+Returns a filtered list of statuses with an `active` status.
+
+#### `getPartlyActiveAlertStatuses(): AirRaidAlertStatus[]`
+Returns a filtered list of statuses with a `partly` active status.
+
+#### `getNoAlertStatuses(): AirRaidAlertStatus[]`
+Returns a filtered list of statuses with a `no_alert` status.
+
+#### `getStatus(int $uid): ?AirRaidAlertStatus`
+Returns a single `AirRaidAlertStatus` for a specific location UID.
+- `$uid` – The numeric UID of the location.
+
+#### `count(): int`
+Returns the total number of statuses in the collection.
 
 ## Districts and Regions (UIDs)
 
