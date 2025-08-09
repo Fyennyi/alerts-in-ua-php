@@ -31,6 +31,7 @@ class AirRaidAlertOblastStatusesTest extends TestCase
 
         // All statuses should be included
         $this->assertCount(6, $statuses->getStatuses());
+        $this->assertCount(6, $statuses); // Explicitly test count()
     }
 
     public function testWithEmptyStatusString()
@@ -85,5 +86,21 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $this->assertCount(1, $partlyAlerts); // 1 'P' in the data
         $this->assertEquals('Харківська область', $partlyAlerts[0]->getOblast());
         $this->assertEquals('partly', $partlyAlerts[0]->getStatus());
+    }
+
+    public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
+    {
+        // Create a real AirRaidAlertOblastStatus object
+        $realStatus = new AirRaidAlertOblastStatus('Test Oblast', 'A');
+
+        // Create AirRaidAlertOblastStatuses with the manipulated object
+        $statuses = new AirRaidAlertOblastStatuses('A', false); // Pass some dummy data
+        $statusesReflection = new \ReflectionClass($statuses);
+        $statusesProperty = $statusesReflection->getProperty('statuses');
+        $statusesProperty->setAccessible(true);
+        $statusesProperty->setValue($statuses, [$realStatus, fopen('php://memory', 'r')]); // Add a resource to the array
+
+        // Assert that __toString() returns an empty string
+        $this->assertEquals('', (string) $statuses);
     }
 }

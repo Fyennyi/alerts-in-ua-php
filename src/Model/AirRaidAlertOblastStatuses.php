@@ -40,11 +40,7 @@ class AirRaidAlertOblastStatuses implements IteratorAggregate, Countable
             }
 
             $status = $statuses[$i];
-            $oblast_status = new AirRaidAlertOblastStatus($oblast, $status, $oblast_level_only);
-
-            
-
-            $this->statuses[] = $oblast_status;
+            $this->statuses[] = new AirRaidAlertOblastStatus($oblast, $status, $oblast_level_only);
         }
     }
 
@@ -115,7 +111,7 @@ class AirRaidAlertOblastStatuses implements IteratorAggregate, Countable
     public function __toString() : string
     {
         $json = json_encode($this->statuses);
-        if ($json === false) {
+        if (false === $json) {
             return ''; // Or throw an exception
         }
         return $json;
