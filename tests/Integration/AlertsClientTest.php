@@ -104,14 +104,13 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatus()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([
-            "Харківська область" => "air_raid"
-        ])));
+        $this->mockHandler->append(new Response(200, [], json_encode("A")));
 
         $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
         $this->assertEquals("Харківська область", $result->getOblast());
+        $this->assertEquals("active", $result->getStatus());
     }
 
     public function testGetAirRaidAlertStatusesByOblast()
@@ -150,7 +149,7 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([])));
+        $this->mockHandler->append(new Response(200, [], json_encode("")));
 
         $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
 
@@ -354,7 +353,7 @@ class AlertsClientTest extends TestCase
 
     public function testAirRaidStatusWithNonStringValue()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([123])));
+        $this->mockHandler->append(new Response(200, [], json_encode("X")));
         $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
         $this->assertEquals('no_alert', $result->getStatus());

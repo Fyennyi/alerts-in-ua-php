@@ -108,7 +108,7 @@ class AlertsClientTest extends TestCase
 
         // Expect an ApiError exception
         $this->expectException(ApiError::class);
-        $this->expectExceptionMessage('Invalid JSON response received');
+        $this->expectExceptionMessage('Invalid response received');
 
         // Call the method
         $this->alertsClient->getAirRaidAlertStatusAsync('м. Київ')->wait();

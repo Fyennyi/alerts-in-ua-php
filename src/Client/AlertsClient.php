@@ -114,25 +114,19 @@ class AlertsClient
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
+        $cache_key_suffix = ':oblast_level_only=' . ($oblast_level_only ? 'true' : 'false');
 
-        return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid): AirRaidAlertOblastStatus {
+        return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid, $oblast_level_only): AirRaidAlertOblastStatus {
             $raw_response_body = $response->getBody()->getContents();
             $data = json_decode($raw_response_body, true);
-            if (! is_array($data)) {
-                throw new ApiError('Invalid JSON response received');
+            if (! is_string($data)) {
+                throw new ApiError('Invalid response received');
             }
 
             $location_title = (new LocationUidResolver())->resolveLocationTitle($oblast_uid);
-            $first_value = '';
-            if (count($data) > 0) {
-                $first_value = reset($data);
-                if (! is_string($first_value)) {
-                    $first_value = '';
-                }
-            }
 
-            return new AirRaidAlertOblastStatus($location_title, $first_value);
-        }, 'air_raid_status');
+            return new AirRaidAlertOblastStatus($location_title, $data, $oblast_level_only);
+        }, 'air_raid_status', $cache_key_suffix);
     }
 
     /**
@@ -144,6 +138,8 @@ class AlertsClient
      */
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
+        $cache_key_suffix = ':oblast_level_only=' . ($oblast_level_only ? 'true' : 'false');
+
         return $this->createAsync('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (ResponseInterface $response) use ($oblast_level_only): AirRaidAlertOblastStatuses {
             $raw_response_body = $response->getBody()->getContents();
             $data = json_decode($raw_response_body, true);
@@ -157,7 +153,7 @@ class AlertsClient
             }
 
             return new AirRaidAlertOblastStatuses($status_string, $oblast_level_only);
-        }, 'air_raid_statuses');
+        }, 'air_raid_statuses', $cache_key_suffix);
     }
 
     /**
@@ -194,20 +190,22 @@ class AlertsClient
      * @param  bool  $use_cache  Whether to use cached results
      * @param  callable(ResponseInterface): T  $processor  Function to process the response data
      * @param  string  $type  Cache type identifier
+     * @param  string  $cache_key_suffix  Optional suffix for the cache key
      * @return PromiseInterface Promise that resolves to the processed result
      */
-    private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default') : PromiseInterface
+    private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default', string $cache_key_suffix = '') : PromiseInterface
     {
+        $cache_key = $endpoint . $cache_key_suffix;
         return $this->cache_manager->getOrSet(
-            $endpoint,
-            function () use ($endpoint, $processor) {
+            $cache_key,
+            function () use ($endpoint, $processor, $cache_key) {
                 $headers = [
                     'Authorization' => 'Bearer ' . $this->token,
                     'Accept'        => 'application/json',
                     'User-Agent'    => UserAgent::getUserAgent(),
                 ];
 
-                $last_modified = $this->cache_manager->getLastModified($endpoint);
+                $last_modified = $this->cache_manager->getLastModified($cache_key);
                 if ($last_modified) {
                     $headers['If-Modified-Since'] = $last_modified;
                 }
@@ -215,18 +213,18 @@ class AlertsClient
                 return $this->client->requestAsync('GET', $this->base_url . $endpoint, [
                     'headers' => $headers,
                 ])->then(
-                    function (ResponseInterface $response) use ($endpoint, $processor) {
+                    function (ResponseInterface $response) use ($cache_key, $processor) {
                         if (304 === $response->getStatusCode()) {
-                            return $this->cache_manager->getCachedData($endpoint);
+                            return $this->cache_manager->getCachedData($cache_key);
                         }
 
                         $last_modified = $response->getHeaderLine('Last-Modified');
                         if ($last_modified) {
-                            $this->cache_manager->setLastModified($endpoint, $last_modified);
+                            $this->cache_manager->setLastModified($cache_key, $last_modified);
                         }
 
                         $processed = $processor($response);
-                        $this->cache_manager->storeProcessedData($endpoint, $processed);
+                        $this->cache_manager->storeProcessedData($cache_key, $processed);
 
                         return $processed;
                     },
