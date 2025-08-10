@@ -26,7 +26,7 @@ class LocationUidResolver
             throw new \RuntimeException("Locations data file not found at {$json_path}");
         }
 
-        $json_content = file_get_contents($json_path);
+        $json_content = @file_get_contents($json_path);
         if (false === $json_content) {
             throw new \RuntimeException("Could not read locations data file from {$json_path}");
         }
