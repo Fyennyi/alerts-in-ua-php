@@ -277,8 +277,7 @@ class AlertsClient
      * @throws InternalServerError For 500 responses
      * @throws ApiError For other API errors
      */
-    private function processError(
-\Exception $error) : void
+    private function processError(\Exception $error) : void
     {
         if ($error instanceof RequestException) {
             $response = $error->getResponse();
