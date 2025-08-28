@@ -9,7 +9,7 @@ class AirRaidAlertOblastStatusTest extends TestCase
 {
     public function testIsActive()
     {
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'A');
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'A');
         $this->assertTrue($status->isActive());
         $this->assertFalse($status->isPartlyActive());
         $this->assertFalse($status->isNoAlert());
@@ -17,7 +17,7 @@ class AirRaidAlertOblastStatusTest extends TestCase
 
     public function testIsPartlyActive()
     {
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'P');
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'P');
         $this->assertFalse($status->isActive());
         $this->assertTrue($status->isPartlyActive());
         $this->assertFalse($status->isNoAlert());
@@ -25,7 +25,7 @@ class AirRaidAlertOblastStatusTest extends TestCase
 
     public function testIsNoAlert()
     {
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'N');
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'N');
         $this->assertFalse($status->isActive());
         $this->assertFalse($status->isPartlyActive());
         $this->assertTrue($status->isNoAlert());
@@ -33,40 +33,40 @@ class AirRaidAlertOblastStatusTest extends TestCase
 
     public function testToString()
     {
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'A');
-        $this->assertEquals('active:Òåñòîâà îáëàñòü', (string) $status);
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'A');
+        $this->assertEquals('active:Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', (string) $status);
 
-        $status = new AirRaidAlertOblastStatus('²íøà îáëàñòü', 'P');
-        $this->assertEquals('partly:²íøà îáëàñòü', (string) $status);
+        $status = new AirRaidAlertOblastStatus('Ð†Ð½ÑˆÐ° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'P');
+        $this->assertEquals('partly:Ð†Ð½ÑˆÐ° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', (string) $status);
 
-        $status = new AirRaidAlertOblastStatus('Òðåòÿ îáëàñòü', 'N');
-        $this->assertEquals('no_alert:Òðåòÿ îáëàñòü', (string) $status);
+        $status = new AirRaidAlertOblastStatus('Ð¢Ñ€ÐµÑ‚Ñ Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'N');
+        $this->assertEquals('no_alert:Ð¢Ñ€ÐµÑ‚Ñ Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', (string) $status);
     }
 
     public function testOblastLevelOnlyImpact()
     {
         // 'P' becomes 'no_alert' when oblast_level_only is true
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'P', true);
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'P', true);
         $this->assertFalse($status->isPartlyActive());
         $this->assertTrue($status->isNoAlert());
 
         // 'A' remains 'active'
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'A', true);
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'A', true);
         $this->assertTrue($status->isActive());
     }
 
     public function testJsonSerialize()
     {
-        $status = new AirRaidAlertOblastStatus('Òåñòîâà îáëàñòü', 'A');
+        $status = new AirRaidAlertOblastStatus('Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'A');
         $expected = [
-            'oblast' => 'Òåñòîâà îáëàñòü',
+            'oblast' => 'Ð¢ÐµÑÑ‚Ð¾Ð²Ð° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ',
             'status' => 'active',
         ];
         $this->assertEquals($expected, $status->jsonSerialize());
 
-        $status = new AirRaidAlertOblastStatus('²íøà îáëàñòü', 'P', true);
+        $status = new AirRaidAlertOblastStatus('Ð†Ð½ÑˆÐ° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ', 'P', true);
         $expected = [
-            'oblast' => '²íøà îáëàñòü',
+            'oblast' => 'Ð†Ð½ÑˆÐ° Ð¾Ð±Ð»Ð°ÑÑ‚ÑŒ',
             'status' => 'no_alert', // 'P' becomes 'no_alert' due to oblast_level_only
         ];
         $this->assertEquals($expected, $status->jsonSerialize());
