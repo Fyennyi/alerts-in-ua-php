@@ -1,6 +1,6 @@
 <?php
 
-namespace Fyennyi\AlertsInUa\Tests\Unit;
+namespace Tests\Unit;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;

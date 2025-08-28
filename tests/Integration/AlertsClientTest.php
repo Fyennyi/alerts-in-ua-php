@@ -186,7 +186,7 @@ class AlertsClientTest extends TestCase
     }
 
     #[DataProvider('apiErrorProvider')]
-    public function testApiErrorHandling(int $statusCode, string $expectedException)
+    public function testApiErrorHandling(int $statusCode, string $expectedExceptionClass)
     {
         $this->mockHandler->append(
             new RequestException(
@@ -196,7 +196,7 @@ class AlertsClientTest extends TestCase
             )
         );
 
-        $this->expectException($expectedException);
+        $this->expectException($expectedExceptionClass);
 
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }

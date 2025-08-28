@@ -1,6 +1,6 @@
 <?php
 
-namespace Fyennyi\AlertsInUa\Tests\Unit\Client;
+namespace Tests\Unit\Client;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;

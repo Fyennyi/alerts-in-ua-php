@@ -1,6 +1,6 @@
 <?php
 
-namespace Fyennyi\AlertsInUa\Tests\Unit;
+namespace Tests\Unit;
 
 use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
