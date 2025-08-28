@@ -1,6 +1,6 @@
 <?php
 
-namespace Fyennyi\AlertsInUa\Tests\Unit\Cache;
+namespace Tests\Unit\Cache;
 
 use Fyennyi\AlertsInUa\Cache\FileCache;
 use org\bovigo\vfs\vfsStream;
