@@ -219,22 +219,22 @@ You can continue to use individual `->wait()` calls when needed, but using `Util
 This library uses PSR-16 compliant caching. You can inject any PSR-16 compatible cache adapter:
 
 ```php
-use Symfony\\Component\\Cache\\Adapter\\FilesystemAdapter;
-use Symfony\\Component\\Cache\\Adapter\\RedisAdapter;
-use Symfony\\Component\\Cache\\Psr16Cache;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
 // Example with Filesystem cache
 $filesystemCache = new Psr16Cache(new FilesystemAdapter());
 $clientWithFilesystemCache = new AlertsClient('your_token', $filesystemCache);
 
 // Example with Redis cache
-$redisClient = new \\Redis();
+$redisClient = new \Redis();
 $redisClient->connect('localhost', 6379);
 $redisCache = new Psr16Cache(new RedisAdapter($redisClient));
 $clientWithRedisCache = new AlertsClient('your_token', $redisCache);
 
 // Example with Memcached cache
-$memcachedClient = new \\Memcached();
+$memcachedClient = new \Memcached();
 $memcachedClient->addServer('localhost', 11211);
 $memcachedCache = new Psr16Cache(new \Symfony\Component\Cache\Adapter\MemcachedAdapter($memcachedClient));
 $clientWithMemcachedCache = new AlertsClient('your_token', $memcachedCache);
