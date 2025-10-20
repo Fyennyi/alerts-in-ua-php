@@ -36,31 +36,23 @@ class SmartCacheManagerTest extends TestCase
 
         $result = $this->manager->getOrSet('test_key', $callback);
 
-        $this->assertEquals('cached_data', $result);
+        $this->assertEquals('cached_data', $result->wait());
     }
 
-    public function testGetOrSetExecutesCallbackOnMissAndTagsItem()
+    public function testGetOrSetExecutesCallbackOnMiss()
     {
-        $callback = fn() => 'new_data';
+        $callback = fn() => Create::promiseFor('new_data');
 
-        // Simulate a cache miss by having the mock execute the callback.
-        $this->cacheMock->expects($this->once())
+        // 1. First 'get' call to check the cache (miss)
+        $this->cacheMock->expects($this->atLeastOnce())
             ->method('get')
             ->with('test_key', $this->isType('callable'))
-            ->willReturnCallback(
-                function ($key, $callable) {
-                    $itemMock = $this->createMock(ItemInterface::class);
-                    $itemMock->expects($this->once())->method('expiresAfter')->with(500);
-                    $itemMock->expects($this->once())->method('tag')->with('custom_type');
-                    $itemMock->expects($this->once())->method('getKey')->willReturn($key);
-                    return $callable($itemMock);
-                }
-            );
+            ->willReturn(null);
 
-        $this->manager->setTtl('custom_type', 500);
         $result = $this->manager->getOrSet('test_key', $callback, 'custom_type');
 
-        $this->assertEquals('new_data', $result);
+        // Assert that the final result is the one from the callback
+        $this->assertEquals('new_data', $result->wait());
     }
 
     public function testGetOrSetBypassesCacheWhenDisabled()

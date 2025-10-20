@@ -2,6 +2,7 @@
 
 namespace Fyennyi\AlertsInUa\Cache;
 
+use GuzzleHttp\Promise\Create;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Contracts\Cache\CacheInterface as SymfonyCacheInterface;
@@ -49,27 +50,38 @@ class SmartCacheManager
             return $callback();
         }
 
-        if ($this->isRateLimited($key)) {
-            // With the new cache backend, we can't easily get stale data
-            // when rate-limited, so we return null, effectively bypassing the cache.
-            // The caller will then proceed to make a fresh request.
-            // A more sophisticated implementation could return a specific response
-            // indicating rate limiting.
+        // First, try to get the item from cache directly.
+        $cachedValue = $this->cache->get($key, fn() => null);
+        if ($cachedValue !== null) {
+            return Create::promiseFor($cachedValue);
         }
 
-        $ttl = $this->ttl_config[$type] ?? 300;
+        if ($this->isRateLimited($key)) {
+            return Create::rejectionFor('Rate limit exceeded for key: ' . $key);
+        }
 
-        return $this->cache->get($key, function (ItemInterface $item) use ($callback, $ttl, $type) {
-            $item->expiresAfter($ttl);
+        // No data in cache, so we need to execute the promise factory.
+        $promise = $callback();
 
-            if ($this->cache instanceof TagAwareCacheInterface) {
-                $item->tag($type);
+        // We need to cache the result WHEN the promise is fulfilled.
+        return $promise->then(
+            function ($data) use ($key, $type) {
+                $ttl = $this->ttl_config[$type] ?? 300;
+
+                // Use the delete/get pattern to set data with tags.
+                $this->cache->delete($key);
+                $this->cache->get($key, function(ItemInterface $item) use ($data, $ttl, $type) {
+                    $item->expiresAfter($ttl);
+                    if ($this->cache instanceof TagAwareCacheInterface) {
+                        $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
+                        $item->tag($sanitizedTag);
+                    }
+                    return $data;
+                });
+
+                return $data; // Pass the data down the promise chain.
             }
-
-            $this->last_request_time[$item->getKey()] = time();
-
-            return $callback();
-        });
+        );
     }
 
     /**
@@ -128,7 +140,8 @@ class SmartCacheManager
         $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $timestamp) {
             $item->expiresAfter(86400);
             if ($this->cache instanceof TagAwareCacheInterface) {
-                $item->tag($key);
+                $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $item->tag($sanitizedTag);
             }
             return $timestamp;
         });
@@ -161,7 +174,8 @@ class SmartCacheManager
         $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $data) {
             $item->expiresAfter(86400);
             if ($this->cache instanceof TagAwareCacheInterface) {
-                $item->tag($key);
+                $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $item->tag($sanitizedTag);
             }
             return $data;
         });
