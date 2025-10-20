@@ -3,6 +3,7 @@
 namespace Tests\Unit\Cache;
 
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
+use GuzzleHttp\Promise\Create;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
