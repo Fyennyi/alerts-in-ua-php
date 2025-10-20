@@ -2,8 +2,7 @@
 
 namespace Fyennyi\AlertsInUa\Client;
 
-use Fyennyi\AlertsInUa\Cache\CacheInterface;
-use Fyennyi\AlertsInUa\Cache\InMemoryCache;
+use Psr\SimpleCache\CacheInterface;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
@@ -52,7 +51,7 @@ class AlertsClient
     {
         $this->client = $client ?? new Client();
         $this->token = $token;
-        $this->cache_manager = new SmartCacheManager($cache ?? new InMemoryCache());
+        $this->cache_manager = new SmartCacheManager($cache);
     }
 
     /**
