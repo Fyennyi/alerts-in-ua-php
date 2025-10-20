@@ -2,8 +2,7 @@
 
 namespace Fyennyi\AlertsInUa\Client;
 
-use Fyennyi\AlertsInUa\Cache\CacheInterface;
-use Fyennyi\AlertsInUa\Cache\InMemoryCache;
+use Psr\SimpleCache\CacheInterface;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
@@ -52,7 +51,7 @@ class AlertsClient
     {
         $this->client = $client ?? new Client();
         $this->token = $token;
-        $this->cache_manager = new SmartCacheManager($cache ?? new InMemoryCache());
+        $this->cache_manager = new SmartCacheManager($cache);
     }
 
     /**
@@ -321,13 +320,16 @@ class AlertsClient
     }
 
     /**
-     * Clears cached items matching a pattern
+     * Clears cached items by tag(s).
      *
-     * @param  string|null  $pattern  Cache key pattern (null clears all)
+     * Replaces the old pattern-based invalidation. Tags typically correspond to
+     * the request types (e.g., 'active_alerts', 'alerts_history').
+     *
+     * @param  string|string[]  $tags  A single tag or an array of tags to invalidate.
      * @return void
      */
-    public function clearCache(?string $pattern = null) : void
+    public function clearCache(string|array $tags) : void
     {
-        $this->cache_manager->invalidatePattern($pattern ?? '*');
+        $this->cache_manager->invalidateTags($tags);
     }
 }
