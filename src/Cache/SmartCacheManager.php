@@ -3,6 +3,7 @@
 namespace Fyennyi\AlertsInUa\Cache;
 
 use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Contracts\Cache\CacheInterface as SymfonyCacheInterface;
@@ -36,15 +37,13 @@ class SmartCacheManager
     /**
      * Get cached value or use fallback callback if expired or missing
      *
-     * @template T
-     *
      * @param  string  $key  Cache key
-     * @param  callable(): T  $callback  Callback to generate fresh data
+     * @param  callable(): \GuzzleHttp\Promise\PromiseInterface  $callback  Callback that returns a promise for the fresh data
      * @param  string  $type  Request type (for TTL and tags)
      * @param  bool  $use_cache  Whether to use cache
-     * @return \GuzzleHttp\Promise\PromiseInterface<T> Cached or fresh result
+     * @return PromiseInterface Cached or fresh result
      */
-    public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : mixed
+    public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : PromiseInterface
     {
         if (! $use_cache) {
             return $callback();
