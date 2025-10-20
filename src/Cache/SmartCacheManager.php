@@ -86,6 +86,35 @@ class SmartCacheManager
     }
 
     /**
+     * Set a specific TTL for a request type
+     *
+     * @param  string  $type  Request type
+     * @param  int  $ttl  Time-to-live in seconds
+     * @return void
+     */
+    public function setTtl(string $type, int $ttl) : void
+    {
+        $this->ttl_config[$type] = $ttl;
+    }
+
+    /**
+     * Check if request is rate-limited by last request timestamp
+     *
+     * @param  string  $key  Cache key
+     * @return bool True if too soon to repeat request
+     */
+    private function isRateLimited(string $key) : bool
+    {
+        if (! isset($this->last_request_time[$key])) {
+            return false;
+        }
+
+        $min_interval = 5; // seconds
+
+        return (time() - $this->last_request_time[$key]) < $min_interval;
+    }
+
+    /**
      * Stores the Last-Modified HTTP header value for the specified cache key
      *
      * @param  string  $key  The base cache key associated with the API endpoint
