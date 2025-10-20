@@ -64,7 +64,7 @@ class SmartCacheManagerTest extends TestCase
         $callback = fn() => 'new_data';
         $result = $this->manager->getOrSet('test_key', $callback, 'default', false);
 
-        $this->assertEquals('new_data', $result);
+        $this->assertEquals('new_data', $result->wait());
     }
 
     public function testInvalidateTags()

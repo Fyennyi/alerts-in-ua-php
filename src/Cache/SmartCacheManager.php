@@ -46,7 +46,7 @@ class SmartCacheManager
     public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : PromiseInterface
     {
         if (! $use_cache) {
-            return $callback();
+            return Create::promiseFor($callback());
         }
 
         // First, try to get the item from cache directly.
