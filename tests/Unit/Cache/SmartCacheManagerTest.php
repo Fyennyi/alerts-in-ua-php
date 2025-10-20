@@ -4,6 +4,7 @@ namespace Tests\Unit\Cache;
 
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\RejectedPromise;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -132,5 +133,27 @@ class SmartCacheManagerTest extends TestCase
             ->willReturn($data);
 
         $this->assertEquals($data, $this->manager->getCachedData('key'));
+    }
+
+    public function testRateLimitingReturnsRejectedPromise()
+    {
+        $this->cacheMock->method('get')->willReturn(null); // Cache is always empty
+
+        // Use reflection to set the internal state for rate limiting
+        $reflection = new \ReflectionClass($this->manager);
+        $lastRequestTimeProp = $reflection->getProperty('last_request_time');
+        $lastRequestTimeProp->setAccessible(true);
+        $lastRequestTimeProp->setValue($this->manager, ['rate_limited_key' => time()]);
+
+        $promise = $this->manager->getOrSet('rate_limited_key', fn() => $this->fail('Callback should not be called.'));
+
+        $this->assertInstanceOf(RejectedPromise::class, $promise);
+
+        $rejectionReason = '';
+        $promise->then(null, function($reason) use (&$rejectionReason) {
+            $rejectionReason = $reason;
+        })->wait();
+
+        $this->assertEquals('Rate limit exceeded for key: rate_limited_key', $rejectionReason);
     }
 }
