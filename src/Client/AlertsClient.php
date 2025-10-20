@@ -24,7 +24,14 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
+use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Adapter\Psr16Adapter;
 
 class AlertsClient
 {
@@ -51,7 +58,9 @@ class AlertsClient
     {
         $this->client = $client ?? new Client();
         $this->token = $token;
-        $this->cache_manager = new SmartCacheManager($cache);
+
+        $symfonyCache = $cache ? new Psr16Adapter($cache) : null;
+        $this->cache_manager = new SmartCacheManager($symfonyCache);
     }
 
     /**
