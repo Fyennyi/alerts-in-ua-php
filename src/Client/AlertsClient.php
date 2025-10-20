@@ -37,14 +37,14 @@ class AlertsClient
     /** @var string Base URL for the API */
     private string $base_url = 'https://api.alerts.in.ua/v1/';
 
-    /** @var SmartCacheManager Manages caching of API responses */
+    /** @var SmartCacheManager Manages caching of API responses using a PSR-16 compatible cache internally */
     private SmartCacheManager $cache_manager;
 
     /**
      * Constructor for alerts.in.ua API client
      *
      * @param  string  $token  API token
-     * @param  CacheInterface|null  $cache  Optional cache implementation
+     * @param  CacheInterface|null  $cache  Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
      * @param  ClientInterface|null  $client  Optional Guzzle client instance
      */
     public function __construct(string $token, ?CacheInterface $cache = null, ?ClientInterface $client = null)
@@ -322,12 +322,9 @@ class AlertsClient
     }
 
     /**
-     * Clears cached items by tag(s).
+     * Clears cached items by tag(s)
      *
-     * Replaces the old pattern-based invalidation. Tags typically correspond to
-     * the request types (e.g., 'active_alerts', 'alerts_history').
-     *
-     * @param  string|string[]  $tags  A single tag or an array of tags to invalidate.
+     * @param  string|string[]  $tags  A single tag or an array of tags to invalidate
      * @return void
      */
     public function clearCache(string|array $tags) : void

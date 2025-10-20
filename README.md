@@ -26,14 +26,17 @@ composer require fyennyi/alerts-in-ua-php
 
 ### Basic Setup
 
-First, create a client instance with your API token:
+First, create a client instance with your API token and an optional PSR-16 cache instance:
 
 ```php
 require 'vendor/autoload.php';
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
-$client = new AlertsClient('your_token');
+$cache = new Psr16Cache(new FilesystemAdapter()); // Or any other PSR-16 cache
+$client = new AlertsClient('your_token', $cache);
 ```
 
 ### Getting Active Alerts
@@ -210,6 +213,39 @@ $client->getActiveAlertsAsync()->then(function ($alerts) {
 > You can use `Utils::settle()` instead of `Utils::all()` if you want to gracefully handle individual request failures without throwing exceptions.
 
 You can continue to use individual `->wait()` calls when needed, but using `Utils::all()` allows for better concurrency and performance when dealing with multiple requests.
+
+## Caching
+
+This library uses PSR-16 compliant caching. You can inject any PSR-16 compatible cache adapter:
+
+```php
+use Symfony\\Component\\Cache\\Adapter\\FilesystemAdapter;
+use Symfony\\Component\\Cache\\Adapter\\RedisAdapter;
+use Symfony\\Component\\Cache\\Psr16Cache;
+
+// Example with Filesystem cache
+$filesystemCache = new Psr16Cache(new FilesystemAdapter());
+$clientWithFilesystemCache = new AlertsClient('your_token', $filesystemCache);
+
+// Example with Redis cache
+$redisClient = new \\Redis();
+$redisClient->connect('localhost', 6379);
+$redisCache = new Psr16Cache(new RedisAdapter($redisClient));
+$clientWithRedisCache = new AlertsClient('your_token', $redisCache);
+
+// Example with Memcached cache
+$memcachedClient = new \\Memcached();
+$memcachedClient->addServer('localhost', 11211);
+$memcachedCache = new Psr16Cache(new \Symfony\Component\Cache\Adapter\MemcachedAdapter($memcachedClient));
+$clientWithMemcachedCache = new AlertsClient('your_token', $memcachedCache);
+
+// Basic setup with default cache (if not provided, a no-op cache is used)
+$client = new AlertsClient('your_token', $filesystemCache); // Or any other PSR-16 cache
+```
+
+The `AlertsClient` constructor now accepts an optional `Psr16Cache` instance as its second argument. If no cache is provided, a `NullCache` (a no-op cache) is used by default.
+
+Many methods in `AlertsClient` also accept an optional `$use_cache` parameter. When set to `true`, the method will attempt to retrieve data from the cache before making an API request. If the data is not found in the cache, it will fetch it from the API and store it in the cache for future requests.
 
 ## Methods
 

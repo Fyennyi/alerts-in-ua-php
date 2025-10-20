@@ -29,6 +29,9 @@ class SmartCacheManager
     /** @var array<string, int> Last request time by cache key */
     private array $last_request_time = [];
 
+    /**
+     * @param  SymfonyCacheInterface|null  $cache  The cache instance to use. Defaults to a TagAwareAdapter with an ArrayAdapter
+     */
     public function __construct(SymfonyCacheInterface $cache = null)
     {
         $this->cache = $cache ?? new TagAwareAdapter(new ArrayAdapter());
@@ -38,7 +41,7 @@ class SmartCacheManager
      * Get cached value or use fallback callback if expired or missing
      *
      * @param  string  $key  Cache key
-     * @param  callable(): \GuzzleHttp\Promise\PromiseInterface  $callback  Callback that returns a promise for the fresh data
+     * @param  callable(): PromiseInterface  $callback  Callback that returns a promise for the fresh data
      * @param  string  $type  Request type (for TTL and tags)
      * @param  bool  $use_cache  Whether to use cache
      * @return PromiseInterface Cached or fresh result
@@ -49,7 +52,6 @@ class SmartCacheManager
             return Create::promiseFor($callback());
         }
 
-        // First, try to get the item from cache directly.
         $cachedValue = $this->cache->get($key, fn() => null);
         if ($cachedValue !== null) {
             return Create::promiseFor($cachedValue);
@@ -59,15 +61,12 @@ class SmartCacheManager
             return Create::rejectionFor('Rate limit exceeded for key: ' . $key);
         }
 
-        // No data in cache, so we need to execute the promise factory.
         $promise = $callback();
 
-        // We need to cache the result WHEN the promise is fulfilled.
         return $promise->then(
             function ($data) use ($key, $type) {
                 $ttl = $this->ttl_config[$type] ?? 300;
 
-                // Use the delete/get pattern to set data with tags.
                 $this->cache->delete($key);
                 $this->cache->get($key, function(ItemInterface $item) use ($data, $ttl, $type) {
                     $item->expiresAfter($ttl);
@@ -78,7 +77,7 @@ class SmartCacheManager
                     return $data;
                 });
 
-                return $data; // Pass the data down the promise chain.
+                return $data;
             }
         );
     }
