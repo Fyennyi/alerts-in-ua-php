@@ -42,7 +42,7 @@ class SmartCacheManager
      * @param  callable(): T  $callback  Callback to generate fresh data
      * @param  string  $type  Request type (for TTL and tags)
      * @param  bool  $use_cache  Whether to use cache
-     * @return T Cached or fresh result
+     * @return PromiseInterface<T> Cached or fresh result
      */
     public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : mixed
     {
