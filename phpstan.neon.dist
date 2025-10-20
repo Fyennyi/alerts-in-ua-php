@@ -1,4 +1,6 @@
 parameters:
+    bootstrapFiles:
+        - vendor/autoload.php
     level: max
     paths:
         - src
@@ -11,7 +13,7 @@ parameters:
     checkUninitializedProperties: true
     checkDynamicProperties: true
     inferPrivatePropertyTypeFromConstructor: true
-    treatPhpDocTypesAsCertain: true
+    treatPhpDocTypesAsCertain: false
 
     # Signature and type checks
     checkFunctionNameCase: true

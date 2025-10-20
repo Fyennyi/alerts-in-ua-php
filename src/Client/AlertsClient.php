@@ -1,8 +1,6 @@
 <?php
 
 namespace Fyennyi\AlertsInUa\Client;
-
-use Psr\SimpleCache\CacheInterface;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
@@ -25,6 +23,8 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Adapter\Psr16Adapter;
 
 class AlertsClient
 {
@@ -51,7 +51,9 @@ class AlertsClient
     {
         $this->client = $client ?? new Client();
         $this->token = $token;
-        $this->cache_manager = new SmartCacheManager($cache);
+
+        $symfonyCache = $cache ? new Psr16Adapter($cache) : null;
+        $this->cache_manager = new SmartCacheManager($symfonyCache);
     }
 
     /**
