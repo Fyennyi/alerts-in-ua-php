@@ -1,8 +1,6 @@
 <?php
 
 namespace Fyennyi\AlertsInUa\Client;
-
-use Psr\SimpleCache\CacheInterface;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
@@ -20,11 +18,6 @@ use Fyennyi\AlertsInUa\Model\AirRaidAlertStatusResolver;
 use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise\PromiseInterface;
-use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
