@@ -3,11 +3,6 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.2/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true">
-    <coverage>
-        <report>
-            <clover outputFile="clover.xml"/>
-        </report>
-    </coverage>
     <testsuites>
         <testsuite name="Unit Tests">
             <directory>tests/Unit</directory>
