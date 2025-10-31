@@ -46,7 +46,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
     /**
      * Constructor for Alerts collection
      *
-     * @param  array<mixed, mixed>  $data  Raw alerts data from API
+     * @param  array<string|int, mixed>  $data  Raw alerts data from API
      */
     public function __construct(array $data)
     {
