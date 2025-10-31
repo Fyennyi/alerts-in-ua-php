@@ -34,7 +34,7 @@ use JsonSerializable;
 /**
  * @implements IteratorAggregate<int, Alert>
  */
-class Alerts implements IteratorAggregate, Countable, JsonSerializable
+class Alerts implements Countable, IteratorAggregate, JsonSerializable
 {
     /** @var list<Alert> */
     private array $alerts;
@@ -333,6 +333,11 @@ class Alerts implements IteratorAggregate, Countable, JsonSerializable
      */
     public function __toString() : string
     {
-        return json_encode($this, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize Alerts to string: ' . $e->getMessage());
+            return '';
+        }
     }
 }

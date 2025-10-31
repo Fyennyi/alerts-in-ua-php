@@ -27,8 +27,9 @@ namespace Fyennyi\AlertsInUa\Model;
 use DateInterval;
 use DateTimeImmutable;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
+use JsonSerializable;
 
-class Alert implements \JsonSerializable
+class Alert implements JsonSerializable
 {
     private int $id;
 
