@@ -27,13 +27,14 @@ namespace Fyennyi\AlertsInUa\Model;
 use ArrayAccess;
 use Countable;
 use IteratorAggregate;
+use JsonSerializable;
 use Traversable;
 
 /**
  * @implements IteratorAggregate<int, AirRaidAlertStatus>
  * @implements ArrayAccess<int, AirRaidAlertStatus>
  */
-class AirRaidAlertStatuses implements IteratorAggregate, Countable, ArrayAccess
+class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     /** @var array<int, AirRaidAlertStatus> */
     private array $statuses;
@@ -136,5 +137,15 @@ class AirRaidAlertStatuses implements IteratorAggregate, Countable, ArrayAccess
     public function offsetUnset($offset) : void
     {
         // This is a read-only collection
+    }
+
+    /**
+     * Specify data which should be serialized to JSON
+     *
+     * @return array<int, AirRaidAlertStatus> The array of statuses to be serialized
+     */
+    public function jsonSerialize() : array
+    {
+        return $this->statuses;
     }
 }

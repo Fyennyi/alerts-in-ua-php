@@ -24,7 +24,9 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
-class AirRaidAlertStatus
+use JsonSerializable;
+
+class AirRaidAlertStatus implements JsonSerializable
 {
     private string $location_title;
 
@@ -74,5 +76,17 @@ class AirRaidAlertStatus
     public function getUid() : ?int
     {
         return $this->uid;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize() : array
+    {
+        return [
+            'location_title' => $this->location_title,
+            'status' => $this->status,
+            'uid' => $this->uid,
+        ];
     }
 }

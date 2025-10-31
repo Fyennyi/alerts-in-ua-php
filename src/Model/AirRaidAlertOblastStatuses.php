@@ -26,11 +26,12 @@ namespace Fyennyi\AlertsInUa\Model;
 
 use Countable;
 use IteratorAggregate;
+use JsonSerializable;
 
 /**
  * @implements IteratorAggregate<int, AirRaidAlertOblastStatus>
  */
-class AirRaidAlertOblastStatuses implements IteratorAggregate, Countable
+class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSerializable
 {
     /** @var list<AirRaidAlertOblastStatus> */
     private array $statuses;
@@ -128,6 +129,14 @@ class AirRaidAlertOblastStatuses implements IteratorAggregate, Countable
     public function count() : int
     {
         return count($this->statuses);
+    }
+
+    /**
+     * @return list<AirRaidAlertOblastStatus>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->statuses;
     }
 
     public function __toString() : string
