@@ -2,169 +2,158 @@
 
 namespace Tests\Unit\Cache;
 
-use Fyennyi\AlertsInUa\Cache\CacheInterface;
-use Fyennyi\AlertsInUa\Cache\ExpirableCacheInterface;
-use Fyennyi\AlertsInUa\Cache\InMemoryCache;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\RejectedPromise;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class SmartCacheManagerTest extends TestCase
 {
     private $cacheMock;
-
     private SmartCacheManager $manager;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
-        $this->cacheMock = $this->createMock(CacheInterface::class);
+        $this->cacheMock = $this->createMock(TagAwareCacheInterface::class);
         $this->manager = new SmartCacheManager($this->cacheMock);
     }
 
-    public function testConstructorUsesInMemoryCacheByDefault()
+    public function testConstructorWorksWithoutCache()
     {
         $manager = new SmartCacheManager();
         $this->assertInstanceOf(SmartCacheManager::class, $manager);
     }
 
-    public function testGetOrSetReturnsCachedValueIfExists()
+    public function testGetOrSetReturnsCachedValueOnHit()
     {
+        $callback = fn() => 'new_data';
+
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('test_key')
+            ->with('test_key', $this->isType('callable'))
             ->willReturn('cached_data');
 
-        $callback = fn() => 'new_data';
-
         $result = $this->manager->getOrSet('test_key', $callback);
 
-        $this->assertEquals('cached_data', $result);
+        $this->assertEquals('cached_data', $result->wait());
     }
 
-    public function testGetOrSetExecutesCallbackOnCacheMiss()
+    public function testGetOrSetExecutesCallbackOnMiss()
     {
-        $this->cacheMock->expects($this->once())
+        $callback = fn() => Create::promiseFor('new_data');
+
+        // 1. First 'get' call to check the cache (miss)
+        $this->cacheMock->expects($this->atLeastOnce())
             ->method('get')
-            ->with('test_key')
+            ->with('test_key', $this->isType('callable'))
             ->willReturn(null);
 
-        $this->cacheMock->expects($this->once())
-            ->method('set')
-            ->with('test_key', 'new_data', 300); // Default TTL
+        $result = $this->manager->getOrSet('test_key', $callback, 'custom_type');
 
-        $callback = fn() => 'new_data';
-
-        $result = $this->manager->getOrSet('test_key', $callback);
-
-        $this->assertEquals('new_data', $result);
-    }
-
-    public function testGetOrSetUsesCustomTtl()
-    {
-        $this->manager->setTtl('custom_type', 500);
-
-        $this->cacheMock->expects($this->once())
-            ->method('get')
-            ->with('test_key')
-            ->willReturn(null);
-
-        $this->cacheMock->expects($this->once())
-            ->method('set')
-            ->with('test_key', 'new_data', 500);
-
-        $callback = fn() => 'new_data';
-
-        $this->manager->getOrSet('test_key', $callback, 'custom_type');
+        // Assert that the final result is the one from the callback
+        $this->assertEquals('new_data', $result->wait());
     }
 
     public function testGetOrSetBypassesCacheWhenDisabled()
     {
         $this->cacheMock->expects($this->never())->method('get');
-        $this->cacheMock->expects($this->never())->method('set');
 
         $callback = fn() => 'new_data';
-
         $result = $this->manager->getOrSet('test_key', $callback, 'default', false);
 
-        $this->assertEquals('new_data', $result);
+        $this->assertEquals('new_data', $result->wait());
     }
 
-    public function testInvalidatePattern()
+    public function testInvalidateTags()
     {
-        $keys = ['alerts/1', 'alerts/2', 'other/1'];
-        $this->cacheMock->expects($this->once())->method('keys')->willReturn($keys);
-
-        $this->cacheMock->expects($this->exactly(6))
-            ->method('delete')
-            ->with($this->matchesRegularExpression('/^alerts\/\d+(\.last_modified|\.processed)?$/'));
-
-        $this->manager->invalidatePattern('alerts/*');
-    }
-    
-    public function testGetStaleData()
-    {
+        $tags = ['alerts', 'history'];
         $this->cacheMock->expects($this->once())
-            ->method('getStale')
-            ->with('stale_key')
-            ->willReturn('stale_data');
-            
-        $result = $this->manager->getStaleData('stale_key');
-        $this->assertEquals('stale_data', $result);
+            ->method('invalidateTags')
+            ->with($tags);
+
+        $this->manager->invalidateTags($tags);
     }
 
-    public function testLastModifiedMethods()
+    public function testSetLastModified()
     {
-        $this->cacheMock->expects($this->once())
-            ->method('set')
-            ->with('key.last_modified', 'timestamp', 86400);
-        $this->manager->setLastModified('key', 'timestamp');
-
+        $this->cacheMock->expects($this->once())->method('delete')->with('key.last_modified');
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('key.last_modified')
+            ->with('key.last_modified', $this->isType('callable'))
+            ->willReturnCallback(
+                function ($key, $callable) {
+                    $itemMock = $this->createMock(ItemInterface::class);
+                    $itemMock->expects($this->once())->method('expiresAfter')->with(86400);
+                    $itemMock->expects($this->once())->method('tag')->with('key');
+                    return $callable($itemMock);
+                }
+            );
+
+        $this->manager->setLastModified('key', 'timestamp');
+    }
+
+    public function testGetLastModified()
+    {
+        $this->cacheMock->expects($this->once())
+            ->method('get')
+            ->with('key.last_modified', $this->isType('callable'))
             ->willReturn('timestamp');
+
         $this->assertEquals('timestamp', $this->manager->getLastModified('key'));
     }
 
-    public function testProcessedDataMethods()
+    public function testStoreProcessedData()
+    {
+        $data = ['a' => 1];
+        $this->cacheMock->expects($this->once())->method('delete')->with('key.processed');
+        $this->cacheMock->expects($this->once())
+            ->method('get')
+            ->with('key.processed', $this->isType('callable'))
+             ->willReturnCallback(
+                function ($key, $callable) {
+                    $itemMock = $this->createMock(ItemInterface::class);
+                    $itemMock->expects($this->once())->method('expiresAfter')->with(86400);
+                    $itemMock->expects($this->once())->method('tag')->with('key');
+                    return $callable($itemMock);
+                }
+            );
+
+        $this->manager->storeProcessedData('key', $data);
+    }
+
+    public function testGetCachedData()
     {
         $data = ['a' => 1];
         $this->cacheMock->expects($this->once())
-            ->method('set')
-            ->with('key.processed', $data, 86400);
-        $this->manager->storeProcessedData('key', $data);
-
-        $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('key.processed')
+            ->with('key.processed', $this->isType('callable'))
             ->willReturn($data);
+
         $this->assertEquals($data, $this->manager->getCachedData('key'));
     }
 
-    public function testCleanupIsCalledForExpirableCache()
+    public function testRateLimitingReturnsRejectedPromise()
     {
-        $expirableCacheMock = $this->createMock(ExpirableCacheInterface::class);
-        $manager = new SmartCacheManager($expirableCacheMock);
+        $this->cacheMock->method('get')->willReturn(null); // Cache is always empty
 
-        $expirableCacheMock->expects($this->once())->method('get')->willReturn(null);
-        $expirableCacheMock->expects($this->once())->method('cleanupExpired');
+        // Use reflection to set the internal state for rate limiting
+        $reflection = new \ReflectionClass($this->manager);
+        $lastRequestTimeProp = $reflection->getProperty('last_request_time');
+        $lastRequestTimeProp->setAccessible(true);
+        $lastRequestTimeProp->setValue($this->manager, ['rate_limited_key' => time()]);
 
-        $manager->getOrSet('test', fn() => 'data');
-    }
+        $promise = $this->manager->getOrSet('rate_limited_key', fn() => $this->fail('Callback should not be called.'));
 
-    public function testRateLimitingReturnsStaleData()
-    {
-        $manager = new SmartCacheManager($this->cacheMock);
+        $this->assertInstanceOf(RejectedPromise::class, $promise);
 
-        // First call to set the timestamp
-        $this->cacheMock->expects($this->exactly(2))->method('get')->willReturn(null);
-        $this->cacheMock->expects($this->once())->method('set');
-        $manager->getOrSet('rate_limited_key', fn() => 'fresh_data');
+        $rejectionReason = '';
+        $promise->then(null, function($reason) use (&$rejectionReason) {
+            $rejectionReason = $reason;
+        })->wait();
 
-        // Second call should be rate-limited
-        $this->cacheMock->expects($this->once())->method('getStale')->willReturn('stale_data');
-
-        $result = $manager->getOrSet('rate_limited_key', fn() => 'new_fresh_data');
-        $this->assertEquals('stale_data', $result);
+        $this->assertEquals('Rate limit exceeded for key: rate_limited_key', $rejectionReason);
     }
 }

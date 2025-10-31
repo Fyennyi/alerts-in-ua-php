@@ -39,27 +39,16 @@ class AlertsClientCacheTest extends TestCase
         $this->alertsClient->configureCacheTtl($ttlConfig);
     }
 
-    public function testClearCacheWithPattern()
+    public function testClearCacheWithTags()
     {
-        $pattern = 'some_pattern_*';
+        $tags = ['active_alerts', 'history'];
 
-        // Expect the invalidatePattern method to be called with the specified pattern
+        // Expect the invalidateTags method to be called with the specified tags
         $this->cacheManagerMock->expects($this->once())
-            ->method('invalidatePattern')
-            ->with($pattern);
+            ->method('invalidateTags')
+            ->with($tags);
 
         // Call the method to be tested
-        $this->alertsClient->clearCache($pattern);
-    }
-
-    public function testClearCacheWithNull()
-    {
-        // Expect the invalidatePattern method to be called with a wildcard '*'
-        $this->cacheManagerMock->expects($this->once())
-            ->method('invalidatePattern')
-            ->with('*');
-
-        // Call the method to be tested without a pattern (null)
-        $this->alertsClient->clearCache();
+        $this->alertsClient->clearCache($tags);
     }
 }

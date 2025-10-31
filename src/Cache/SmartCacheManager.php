@@ -1,13 +1,43 @@
 <?php
 
+/*
+ *
+ *     _    _           _       ___       _   _
+ *    / \  | | ___ _ __| |_ ___|_ _|_ __ | | | | __ _
+ *   / _ \ | |/ _ \ '__| __/ __|| || '_ \| | | |/ _` |
+ *  / ___ \| |  __/ |  | |_\__ \| || | | | |_| | (_| |
+ * /_/   \_\_|\___|_|   \__|___/___|_| |_|\___/ \__,_|
+ *
+ * This program is free software: you can redistribute and/or modify
+ * it under the terms of the CSSM Unlimited License v2.0.
+ *
+ * This license permits unlimited use, modification, and distribution
+ * for any purpose while maintaining authorship attribution.
+ *
+ * The software is provided "as is" without warranty of any kind.
+ *
+ * @author Serhii Cherneha
+ * @link https://chernega.eu.org/
+ *
+ *
+ */
+
 namespace Fyennyi\AlertsInUa\Cache;
+
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
+use Symfony\Contracts\Cache\CacheInterface as SymfonyCacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 /**
  * Smart cache manager that supports type-based TTL and rate limiting
  */
 class SmartCacheManager
 {
-    private CacheInterface $cache;
+    private SymfonyCacheInterface $cache;
 
     /** @var array<string, int> Time-to-live in seconds per request type */
     private array $ttl_config = [
@@ -21,69 +51,69 @@ class SmartCacheManager
     /** @var array<string, int> Last request time by cache key */
     private array $last_request_time = [];
 
-    public function __construct(?CacheInterface $cache = null)
+    /**
+     * @param  SymfonyCacheInterface|null  $cache  The cache instance to use. Defaults to a TagAwareAdapter with an ArrayAdapter
+     */
+    public function __construct(SymfonyCacheInterface $cache = null)
     {
-        $this->cache = $cache ?? new InMemoryCache();
+        $this->cache = $cache ?? new TagAwareAdapter(new ArrayAdapter());
     }
 
     /**
      * Get cached value or use fallback callback if expired or missing
      *
-     * @template T
-     *
      * @param  string  $key  Cache key
-     * @param  callable(): T  $callback  Callback to generate fresh data
-     * @param  string  $type  Request type (for TTL)
+     * @param  callable(): PromiseInterface  $callback  Callback that returns a promise for the fresh data
+     * @param  string  $type  Request type (for TTL and tags)
      * @param  bool  $use_cache  Whether to use cache
-     * @return T Cached or fresh result
+     * @return PromiseInterface Cached or fresh result
      */
-    public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : mixed
+    public function getOrSet(string $key, callable $callback, string $type = 'default', bool $use_cache = true) : PromiseInterface
     {
         if (! $use_cache) {
-            return $callback();
+            return Create::promiseFor($callback());
         }
 
-        $cached = $this->cache->get($key);
-        if (null !== $cached) {
-            return $cached;
+        $cachedValue = $this->cache->get($key, fn() => null);
+        if ($cachedValue !== null) {
+            return Create::promiseFor($cachedValue);
         }
 
         if ($this->isRateLimited($key)) {
-            $stale = $this->getStaleData($key);
-            if (null !== $stale) {
-                return $stale;
+            return Create::rejectionFor('Rate limit exceeded for key: ' . $key);
+        }
+
+        $promise = $callback();
+
+        return $promise->then(
+            function ($data) use ($key, $type) {
+                $ttl = $this->ttl_config[$type] ?? 300;
+
+                $this->cache->delete($key);
+                $this->cache->get($key, function(ItemInterface $item) use ($data, $ttl, $type) {
+                    $item->expiresAfter($ttl);
+                    if ($this->cache instanceof TagAwareCacheInterface) {
+                        $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
+                        $item->tag($sanitizedTag);
+                    }
+                    return $data;
+                });
+
+                return $data;
             }
-        }
-
-        $data = $callback();
-        $ttl = $this->ttl_config[$type] ?? 300;
-
-        if ($this->cache instanceof ExpirableCacheInterface) {
-            $this->cache->cleanupExpired();
-        }
-
-        $this->cache->set($key, $data, $ttl);
-        $this->last_request_time[$key] = time();
-
-        return $data;
+        );
     }
 
     /**
-     * Invalidate cache entries matching a pattern (supports '*' wildcard)
+     * Invalidate cache entries by tag
      *
-     * @param  string  $pattern  Pattern or wildcard (e.g. 'alerts/*', '*')
+     * @param  string|string[]  $tags  Tag or tags to invalidate
      * @return void
      */
-    public function invalidatePattern(string $pattern) : void
+    public function invalidateTags(string|array $tags) : void
     {
-        $regex = '/^' . str_replace('\*', '.*', preg_quote($pattern, '/')) . '$/';
-
-        foreach ($this->cache->keys() as $key) {
-            if (preg_match($regex, $key)) {
-                $this->cache->delete($key);
-                $this->cache->delete($key . '.last_modified');
-                $this->cache->delete($key . '.processed');
-            }
+        if ($this->cache instanceof TagAwareCacheInterface) {
+            $this->cache->invalidateTags(is_string($tags) ? [$tags] : $tags);
         }
     }
 
@@ -117,17 +147,6 @@ class SmartCacheManager
     }
 
     /**
-     * Attempt to return stale (expired) data — if supported
-     *
-     * @param  string  $key  Cache key
-     * @return mixed|null Stale value or null if unavailable
-     */
-    public function getStaleData(string $key) : mixed
-    {
-        return $this->cache->getStale($key);
-    }
-
-    /**
      * Stores the Last-Modified HTTP header value for the specified cache key
      *
      * @param  string  $key  The base cache key associated with the API endpoint
@@ -136,7 +155,16 @@ class SmartCacheManager
      */
     public function setLastModified(string $key, string $timestamp) : void
     {
-        $this->cache->set($key . '.last_modified', $timestamp, 86400);
+        $cacheKey = $key . '.last_modified';
+        $this->cache->delete($cacheKey);
+        $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $timestamp) {
+            $item->expiresAfter(86400);
+            if ($this->cache instanceof TagAwareCacheInterface) {
+                $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $item->tag($sanitizedTag);
+            }
+            return $timestamp;
+        });
     }
 
     /**
@@ -147,7 +175,7 @@ class SmartCacheManager
      */
     public function getLastModified(string $key) : ?string
     {
-        $value = $this->cache->get($key . '.last_modified');
+        $value = $this->cache->get($key . '.last_modified', fn() => null);
 
         return is_string($value) ? $value : null;
     }
@@ -161,7 +189,16 @@ class SmartCacheManager
      */
     public function storeProcessedData(string $key, mixed $data) : void
     {
-        $this->cache->set($key . '.processed', $data, 86400);
+        $cacheKey = $key . '.processed';
+        $this->cache->delete($cacheKey);
+        $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $data) {
+            $item->expiresAfter(86400);
+            if ($this->cache instanceof TagAwareCacheInterface) {
+                $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $item->tag($sanitizedTag);
+            }
+            return $data;
+        });
     }
 
     /**
@@ -172,6 +209,6 @@ class SmartCacheManager
      */
     public function getCachedData(string $key) : mixed
     {
-        return $this->cache->get($key . '.processed');
+        return $this->cache->get($key . '.processed', fn() => null);
     }
 }

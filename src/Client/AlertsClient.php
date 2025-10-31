@@ -1,9 +1,29 @@
 <?php
 
+/*
+ *
+ *     _    _           _       ___       _   _
+ *    / \  | | ___ _ __| |_ ___|_ _|_ __ | | | | __ _
+ *   / _ \ | |/ _ \ '__| __/ __|| || '_ \| | | |/ _` |
+ *  / ___ \| |  __/ |  | |_\__ \| || | | | |_| | (_| |
+ * /_/   \_\_|\___|_|   \__|___/___|_| |_|\___/ \__,_|
+ *
+ * This program is free software: you can redistribute and/or modify
+ * it under the terms of the CSSM Unlimited License v2.0.
+ *
+ * This license permits unlimited use, modification, and distribution
+ * for any purpose while maintaining authorship attribution.
+ *
+ * The software is provided "as is" without warranty of any kind.
+ *
+ * @author Serhii Cherneha
+ * @link https://chernega.eu.org/
+ *
+ *
+ */
+
 namespace Fyennyi\AlertsInUa\Client;
 
-use Fyennyi\AlertsInUa\Cache\CacheInterface;
-use Fyennyi\AlertsInUa\Cache\InMemoryCache;
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
@@ -26,6 +46,8 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Adapter\Psr16Adapter;
 
 class AlertsClient
 {
@@ -38,21 +60,23 @@ class AlertsClient
     /** @var string Base URL for the API */
     private string $base_url = 'https://api.alerts.in.ua/v1/';
 
-    /** @var SmartCacheManager Manages caching of API responses */
+    /** @var SmartCacheManager Manages caching of API responses using a PSR-16 compatible cache internally */
     private SmartCacheManager $cache_manager;
 
     /**
      * Constructor for alerts.in.ua API client
      *
      * @param  string  $token  API token
-     * @param  CacheInterface|null  $cache  Optional cache implementation
+     * @param  CacheInterface|null  $cache  Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
      * @param  ClientInterface|null  $client  Optional Guzzle client instance
      */
     public function __construct(string $token, ?CacheInterface $cache = null, ?ClientInterface $client = null)
     {
         $this->client = $client ?? new Client();
         $this->token = $token;
-        $this->cache_manager = new SmartCacheManager($cache ?? new InMemoryCache());
+
+        $symfonyCache = $cache ? new Psr16Adapter($cache) : null;
+        $this->cache_manager = new SmartCacheManager($symfonyCache);
     }
 
     /**
@@ -321,13 +345,13 @@ class AlertsClient
     }
 
     /**
-     * Clears cached items matching a pattern
+     * Clears cached items by tag(s)
      *
-     * @param  string|null  $pattern  Cache key pattern (null clears all)
+     * @param  string|string[]  $tags  A single tag or an array of tags to invalidate
      * @return void
      */
-    public function clearCache(?string $pattern = null) : void
+    public function clearCache(string|array $tags) : void
     {
-        $this->cache_manager->invalidatePattern($pattern ?? '*');
+        $this->cache_manager->invalidateTags($tags);
     }
 }
