@@ -218,4 +218,27 @@ class AlertsTest extends TestCase
         $this->assertStringContainsString('Харківська область', $string);
         $this->assertStringContainsString('Test disclaimer', $string);
     }
+
+    public function testToStringReturnsEmptyStringOnJsonFailure(): void
+    {
+        // Create a mock Alert with invalid UTF-8 characters in a string property
+        $invalidUtf8Data = [
+            'alerts' => [
+                ['location_title' => "\xB1\x31"] // Invalid UTF-8 sequence
+            ]
+        ];
+        $alerts = new Alerts($invalidUtf8Data);
+
+        // Temporarily suppress error log output for this test
+        $originalErrorLog = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            // The __toString method should catch the JsonException and return an empty string
+            $this->assertEquals('', (string)$alerts);
+        } finally {
+            // Restore the original error log setting
+            ini_set('error_log', $originalErrorLog);
+        }
+    }
 }

@@ -60,6 +60,20 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $this->assertJsonStringEqualsJsonString($expectedJson, (string) $statuses);
     }
 
+    public function testJsonSerialize(): void
+    {
+        $data = 'ANP';
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+
+        $expectedJson = json_encode([
+            ['oblast' => 'Автономна Республіка Крим', 'status' => 'active'],
+            ['oblast' => 'Волинська область', 'status' => 'no_alert'],
+            ['oblast' => 'Вінницька область', 'status' => 'partly'],
+        ]);
+
+        $this->assertJsonStringEqualsJsonString($expectedJson, json_encode($statuses));
+    }
+
     public function testGetIterator()
     {
         $data = 'ANP';

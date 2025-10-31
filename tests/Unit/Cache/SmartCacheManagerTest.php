@@ -33,7 +33,7 @@ class SmartCacheManagerTest extends TestCase
 
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('test_key', $this->isType('callable'))
+            ->with('test_key', $this->isCallable())
             ->willReturn('cached_data');
 
         $result = $this->manager->getOrSet('test_key', $callback);
@@ -48,7 +48,7 @@ class SmartCacheManagerTest extends TestCase
         // 1. First 'get' call to check the cache (miss)
         $this->cacheMock->expects($this->atLeastOnce())
             ->method('get')
-            ->with('test_key', $this->isType('callable'))
+            ->with('test_key', $this->isCallable())
             ->willReturn(null);
 
         $result = $this->manager->getOrSet('test_key', $callback, 'custom_type');
@@ -82,7 +82,7 @@ class SmartCacheManagerTest extends TestCase
         $this->cacheMock->expects($this->once())->method('delete')->with('key.last_modified');
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('key.last_modified', $this->isType('callable'))
+            ->with('key.last_modified', $this->isCallable())
             ->willReturnCallback(
                 function ($key, $callable) {
                     $itemMock = $this->createMock(ItemInterface::class);
@@ -99,7 +99,7 @@ class SmartCacheManagerTest extends TestCase
     {
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('key.last_modified', $this->isType('callable'))
+            ->with('key.last_modified', $this->isCallable())
             ->willReturn('timestamp');
 
         $this->assertEquals('timestamp', $this->manager->getLastModified('key'));
@@ -111,7 +111,7 @@ class SmartCacheManagerTest extends TestCase
         $this->cacheMock->expects($this->once())->method('delete')->with('key.processed');
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('key.processed', $this->isType('callable'))
+            ->with('key.processed', $this->isCallable())
              ->willReturnCallback(
                 function ($key, $callable) {
                     $itemMock = $this->createMock(ItemInterface::class);
@@ -129,7 +129,7 @@ class SmartCacheManagerTest extends TestCase
         $data = ['a' => 1];
         $this->cacheMock->expects($this->once())
             ->method('get')
-            ->with('key.processed', $this->isType('callable'))
+            ->with('key.processed', $this->isCallable())
             ->willReturn($data);
 
         $this->assertEquals($data, $this->manager->getCachedData('key'));

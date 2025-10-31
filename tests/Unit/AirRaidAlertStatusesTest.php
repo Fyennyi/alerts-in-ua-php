@@ -182,4 +182,27 @@ class AirRaidAlertStatusesTest extends TestCase
         $this->assertCount(1, $airRaidAlertStatuses);
         $this->assertEquals($status1, $airRaidAlertStatuses[0]);
     }
+
+    public function testJsonSerialize(): void
+    {
+        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
+        $statuses = [$status1, $status2];
+        $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
+
+        $expectedJson = json_encode([
+            [
+                'location_title' => 'Київська область',
+                'status' => 'active',
+                'uid' => 1,
+            ],
+            [
+                'location_title' => 'Львівська область',
+                'status' => 'no_alert',
+                'uid' => 2,
+            ],
+        ]);
+
+        $this->assertJsonStringEqualsJsonString($expectedJson, json_encode($airRaidAlertStatuses));
+    }
 }
