@@ -2,7 +2,7 @@ name: PHP Unit Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "epic/**", "feature/**" ]
   pull_request:
     branches: [ "main" ]
 
