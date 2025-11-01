@@ -2,7 +2,7 @@ name: PHPStan
 
 on:
   push:
-    branches: [ "main", "epic/**", "feature/**" ]
+    branches: [ "main", "epic/**", "feature/**", "fix/**" ]
   pull_request:
     branches: [ "main" ]
 
