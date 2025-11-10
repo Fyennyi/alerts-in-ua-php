@@ -1,5 +1,7 @@
 # API Client for alerts.in.ua in PHP
 
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
+
 [![Latest Stable Version](https://img.shields.io/packagist/v/fyennyi/alerts-in-ua-php.svg?label=Packagist&logo=packagist)](https://packagist.org/packages/fyennyi/alerts-in-ua-php)
 [![Total Downloads](https://img.shields.io/packagist/dt/fyennyi/alerts-in-ua-php.svg?label=Downloads&logo=packagist)](https://packagist.org/packages/fyennyi/alerts-in-ua-php)
 [![License](https://img.shields.io/packagist/l/fyennyi/alerts-in-ua-php.svg?label=Licence&logo=open-source-initiative)](https://packagist.org/packages/fyennyi/alerts-in-ua-php)
