@@ -39,18 +39,18 @@ jobs:
       run: vendor/bin/phpunit --coverage-clover clover.xml --display-warnings
 
     - name: Upload coverage reports to Codecov
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       if: ${{ env.CODECOV_TOKEN != '' }}
       continue-on-error: true
       uses: codecov/codecov-action@v5
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ env.CODECOV_TOKEN }}
 
     - name: Upload coverage report to Codacy
+      env:
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
       if: ${{ env.CODACY_PROJECT_TOKEN != '' }}
       continue-on-error: true
       run: |
         curl -Ls https://coverage.codacy.com/get.sh | bash
-      env:
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
