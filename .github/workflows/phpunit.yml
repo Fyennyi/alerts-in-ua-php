@@ -40,10 +40,10 @@ jobs:
 
     - name: Upload coverage reports to Codecov
       if: secrets.CODECOV_TOKEN != ''
+      continue-on-error: true
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-      continue-on-error: true
 
     - name: Upload coverage report to Codacy
       if: secrets.CODACY_PROJECT_TOKEN != ''
