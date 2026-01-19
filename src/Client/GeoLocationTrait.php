@@ -23,7 +23,7 @@ trait GeoLocationTrait
 
         $location = $this->geo_resolver->findByCoordinates($lat, $lon);
 
-        if ($location === null) {
+        if ($location === null || !isset($location['uid'])) {
             throw new InvalidParameterException(
                 sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
             );
@@ -44,7 +44,7 @@ trait GeoLocationTrait
 
         $location = $this->geo_resolver->findByCoordinates($lat, $lon);
 
-        if ($location === null) {
+        if ($location === null || !isset($location['uid'])) {
             throw new InvalidParameterException(
                 sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
             );
