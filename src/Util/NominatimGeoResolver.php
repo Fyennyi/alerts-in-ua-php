@@ -206,7 +206,7 @@ class NominatimGeoResolver
 
         foreach ($this->locations as $uid => $name) {
             $latin = TransliterationHelper::normalizeForMatching($name);
-            $mapping[$latin] = ['uid' => (int)$uid, 'name' => $name];
+            $mapping[$latin] = ['uid' => (int)$uid, 'ukrainian' => $name, 'latin' => $latin, 'normalized' => $latin];
         }
 
         return $mapping;

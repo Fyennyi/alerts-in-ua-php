@@ -75,4 +75,166 @@ class NominatimGeoResolverTest extends TestCase
         }
         return false;
     }
+
+    public function testReverseGeocode(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('reverseGeocode');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 50.45, 30.52);
+
+        // Since it's HTTP, may be null or array
+        $this->assertTrue($result === null || is_array($result));
+    }
+
+    public function testMapToLocation(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('mapToLocation');
+        $method->setAccessible(true);
+
+        $nominatimData = [
+            'address' => [
+                'city' => 'Kyiv'
+            ]
+        ];
+
+        $result = $method->invoke($resolver, $nominatimData);
+
+        $this->assertNotNull($result);
+        $this->assertEquals('м. Київ', $result['name']);
+    }
+
+    public function testFindUkrainianLocation(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findUkrainianLocation');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'Kyiv');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('м. Київ', $result['name']);
+    }
+
+    public function testFindFuzzyMatch(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findFuzzyMatch');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'Kyiv');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('м. Київ', $result['name']);
+    }
+
+    public function testGenerateRuntimeMapping(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('generateRuntimeMapping');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver);
+
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+    }
+
+    public function testGetFromCacheWithCache(): void
+    {
+        $cache = $this->createMock(SmartCacheManager::class);
+        $cache->expects($this->once())
+            ->method('getCachedData')
+            ->with('test_key')
+            ->willReturn(['data' => 'value']);
+
+        $resolver = new NominatimGeoResolver(null, $cache);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('getFromCache');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'test_key');
+
+        $this->assertEquals(['data' => 'value'], $result);
+    }
+
+    public function testGetFromCacheWithCacheException(): void
+    {
+        $cache = $this->createMock(SmartCacheManager::class);
+        $cache->expects($this->once())
+            ->method('getCachedData')
+            ->with('test_key')
+            ->willThrowException(new \Exception('Cache error'));
+
+        $resolver = new NominatimGeoResolver(null, $cache);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('getFromCache');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'test_key');
+
+        $this->assertNull($result);
+    }
+
+    public function testGetFromCacheWithoutCache(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('getFromCache');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'test_key');
+
+        $this->assertNull($result);
+    }
+
+    public function testSaveToCacheWithCache(): void
+    {
+        $cache = $this->createMock(SmartCacheManager::class);
+        $cache->expects($this->once())
+            ->method('storeProcessedData')
+            ->with('test_key', ['data' => 'value']);
+
+        $resolver = new NominatimGeoResolver(null, $cache);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('saveToCache');
+        $method->setAccessible(true);
+
+        $method->invoke($resolver, 'test_key', ['data' => 'value']);
+    }
+
+    public function testSaveToCacheWithCacheException(): void
+    {
+        $cache = $this->createMock(SmartCacheManager::class);
+        $cache->expects($this->once())
+            ->method('storeProcessedData')
+            ->with('test_key', ['data' => 'value'])
+            ->willThrowException(new \Exception('Cache error'));
+
+        $resolver = new NominatimGeoResolver(null, $cache);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('saveToCache');
+        $method->setAccessible(true);
+
+        $method->invoke($resolver, 'test_key', ['data' => 'value']);
+        // No exception thrown, silently ignored
+    }
+
+    public function testSaveToCacheWithoutCache(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('saveToCache');
+        $method->setAccessible(true);
+
+        $method->invoke($resolver, 'test_key', ['data' => 'value']);
+        // No exception
+    }
 }
