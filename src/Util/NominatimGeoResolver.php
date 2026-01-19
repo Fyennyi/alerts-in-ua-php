@@ -2,8 +2,9 @@
 
 namespace Fyennyi\AlertsInUa\Util;
 
+use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
-use Psr\SimpleCache\CacheInterface;
+use Fyennyi\AlertsInUa\Util\UserAgent;
 
 class NominatimGeoResolver
 {
@@ -15,10 +16,9 @@ class NominatimGeoResolver
 
     /** @var array<string, array<string, mixed>> */
     private array $name_mapping;
-    private ?CacheInterface $cache;
-    private string $user_agent;
+    private ?SmartCacheManager $cache_manager;
 
-    public function __construct(?string $mapping_path = null, ?CacheInterface $cache = null, string $user_agent = 'alerts-in-ua-php/2.0')
+    public function __construct(?string $mapping_path = null, ?SmartCacheManager $cache_manager = null)
     {
         $content = file_get_contents(__DIR__ . '/../Model/locations.json');
         if ($content === false) {
@@ -50,8 +50,7 @@ class NominatimGeoResolver
             $this->name_mapping = $this->generateRuntimeMapping();
         }
 
-        $this->cache = $cache;
-        $this->user_agent = $user_agent;
+        $this->cache_manager = $cache_manager;
     }
 
     /**
@@ -99,7 +98,7 @@ class NominatimGeoResolver
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                'header' => "User-Agent: {$this->user_agent}\r\n"
+                'header' => "User-Agent: " . UserAgent::getUserAgent() . "\r\n"
             ]
         ]);
 
@@ -219,12 +218,12 @@ class NominatimGeoResolver
      */
     private function getFromCache(string $key): ?array
     {
-        if (! $this->cache) {
+        if (! $this->cache_manager) {
             return null;
         }
 
         try {
-            $data = $this->cache->get($key);
+            $data = $this->cache_manager->getCachedData($key);
             /** @var array<string, mixed>|null $data */
             return $data;
         } catch (\Throwable $e) {
@@ -232,14 +231,11 @@ class NominatimGeoResolver
         }
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     private function saveToCache(string $key, array $data): void
     {
-        if ($this->cache) {
+        if ($this->cache_manager) {
             try {
-                $this->cache->set($key, $data, self::CACHE_TTL);
+                $this->cache_manager->storeProcessedData($key, $data);
             } catch (\Throwable $e) {
                 // Ignore cache errors
             }
