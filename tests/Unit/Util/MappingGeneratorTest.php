@@ -68,4 +68,32 @@ class MappingGeneratorTest extends TestCase
         $generator->generate();
         unlink($invalidJsonPath);
     }
+
+    public function testGenerateWithNonStringValue(): void
+    {
+        $nonStringJsonPath = sys_get_temp_dir() . '/non_string_locations.json';
+        $locations = [
+            1 => 'Valid String',
+            2 => 123, // Non-string value
+            3 => 'Another Valid'
+        ];
+        file_put_contents($nonStringJsonPath, json_encode($locations));
+        $generator = new MappingGenerator($nonStringJsonPath, $this->tempOutput);
+
+        $generator->generate();
+
+        $this->assertFileExists($this->tempOutput);
+
+        $content = file_get_contents($this->tempOutput);
+        $this->assertNotFalse($content);
+
+        $mapping = json_decode($content, true);
+        $this->assertIsArray($mapping);
+        // Should have 2 entries (skipped the non-string)
+        $this->assertCount(2, $mapping);
+        $this->assertArrayHasKey('valid string', $mapping);
+        $this->assertArrayHasKey('another valid', $mapping);
+
+        unlink($nonStringJsonPath);
+    }
 }
