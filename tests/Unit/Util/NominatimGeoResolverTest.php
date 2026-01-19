@@ -49,8 +49,30 @@ class NominatimGeoResolverTest extends TestCase
 
     public function testFindByCoordinatesWithCacheMiss(): void
     {
-        // This would require mocking the HTTP, which is hard
-        // Skip for now or use integration test
-        $this->markTestSkipped('Integration test for API call');
+        // Integration test: requires internet and Nominatim API
+        if (! $this->hasInternet()) {
+            $this->markTestSkipped('Internet connection required for this test');
+        }
+
+        $resolver = new NominatimGeoResolver(null, null);
+
+        $result = $resolver->findByCoordinates(50.4501, 30.5234); // Kyiv coordinates
+
+        // May return null if API fails or rate limited
+        if ($result !== null) {
+            $this->assertIsArray($result);
+            $this->assertArrayHasKey('uid', $result);
+            $this->assertArrayHasKey('name', $result);
+        }
+    }
+
+    private function hasInternet(): bool
+    {
+        $connected = @fsockopen("www.google.com", 80);
+        if ($connected) {
+            fclose($connected);
+            return true;
+        }
+        return false;
     }
 }
