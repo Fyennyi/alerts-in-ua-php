@@ -22,7 +22,7 @@ trait GeoLocationTrait
         string $period = 'week_ago',
         bool $use_cache = false
     ): PromiseInterface {
-        if (!isset($this->geoResolver)) {
+        if (! isset($this->geoResolver)) {
             $this->geoResolver = new NominatimGeoResolver(null, $this->cache ?? null);
         }
 
@@ -43,7 +43,7 @@ trait GeoLocationTrait
         bool $oblast_level_only = false,
         bool $use_cache = false
     ): PromiseInterface {
-        if (!isset($this->geoResolver)) {
+        if (! isset($this->geoResolver)) {
             $this->geoResolver = new NominatimGeoResolver(null, $this->cache ?? null);
         }
 
