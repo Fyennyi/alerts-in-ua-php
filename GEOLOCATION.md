@@ -93,19 +93,21 @@ Geo-results are cached using the same PSR-16 cache as the main client for 24 hou
 
 Fetches the alert history for a location by coordinates.
 
-- `$lat` – Latitude.
-- `$lon` – Longitude.
+- `$lat` – The latitude of the location.
+- `$lon` – The longitude of the location.
 - `$period` – Time period to retrieve alerts (e.g. `'month_ago'`, `'week_ago'`).
-- `$use_cache` – Whether to use cached data (default false).
+- `$use_cache` – Whether to use cached data (default `false`).
+
+---
 
 ### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatus>`
 
 Returns air raid alert status for a location by coordinates.
 
-- `$lat` – Latitude.
-- `$lon` – Longitude.
-- `$oblast_level_only` – Oblast level only.
-- `$use_cache` – Use cache.
+- `$lat` – The latitude of the location.
+- `$lon` – The longitude of the location.
+- `$oblast_level_only` – Only oblast-level alerts (default `false`).
+- `$use_cache` – Whether to use cached data (default `false`).
 
 ## Exceptions
 
