@@ -108,8 +108,3 @@ Returns air raid alert status for a location by coordinates.
 - `$lon` – The longitude of the location.
 - `$oblast_level_only` – Only oblast-level alerts (default `false`).
 - `$use_cache` – Whether to use cached data (default `false`).
-
-## Exceptions
-
-- `InvalidParameterException` - if location not found by coordinates
-- `ApiError` - alerts.in.ua API error
