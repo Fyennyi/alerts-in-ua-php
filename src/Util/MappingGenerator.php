@@ -25,9 +25,6 @@ class MappingGenerator
         $mapping = [];
         $stats = ['total' => count($locations), 'mapped' => 0];
 
-        echo "Generating name mapping for {$stats['total']} locations...\n";
-        echo str_repeat('=', 60) . "\n";
-
         foreach ($locations as $uid => $ukrainian_name) {
             if (! is_string($ukrainian_name)) {
                 continue;
@@ -43,23 +40,11 @@ class MappingGenerator
             ];
 
             $stats['mapped']++;
-
-            echo sprintf(
-                "%5d: %-35s -> %s\n",
-                $uid,
-                $ukrainian_name,
-                $normalized
-            );
         }
-
-        echo str_repeat('=', 60) . "\n";
-        echo "Mapped: {$stats['mapped']} / {$stats['total']}\n";
 
         file_put_contents(
             $this->outputPath,
             json_encode($mapping, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
         );
-
-        echo "\nMapping saved to: {$this->outputPath}\n";
     }
 }
