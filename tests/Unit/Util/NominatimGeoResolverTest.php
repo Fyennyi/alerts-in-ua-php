@@ -6,7 +6,9 @@ use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
+#[AllowMockObjectsWithoutExpectations]
 class NominatimGeoResolverTest extends TestCase
 {
     private string $tempDir;
@@ -128,7 +130,7 @@ class NominatimGeoResolverTest extends TestCase
             ->willReturn(null);
         $cache->expects($this->once())
             ->method('storeProcessedData')
-            ->with('geo_50.450100_30.523400.json', $this->isType('array'));
+            ->with('geo_50.450100_30.523400.json', $this->isArray());
 
         $resolver = new NominatimGeoResolver(null, $cache);
 
