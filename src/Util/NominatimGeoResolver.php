@@ -230,6 +230,9 @@ class NominatimGeoResolver
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function saveToCache(string $key, array $data): void
     {
         if ($this->cache_manager) {
