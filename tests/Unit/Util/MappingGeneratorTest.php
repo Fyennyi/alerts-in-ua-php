@@ -43,4 +43,11 @@ class MappingGeneratorTest extends TestCase
         $this->assertEquals('м. Київ', $entry['ukrainian']);
         $this->assertEquals(31, $entry['uid']);
     }
+
+    public function testConstructorWithInvalidLocationsPath(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to read locations.json');
+        new MappingGenerator('/invalid/path/locations.json', $this->tempOutput);
+    }
 }
