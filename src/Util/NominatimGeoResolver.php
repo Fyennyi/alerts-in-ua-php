@@ -38,23 +38,23 @@ class NominatimGeoResolver
 
     public function findByCoordinates(float $lat, float $lon): ?array
     {
-        $cacheKey = sprintf('geo_%f_%f.json', $lat, $lon);
-        $cached = $this->getFromCache($cacheKey);
+        $cache_key = sprintf('geo_%f_%f.json', $lat, $lon);
+        $cached = $this->getFromCache($cache_key);
 
         if ($cached !== null) {
             return $cached;
         }
 
-        $nominatimResult = $this->reverseGeocode($lat, $lon);
+        $nominatim_result = $this->reverseGeocode($lat, $lon);
 
-        if (!$nominatimResult) {
+        if (!$nominatim_result) {
             return null;
         }
 
-        $result = $this->mapToLocation($nominatimResult);
+        $result = $this->mapToLocation($nominatim_result);
 
         if ($result !== null) {
-            $this->saveToCache($cacheKey, $result);
+            $this->saveToCache($cache_key, $result);
         }
 
         return $result;
@@ -88,9 +88,9 @@ class NominatimGeoResolver
         return json_decode($response, true);
     }
 
-    private function mapToLocation(array $nominatimData): ?array
+    private function mapToLocation(array $nominatim_data): ?array
     {
-        $address = $nominatimData['address'] ?? [];
+        $address = $nominatim_data['address'] ?? [];
 
         $candidates = [
             $address['municipality'] ?? null,
@@ -116,12 +116,12 @@ class NominatimGeoResolver
         return null;
     }
 
-    private function findUkrainianLocation(string $englishName): ?array
+    private function findUkrainianLocation(string $english_name): ?array
     {
-        $normalizedCandidate = TransliterationHelper::normalizeForMatching($englishName);
+        $normalized_candidate = TransliterationHelper::normalizeForMatching($english_name);
 
-        if (isset($this->nameMapping[$normalizedCandidate])) {
-            $entry = $this->nameMapping[$normalizedCandidate];
+        if (isset($this->nameMapping[$normalized_candidate])) {
+            $entry = $this->nameMapping[$normalized_candidate];
             return [
                 'uid' => $entry['uid'],
                 'name' => $entry['ukrainian'],
@@ -129,32 +129,32 @@ class NominatimGeoResolver
             ];
         }
 
-        return $this->findFuzzyMatch($normalizedCandidate);
+        return $this->findFuzzyMatch($normalized_candidate);
     }
 
-    private function findFuzzyMatch(string $normalizedCandidate): ?array
+    private function findFuzzyMatch(string $normalized_candidate): ?array
     {
-        $bestMatch = null;
-        $bestScore = 0;
+        $best_match = null;
+        $best_score = 0;
 
-        foreach ($this->locations as $uid => $ukrainianName) {
-            $normalizedUkrainian = TransliterationHelper::normalizeForMatching($ukrainianName);
+        foreach ($this->locations as $uid => $ukrainian_name) {
+            $normalized_ukrainian = TransliterationHelper::normalizeForMatching($ukrainian_name);
 
-            $score = similar_text($normalizedCandidate, $normalizedUkrainian, $percent);
+            $score = similar_text($normalized_candidate, $normalized_ukrainian, $percent);
             $similarity = $percent / 100;
 
-            if ($similarity > 0.7 && $similarity > $bestScore) {
-                $bestScore = $similarity;
-                $bestMatch = [
+            if ($similarity > 0.7 && $similarity > $best_score) {
+                $best_score = $similarity;
+                $best_match = [
                     'uid' => (int)$uid,
-                    'name' => $ukrainianName,
+                    'name' => $ukrainian_name,
                     'matched_by' => 'fuzzy',
                     'similarity' => $similarity
                 ];
             }
         }
 
-        return $bestMatch;
+        return $best_match;
     }
 
     private function generateRuntimeMapping(): array
