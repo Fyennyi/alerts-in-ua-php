@@ -9,7 +9,7 @@ use Psr\SimpleCache\CacheInterface;
 
 trait GeoLocationTrait
 {
-    private \Fyennyi\AlertsInUa\Util\NominatimGeoResolver $geo_resolver;
+    private ?NominatimGeoResolver $geo_resolver = null;
 
     public function getAlertsByCoordinatesAsync(
         float $lat,
@@ -18,7 +18,7 @@ trait GeoLocationTrait
         bool $use_cache = false
     ): PromiseInterface {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver(null, $this->cache ?? null);
+            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache ?? null);
         }
 
         /** @var array{uid: int, name: string, matched_by: string}|null $location */
@@ -41,7 +41,7 @@ trait GeoLocationTrait
         bool $use_cache = false
     ): PromiseInterface {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver(null, $this->cache ?? null);
+            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache ?? null);
         }
 
         /** @var array{uid: int, name: string, matched_by: string}|null $location */
