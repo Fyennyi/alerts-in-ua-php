@@ -9,7 +9,6 @@ use Fyennyi\AlertsInUa\Util\UserAgent;
 class NominatimGeoResolver
 {
     private const BASE_URL = 'https://nominatim.openstreetmap.org/reverse';
-    private const CACHE_TTL = 86400;
 
     /** @var array<int, string> */
     private array $locations;
