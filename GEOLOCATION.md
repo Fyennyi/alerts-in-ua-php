@@ -100,7 +100,7 @@ Fetches the alert history for a location by coordinates.
 
 ### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false): PromiseInterface<AirRaidAlertOblastStatus>`
 
-Gets air raid alert status for a location by coordinates.
+Returns air raid alert status for a location by coordinates.
 
 - `$lat` – Latitude.
 - `$lon` – Longitude.
