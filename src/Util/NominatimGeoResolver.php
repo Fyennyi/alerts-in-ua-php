@@ -68,7 +68,7 @@ class NominatimGeoResolver
 
         $nominatim_result = $this->reverseGeocode($lat, $lon);
 
-        if (!$nominatim_result) {
+        if (! $nominatim_result) {
             return null;
         }
 
@@ -219,7 +219,7 @@ class NominatimGeoResolver
      */
     private function getFromCache(string $key): ?array
     {
-        if (!$this->cache) {
+        if (! $this->cache) {
             return null;
         }
 
