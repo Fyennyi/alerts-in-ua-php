@@ -29,7 +29,9 @@ trait GeoLocationTrait
             );
         }
 
-        return $this->getAlertsHistoryAsync($location['uid'], $period, $use_cache);
+        /** @var int $uid */
+        $uid = $location['uid'];
+        return $this->getAlertsHistoryAsync($uid, $period, $use_cache);
     }
 
     public function getAirRaidAlertStatusByCoordinatesAsync(
@@ -50,8 +52,10 @@ trait GeoLocationTrait
             );
         }
 
+        /** @var int $uid */
+        $uid = $location['uid'];
         return $this->getAirRaidAlertStatusAsync(
-            $location['uid'],
+            $uid,
             $oblast_level_only,
             $use_cache
         );
