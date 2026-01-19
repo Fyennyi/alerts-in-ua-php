@@ -14,7 +14,7 @@ class MappingGenerator
     {
         $locations = json_decode(file_get_contents($this->locationsPath), true);
 
-        if (!is_array($locations)) {
+        if (! is_array($locations)) {
             throw new \RuntimeException('Failed to load locations.json');
         }
 
