@@ -41,6 +41,7 @@ use Fyennyi\AlertsInUa\Model\AirRaidAlertStatusResolver;
 use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
+use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
@@ -68,8 +69,8 @@ class AlertsClient
     /** @var CacheInterface|null PSR-16 cache instance */
     private ?CacheInterface $cache;
 
-    /** @var NominatimGeoResolver|null Geo resolver instance */
-    private ?NominatimGeoResolver $geo_resolver = null;
+    /** @var \Fyennyi\AlertsInUa\Util\NominatimGeoResolver|null Geo resolver instance */
+    private ?\Fyennyi\AlertsInUa\Util\NominatimGeoResolver $geo_resolver = null;
 
     /**
      * Constructor for alerts.in.ua API client

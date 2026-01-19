@@ -9,7 +9,7 @@ use Psr\SimpleCache\CacheInterface;
 
 trait GeoLocationTrait
 {
-    private NominatimGeoResolver $geo_resolver;
+    private \Fyennyi\AlertsInUa\Util\NominatimGeoResolver $geo_resolver;
 
     public function getAlertsByCoordinatesAsync(
         float $lat,
@@ -18,18 +18,18 @@ trait GeoLocationTrait
         bool $use_cache = false
     ): PromiseInterface {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache ?? null);
+            $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver(null, $this->cache ?? null);
         }
 
+        /** @var array{uid: int, name: string, matched_by: string}|null $location */
         $location = $this->geo_resolver->findByCoordinates($lat, $lon);
 
-        if ($location === null || !isset($location['uid'])) {
+        if ($location === null) {
             throw new InvalidParameterException(
                 sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
             );
         }
 
-        /** @var int $uid */
         $uid = $location['uid'];
         return $this->getAlertsHistoryAsync($uid, $period, $use_cache);
     }
@@ -41,18 +41,18 @@ trait GeoLocationTrait
         bool $use_cache = false
     ): PromiseInterface {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache ?? null);
+            $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver(null, $this->cache ?? null);
         }
 
+        /** @var array{uid: int, name: string, matched_by: string}|null $location */
         $location = $this->geo_resolver->findByCoordinates($lat, $lon);
 
-        if ($location === null || !isset($location['uid'])) {
+        if ($location === null) {
             throw new InvalidParameterException(
                 sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
             );
         }
 
-        /** @var int $uid */
         $uid = $location['uid'];
         return $this->getAirRaidAlertStatusAsync(
             $uid,
