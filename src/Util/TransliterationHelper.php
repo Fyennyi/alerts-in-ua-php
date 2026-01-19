@@ -27,7 +27,7 @@ class TransliterationHelper
         $transliterated = self::ukrainianToLatin($name);
 
         $normalized = strtolower($transliterated);
-        $normalized = str_replace([' область', ' м.', 'm. ', "'", '-'], '', $normalized);
+        $normalized = str_replace([' oblast', ' m.', 'm. ', "'", '-'], '', $normalized);
         $normalized = str_replace(['  ', '  '], ' ', $normalized);
 
         return trim($normalized);
