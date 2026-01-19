@@ -25,7 +25,7 @@ class NominatimGeoResolver
             $locations_path = __DIR__ . '/../Model/locations.json';
         }
 
-        $content = file_get_contents($locations_path);
+        $content = @file_get_contents($locations_path);
         if ($content === false) {
             throw new \RuntimeException('Failed to read locations.json');
         }
@@ -41,7 +41,7 @@ class NominatimGeoResolver
         }
 
         if ($mapping_path && file_exists($mapping_path)) {
-            $content = file_get_contents($mapping_path);
+            $content = @file_get_contents($mapping_path);
             if ($content === false) {
                 throw new \RuntimeException("Failed to read {$mapping_path}");
             }

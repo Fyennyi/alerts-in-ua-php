@@ -6,9 +6,11 @@ use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\RejectedPromise;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class SmartCacheManagerTest extends TestCase
 {
     private $cacheMock;
