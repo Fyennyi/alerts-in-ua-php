@@ -65,9 +65,6 @@ class AlertsClient
     /** @var SmartCacheManager Manages caching of API responses using a PSR-16 compatible cache internally */
     private SmartCacheManager $cache_manager;
 
-    /** @var CacheInterface|null PSR-16 cache instance */
-    private ?CacheInterface $cache;
-
     /**
      * Constructor for alerts.in.ua API client
      *
@@ -82,7 +79,6 @@ class AlertsClient
 
         $symfony_cache = $cache ? new Psr16Adapter($cache) : null;
         $this->cache_manager = new SmartCacheManager($symfony_cache);
-        $this->cache = $cache;
     }
 
     /**
