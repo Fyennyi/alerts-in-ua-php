@@ -51,4 +51,15 @@ class MappingGeneratorTest extends TestCase
         $this->expectExceptionMessage('Failed to read locations.json');
         $generator->generate();
     }
+
+    public function testGenerateWithInvalidJson(): void
+    {
+        $invalidJsonPath = sys_get_temp_dir() . '/invalid_locations.json';
+        file_put_contents($invalidJsonPath, 'invalid json');
+        $generator = new MappingGenerator($invalidJsonPath, $this->tempOutput);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to load locations.json');
+        $generator->generate();
+        unlink($invalidJsonPath);
+    }
 }
