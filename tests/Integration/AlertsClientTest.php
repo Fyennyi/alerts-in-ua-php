@@ -8,6 +8,7 @@ use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
 use Fyennyi\AlertsInUa\Model\Alerts;
+use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -375,5 +376,105 @@ class AlertsClientTest extends TestCase
         $this->expectExceptionMessage('Fatal error: A throwable error');
 
         $this->alertsClient->getActiveAlertsAsync()->wait();
+    }
+
+    public function testGetAlertsByCoordinatesAsync()
+    {
+        // Ensure geo_resolver is not set, so it creates one
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, null);
+
+        // Mock alerts response
+        $this->mockHandler->append(new Response(200, [], json_encode([
+            'alerts' => [[
+                'id' => 1,
+                'location_title' => 'Київ',
+                'location_type' => 'city',
+                'started_at' => '2023-01-02T10:15:30.000Z',
+                'alert_type' => 'air_raid',
+            ]],
+            'meta' => ['last_updated_at' => '2023-01-02T11:30:00.000Z'],
+        ])));
+
+        // Call method with Kyiv coordinates
+        $result = $this->alertsClient->getAlertsByCoordinatesAsync(50.4501, 30.5234)->wait();
+
+        // Assert request was made correctly (may be 2 requests: geo + alerts)
+        $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
+        $lastRequest = end($this->historyContainer)['request'];
+        $this->assertEquals('GET', $lastRequest->getMethod());
+        // Path should be /v1/regions/{uid}/alerts/week_ago.json, uid for Kyiv is 31
+        $this->assertStringContainsString('/v1/regions/31/alerts/week_ago.json', $lastRequest->getUri()->getPath());
+
+        // Assert response
+        $this->assertInstanceOf(Alerts::class, $result);
+    }
+
+    public function testGetAlertsByCoordinatesAsyncLocationNotFound()
+    {
+        // Mock geo resolver to return null
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinates')
+            ->with(0.0, 0.0)
+            ->willReturn(null);
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        // Expect exception
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Location not found for coordinates: 0.000000, 0.000000');
+
+        $this->alertsClient->getAlertsByCoordinatesAsync(0.0, 0.0)->wait();
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesAsync()
+    {
+        // Ensure geo_resolver is not set
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, null);
+
+        // Mock status response
+        $this->mockHandler->append(new Response(200, [], json_encode('no_alert')));
+
+        // Call method
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(50.4501, 30.5234)->wait();
+
+        // Assert request (may be 2)
+        $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
+        $lastRequest = end($this->historyContainer)['request'];
+        $this->assertEquals('GET', $lastRequest->getMethod());
+        $this->assertStringContainsString('/v1/iot/active_air_raid_alerts/31.json', $lastRequest->getUri()->getPath());
+
+        // Assert response
+        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesAsyncLocationNotFound()
+    {
+        // Mock geo resolver to return null
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinates')
+            ->with(0.0, 0.0)
+            ->willReturn(null);
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        // Expect exception
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Location not found for coordinates: 0.000000, 0.000000');
+
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
 }

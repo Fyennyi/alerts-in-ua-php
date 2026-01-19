@@ -8,7 +8,7 @@ use Fyennyi\AlertsInUa\Util\UserAgent;
 
 class NominatimGeoResolver
 {
-    private const BASE_URL = 'https://nominatim.openstreetmap.org/reverse';
+    private string $baseUrl;
 
     /** @var array<int, string> */
     private array $locations;
@@ -17,9 +17,15 @@ class NominatimGeoResolver
     private array $name_mapping;
     private ?SmartCacheManager $cache_manager;
 
-    public function __construct(?string $mapping_path = null, ?SmartCacheManager $cache_manager = null)
+    public function __construct(?string $mapping_path = null, ?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
     {
-        $content = file_get_contents(__DIR__ . '/../Model/locations.json');
+        $this->baseUrl = 'https://nominatim.openstreetmap.org/reverse';
+
+        if ($locations_path === null) {
+            $locations_path = __DIR__ . '/../Model/locations.json';
+        }
+
+        $content = file_get_contents($locations_path);
         if ($content === false) {
             throw new \RuntimeException('Failed to read locations.json');
         }
@@ -92,7 +98,7 @@ class NominatimGeoResolver
             'zoom' => '10'
         ];
 
-        $url = self::BASE_URL . '?' . http_build_query($params);
+        $url = $this->baseUrl . '?' . http_build_query($params);
 
         $context = stream_context_create([
             'http' => [
