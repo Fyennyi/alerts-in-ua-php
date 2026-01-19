@@ -12,7 +12,7 @@ class MappingGenerator
 
     public function generate(): void
     {
-        $content = file_get_contents($this->locationsPath);
+        $content = @file_get_contents($this->locationsPath);
         if ($content === false) {
             throw new \RuntimeException('Failed to read locations.json');
         }
