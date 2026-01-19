@@ -14,7 +14,7 @@ use Symfony\Component\Cache\Adapter\Psr16Adapter;
 
 trait GeoLocationTrait
 {
-    private NominatimGeoResolver $geoResolver;
+    private NominatimGeoResolver $geo_resolver;
 
     public function getAlertsByCoordinatesAsync(
         float $lat,
@@ -22,11 +22,11 @@ trait GeoLocationTrait
         string $period = 'week_ago',
         bool $use_cache = false
     ): PromiseInterface {
-        if (! isset($this->geoResolver)) {
-            $this->geoResolver = new NominatimGeoResolver(null, $this->cache ?? null);
+        if (! isset($this->geo_resolver)) {
+            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache ?? null);
         }
 
-        $location = $this->geoResolver->findByCoordinates($lat, $lon);
+        $location = $this->geo_resolver->findByCoordinates($lat, $lon);
 
         if ($location === null) {
             throw new InvalidParameterException(
@@ -43,11 +43,11 @@ trait GeoLocationTrait
         bool $oblast_level_only = false,
         bool $use_cache = false
     ): PromiseInterface {
-        if (! isset($this->geoResolver)) {
-            $this->geoResolver = new NominatimGeoResolver(null, $this->cache ?? null);
+        if (! isset($this->geo_resolver)) {
+            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache ?? null);
         }
 
-        $location = $this->geoResolver->findByCoordinates($lat, $lon);
+        $location = $this->geo_resolver->findByCoordinates($lat, $lon);
 
         if ($location === null) {
             throw new InvalidParameterException(
