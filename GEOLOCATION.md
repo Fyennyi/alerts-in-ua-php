@@ -91,12 +91,12 @@ Geo-results are cached using the same PSR-16 cache as the main client for 24 hou
 
 ### `getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false): PromiseInterface<Alerts>`
 
-Gets alert history for a location by coordinates.
+Fetches the alert history for a location by coordinates.
 
 - `$lat` – latitude
 - `$lon` – longitude
-- `$period` – time period (`'week_ago'`, `'month_ago'`, `'year_ago'`)
-- `$use_cache` – use cache
+- `$period` – time period to retrieve alerts (e.g. 'month_ago', 'week_ago')
+- `$use_cache` – whether to use cached data (default false)
 
 ### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false): PromiseInterface<AirRaidAlertOblastStatus>`
 
