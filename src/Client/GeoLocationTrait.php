@@ -3,14 +3,9 @@
 namespace Fyennyi\AlertsInUa\Client;
 
 use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
-use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Promise\PromiseInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\Cache\Adapter\Psr16Adapter;
 
 trait GeoLocationTrait
 {
