@@ -102,6 +102,8 @@ class NominatimGeoResolverTest extends TestCase
         }
     }
 
+
+
     public function testFindByCoordinatesWithCacheHit(): void
     {
         $cache = $this->createMock(SmartCacheManager::class);
@@ -420,6 +422,7 @@ class NominatimGeoResolverTest extends TestCase
 
         $method->invoke($resolver, 'test_key', ['data' => 'value']);
         // No exception thrown, silently ignored
+        $this->assertTrue(true);
     }
 
     public function testSaveToCacheWithoutCache(): void
