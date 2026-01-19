@@ -25,7 +25,7 @@ class NominatimGeoResolver
             throw new \RuntimeException('Failed to read locations.json');
         }
         $decoded = json_decode($content, true);
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             throw new \RuntimeException('Invalid locations.json');
         }
         /** @var array<int, string> $decoded */
