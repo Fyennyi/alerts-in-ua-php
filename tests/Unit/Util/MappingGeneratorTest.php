@@ -44,6 +44,12 @@ class MappingGeneratorTest extends TestCase
         $this->assertEquals(31, $entry['uid']);
     }
 
+    public function testConstructor(): void
+    {
+        $generator = new MappingGenerator(__DIR__ . '/../../../src/Model/locations.json', $this->tempOutput);
+        $this->assertInstanceOf(MappingGenerator::class, $generator);
+    }
+
     public function testGenerateWithInvalidLocationsPath(): void
     {
         $generator = new MappingGenerator('/invalid/path/locations.json', $this->tempOutput);
