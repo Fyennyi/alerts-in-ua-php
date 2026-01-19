@@ -12,7 +12,11 @@ class MappingGenerator
 
     public function generate(): void
     {
-        $locations = json_decode(file_get_contents($this->locationsPath), true);
+        $content = file_get_contents($this->locationsPath);
+        if ($content === false) {
+            throw new \RuntimeException('Failed to read locations.json');
+        }
+        $locations = json_decode($content, true);
 
         if (! is_array($locations)) {
             throw new \RuntimeException('Failed to load locations.json');
@@ -25,6 +29,9 @@ class MappingGenerator
         echo str_repeat('=', 60) . "\n";
 
         foreach ($locations as $uid => $ukrainianName) {
+            if (!is_string($ukrainianName)) {
+                continue;
+            }
             $latin = TransliterationHelper::ukrainianToLatin($ukrainianName);
             $normalized = TransliterationHelper::normalizeForMatching($ukrainianName);
 
