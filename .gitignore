@@ -4,3 +4,5 @@ phpunit.xml
 phpstan.neon
 .phpunit.result.cache
 clover.xml
+reports/
+coverage-report/
