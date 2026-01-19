@@ -95,7 +95,7 @@ Fetches the alert history for a location by coordinates.
 
 - `$lat` – Latitude.
 - `$lon` – Longitude.
-- `$period` – Time period to retrieve alerts (e.g. 'month_ago', 'week_ago').
+- `$period` – Time period to retrieve alerts (`e.g.`, `'month_ago'`, `'week_ago'`).
 - `$use_cache` – Whether to use cached data (default false).
 
 ### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false): PromiseInterface<AirRaidAlertOblastStatus>`
