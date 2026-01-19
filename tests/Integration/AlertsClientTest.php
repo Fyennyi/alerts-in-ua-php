@@ -428,7 +428,7 @@ class AlertsClientTest extends TestCase
 
         // Expect exception
         $this->expectException(InvalidParameterException::class);
-        $this->expectExceptionMessage('Location not found for coordinates: 0.000000, 0.000000');
+        $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
 
         $this->alertsClient->getAlertsByCoordinatesAsync(0.0, 0.0)->wait();
     }
@@ -473,7 +473,7 @@ class AlertsClientTest extends TestCase
 
         // Expect exception
         $this->expectException(InvalidParameterException::class);
-        $this->expectExceptionMessage('Location not found for coordinates: 0.000000, 0.000000');
+        $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
 
         $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
