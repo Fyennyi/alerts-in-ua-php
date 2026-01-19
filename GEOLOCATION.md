@@ -87,12 +87,6 @@ try {
 
 Geo-results are cached using the same PSR-16 cache as the main client for 24 hours.
 
-## Testing
-
-```bash
-php scripts/test_geo.php
-```
-
 ## API
 
 ### `getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false): PromiseInterface<Alerts>`
