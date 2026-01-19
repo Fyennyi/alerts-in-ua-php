@@ -10,24 +10,38 @@ class NominatimGeoResolver
     private const BASE_URL = 'https://nominatim.openstreetmap.org/reverse';
     private const CACHE_TTL = 86400;
 
+    /** @var array<int, string> */
     private array $locations;
+
+    /** @var array<string, array<string, mixed>> */
     private array $nameMapping;
     private ?CacheInterface $cache;
     private string $userAgent;
 
     public function __construct(?string $mappingPath = null, ?CacheInterface $cache = null, string $userAgent = 'alerts-in-ua-php/2.0')
     {
-        $this->locations = json_decode(
-            file_get_contents(__DIR__ . '/../Model/locations.json'),
-            true
-        );
+        $content = file_get_contents(__DIR__ . '/../Model/locations.json');
+        if ($content === false) {
+            throw new \RuntimeException('Failed to read locations.json');
+        }
+        $this->locations = json_decode($content, true);
+        if (!is_array($this->locations)) {
+            throw new \RuntimeException('Invalid locations.json');
+        }
 
         if ($mappingPath === null) {
             $mappingPath = __DIR__ . '/../Model/name_mapping.json';
         }
 
         if ($mappingPath && file_exists($mappingPath)) {
-            $this->nameMapping = json_decode(file_get_contents($mappingPath), true);
+            $content = file_get_contents($mappingPath);
+            if ($content === false) {
+                throw new \RuntimeException("Failed to read {$mappingPath}");
+            }
+            $this->nameMapping = json_decode($content, true);
+            if (!is_array($this->nameMapping)) {
+                throw new \RuntimeException("Invalid {$mappingPath}");
+            }
         } else {
             $this->nameMapping = $this->generateRuntimeMapping();
         }
@@ -36,6 +50,9 @@ class NominatimGeoResolver
         $this->userAgent = $userAgent;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findByCoordinates(float $lat, float $lon): ?array
     {
         $cache_key = sprintf('geo_%f_%f.json', $lat, $lon);
@@ -60,6 +77,9 @@ class NominatimGeoResolver
         return $result;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function reverseGeocode(float $lat, float $lon): ?array
     {
         $params = [
@@ -88,9 +108,18 @@ class NominatimGeoResolver
         return json_decode($response, true);
     }
 
+    /**
+     * @param  array<string, mixed>  $nominatim_data
+     * @return array<string, mixed>|null
+     */
     private function mapToLocation(array $nominatim_data): ?array
     {
-        $address = $nominatim_data['address'] ?? [];
+        $rawAddress = $nominatim_data['address'] ?? null;
+        if (!is_array($rawAddress)) {
+            return null;
+        }
+        /** @var array<string, mixed> $rawAddress */
+        $address = $rawAddress;
 
         $candidates = [
             $address['municipality'] ?? null,
@@ -116,11 +145,15 @@ class NominatimGeoResolver
         return null;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function findUkrainianLocation(string $english_name): ?array
     {
         $normalized_candidate = TransliterationHelper::normalizeForMatching($english_name);
 
         if (isset($this->nameMapping[$normalized_candidate])) {
+            /** @var array{uid: int, ukrainian: string, latin: string, normalized: string} $entry */
             $entry = $this->nameMapping[$normalized_candidate];
             return [
                 'uid' => $entry['uid'],
@@ -132,6 +165,9 @@ class NominatimGeoResolver
         return $this->findFuzzyMatch($normalized_candidate);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function findFuzzyMatch(string $normalized_candidate): ?array
     {
         $best_match = null;
@@ -157,6 +193,9 @@ class NominatimGeoResolver
         return $best_match;
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     private function generateRuntimeMapping(): array
     {
         $mapping = [];
@@ -169,6 +208,9 @@ class NominatimGeoResolver
         return $mapping;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function getFromCache(string $key): ?array
     {
         if (!$this->cache) {
@@ -182,6 +224,9 @@ class NominatimGeoResolver
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function saveToCache(string $key, array $data): void
     {
         if ($this->cache) {
