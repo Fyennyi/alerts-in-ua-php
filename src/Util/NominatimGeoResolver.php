@@ -24,10 +24,12 @@ class NominatimGeoResolver
         if ($content === false) {
             throw new \RuntimeException('Failed to read locations.json');
         }
-        $this->locations = json_decode($content, true);
-        if (!is_array($this->locations)) {
+        $decoded = json_decode($content, true);
+        if (!is_array($decoded)) {
             throw new \RuntimeException('Invalid locations.json');
         }
+        /** @var array<int, string> $decoded */
+        $this->locations = $decoded;
 
         if ($mappingPath === null) {
             $mappingPath = __DIR__ . '/../Model/name_mapping.json';
@@ -38,10 +40,12 @@ class NominatimGeoResolver
             if ($content === false) {
                 throw new \RuntimeException("Failed to read {$mappingPath}");
             }
-            $this->nameMapping = json_decode($content, true);
-            if (!is_array($this->nameMapping)) {
+            $decoded = json_decode($content, true);
+            if (!is_array($decoded)) {
                 throw new \RuntimeException("Invalid {$mappingPath}");
             }
+            /** @var array<string, array<string, mixed>> $decoded */
+            $this->nameMapping = $decoded;
         } else {
             $this->nameMapping = $this->generateRuntimeMapping();
         }
@@ -105,7 +109,9 @@ class NominatimGeoResolver
             return null;
         }
 
-        return json_decode($response, true);
+        $data = json_decode($response, true);
+        /** @var array<string, mixed>|null $data */
+        return $data;
     }
 
     /**
@@ -131,7 +137,7 @@ class NominatimGeoResolver
         ];
 
         foreach ($candidates as $candidate) {
-            if ($candidate === null || $candidate === '') {
+            if ($candidate === null || $candidate === '' || !is_string($candidate)) {
                 continue;
             }
 
@@ -218,7 +224,9 @@ class NominatimGeoResolver
         }
 
         try {
-            return $this->cache->get($key);
+            $data = $this->cache->get($key);
+            /** @var array<string, mixed>|null $data */
+            return $data;
         } catch (\Throwable $e) {
             return null;
         }
