@@ -41,7 +41,7 @@ class NominatimGeoResolver
                 throw new \RuntimeException("Failed to read {$mapping_path}");
             }
             $decoded = json_decode($content, true);
-            if (!is_array($decoded)) {
+            if (! is_array($decoded)) {
                 throw new \RuntimeException("Invalid {$mapping_path}");
             }
             /** @var array<string, array<string, mixed>> $decoded */
@@ -121,7 +121,7 @@ class NominatimGeoResolver
     private function mapToLocation(array $nominatim_data): ?array
     {
         $rawAddress = $nominatim_data['address'] ?? null;
-        if (!is_array($rawAddress)) {
+        if (! is_array($rawAddress)) {
             return null;
         }
         /** @var array<string, mixed> $rawAddress */
@@ -137,7 +137,7 @@ class NominatimGeoResolver
         ];
 
         foreach ($candidates as $candidate) {
-            if ($candidate === null || $candidate === '' || !is_string($candidate)) {
+            if ($candidate === null || $candidate === '' || ! is_string($candidate)) {
                 continue;
             }
 
