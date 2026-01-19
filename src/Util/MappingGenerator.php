@@ -28,16 +28,16 @@ class MappingGenerator
         echo "Generating name mapping for {$stats['total']} locations...\n";
         echo str_repeat('=', 60) . "\n";
 
-        foreach ($locations as $uid => $ukrainianName) {
-            if (!is_string($ukrainianName)) {
+        foreach ($locations as $uid => $ukrainian_name) {
+            if (!is_string($ukrainian_name)) {
                 continue;
             }
-            $latin = TransliterationHelper::ukrainianToLatin($ukrainianName);
-            $normalized = TransliterationHelper::normalizeForMatching($ukrainianName);
+            $latin = TransliterationHelper::ukrainianToLatin($ukrainian_name);
+            $normalized = TransliterationHelper::normalizeForMatching($ukrainian_name);
 
             $mapping[$normalized] = [
                 'uid' => (int)$uid,
-                'ukrainian' => $ukrainianName,
+                'ukrainian' => $ukrainian_name,
                 'latin' => $latin,
                 'normalized' => $normalized
             ];
@@ -47,7 +47,7 @@ class MappingGenerator
             echo sprintf(
                 "%5d: %-35s -> %s\n",
                 $uid,
-                $ukrainianName,
+                $ukrainian_name,
                 $normalized
             );
         }
