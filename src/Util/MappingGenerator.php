@@ -29,7 +29,7 @@ class MappingGenerator
         echo str_repeat('=', 60) . "\n";
 
         foreach ($locations as $uid => $ukrainian_name) {
-            if (!is_string($ukrainian_name)) {
+            if (! is_string($ukrainian_name)) {
                 continue;
             }
             $latin = TransliterationHelper::ukrainianToLatin($ukrainian_name);
