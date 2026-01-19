@@ -69,9 +69,6 @@ class AlertsClient
     /** @var CacheInterface|null PSR-16 cache instance */
     private ?CacheInterface $cache;
 
-    /** @var NominatimGeoResolver Geo resolver instance */
-    private NominatimGeoResolver $geo_resolver;
-
     /**
      * Constructor for alerts.in.ua API client
      *
