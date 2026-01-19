@@ -81,8 +81,8 @@ class AlertsClient
         $this->client = $client ?? new Client();
         $this->token = $token;
 
-        $symfonyCache = $cache ? new Psr16Adapter($cache) : null;
-        $this->cache_manager = new SmartCacheManager($symfonyCache);
+        $symfony_cache = $cache ? new Psr16Adapter($cache) : null;
+        $this->cache_manager = new SmartCacheManager($symfony_cache);
         $this->cache = $cache;
     }
 

@@ -14,11 +14,11 @@ class NominatimGeoResolver
     private array $locations;
 
     /** @var array<string, array<string, mixed>> */
-    private array $nameMapping;
+    private array $name_mapping;
     private ?CacheInterface $cache;
-    private string $userAgent;
+    private string $user_agent;
 
-    public function __construct(?string $mappingPath = null, ?CacheInterface $cache = null, string $userAgent = 'alerts-in-ua-php/2.0')
+    public function __construct(?string $mapping_path = null, ?CacheInterface $cache = null, string $user_agent = 'alerts-in-ua-php/2.0')
     {
         $content = file_get_contents(__DIR__ . '/../Model/locations.json');
         if ($content === false) {
@@ -31,27 +31,27 @@ class NominatimGeoResolver
         /** @var array<int, string> $decoded */
         $this->locations = $decoded;
 
-        if ($mappingPath === null) {
-            $mappingPath = __DIR__ . '/../Model/name_mapping.json';
+        if ($mapping_path === null) {
+            $mapping_path = __DIR__ . '/../Model/name_mapping.json';
         }
 
-        if ($mappingPath && file_exists($mappingPath)) {
-            $content = file_get_contents($mappingPath);
+        if ($mapping_path && file_exists($mapping_path)) {
+            $content = file_get_contents($mapping_path);
             if ($content === false) {
-                throw new \RuntimeException("Failed to read {$mappingPath}");
+                throw new \RuntimeException("Failed to read {$mapping_path}");
             }
             $decoded = json_decode($content, true);
             if (!is_array($decoded)) {
-                throw new \RuntimeException("Invalid {$mappingPath}");
+                throw new \RuntimeException("Invalid {$mapping_path}");
             }
             /** @var array<string, array<string, mixed>> $decoded */
-            $this->nameMapping = $decoded;
+            $this->name_mapping = $decoded;
         } else {
-            $this->nameMapping = $this->generateRuntimeMapping();
+            $this->name_mapping = $this->generateRuntimeMapping();
         }
 
         $this->cache = $cache;
-        $this->userAgent = $userAgent;
+        $this->user_agent = $user_agent;
     }
 
     /**
@@ -99,7 +99,7 @@ class NominatimGeoResolver
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                'header' => "User-Agent: {$this->userAgent}\r\n"
+                'header' => "User-Agent: {$this->user_agent}\r\n"
             ]
         ]);
 
@@ -158,9 +158,9 @@ class NominatimGeoResolver
     {
         $normalized_candidate = TransliterationHelper::normalizeForMatching($english_name);
 
-        if (isset($this->nameMapping[$normalized_candidate])) {
+        if (isset($this->name_mapping[$normalized_candidate])) {
             /** @var array{uid: int, ukrainian: string, latin: string, normalized: string} $entry */
-            $entry = $this->nameMapping[$normalized_candidate];
+            $entry = $this->name_mapping[$normalized_candidate];
             return [
                 'uid' => $entry['uid'],
                 'name' => $entry['ukrainian'],

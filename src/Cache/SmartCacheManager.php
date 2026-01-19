@@ -74,9 +74,9 @@ class SmartCacheManager
             return Create::promiseFor($callback());
         }
 
-        $cachedValue = $this->cache->get($key, fn() => null);
-        if ($cachedValue !== null) {
-            return Create::promiseFor($cachedValue);
+        $cached_value = $this->cache->get($key, fn() => null);
+        if ($cached_value !== null) {
+            return Create::promiseFor($cached_value);
         }
 
         if ($this->isRateLimited($key)) {
@@ -93,8 +93,8 @@ class SmartCacheManager
                 $this->cache->get($key, function(ItemInterface $item) use ($data, $ttl, $type) {
                     $item->expiresAfter($ttl);
                     if ($this->cache instanceof TagAwareCacheInterface) {
-                        $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
-                        $item->tag($sanitizedTag);
+                        $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
+                        $item->tag($sanitized_tag);
                     }
                     return $data;
                 });
@@ -155,13 +155,13 @@ class SmartCacheManager
      */
     public function setLastModified(string $key, string $timestamp) : void
     {
-        $cacheKey = $key . '.last_modified';
-        $this->cache->delete($cacheKey);
-        $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $timestamp) {
+        $cache_key = $key . '.last_modified';
+        $this->cache->delete($cache_key);
+        $this->cache->get($cache_key, function (ItemInterface $item) use ($key, $timestamp) {
             $item->expiresAfter(86400);
             if ($this->cache instanceof TagAwareCacheInterface) {
-                $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
-                $item->tag($sanitizedTag);
+                $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $item->tag($sanitized_tag);
             }
             return $timestamp;
         });
@@ -189,13 +189,13 @@ class SmartCacheManager
      */
     public function storeProcessedData(string $key, mixed $data) : void
     {
-        $cacheKey = $key . '.processed';
-        $this->cache->delete($cacheKey);
-        $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $data) {
+        $cache_key = $key . '.processed';
+        $this->cache->delete($cache_key);
+        $this->cache->get($cache_key, function (ItemInterface $item) use ($key, $data) {
             $item->expiresAfter(86400);
             if ($this->cache instanceof TagAwareCacheInterface) {
-                $sanitizedTag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
-                $item->tag($sanitizedTag);
+                $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $item->tag($sanitized_tag);
             }
             return $data;
         });
