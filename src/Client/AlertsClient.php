@@ -52,6 +52,7 @@ use Symfony\Component\Cache\Adapter\Psr16Adapter;
 class AlertsClient
 {
     use GeoLocationTrait;
+
     /** @var ClientInterface HTTP client for making requests */
     private ClientInterface $client;
 
