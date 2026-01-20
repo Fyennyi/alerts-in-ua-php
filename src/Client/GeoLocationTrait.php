@@ -18,7 +18,7 @@ trait GeoLocationTrait
         bool $use_cache = false
     ): PromiseInterface {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache_manager ?? null);
+            $this->geo_resolver = new NominatimGeoResolver($this->cache_manager ?? null, null);
         }
 
         /** @var array{uid: int, name: string, matched_by: string}|null $location */
@@ -41,7 +41,7 @@ trait GeoLocationTrait
         bool $use_cache = false
     ): PromiseInterface {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver(null, $this->cache_manager ?? null);
+            $this->geo_resolver = new NominatimGeoResolver($this->cache_manager ?? null, null);
         }
 
         /** @var array{uid: int, name: string, matched_by: string}|null $location */
