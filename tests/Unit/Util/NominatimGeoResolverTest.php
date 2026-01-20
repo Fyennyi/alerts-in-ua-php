@@ -337,6 +337,15 @@ class NominatimGeoResolverTest extends TestCase
     {
         $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
+
+        $locationsProperty = $reflection->getProperty('locations');
+        $locationsProperty->setAccessible(true);
+        $locationsProperty->setValue($resolver, [
+            1 => ['name' => 123, 'type' => 'hromada', 'oblast_name' => 'Test'],
+            2 => ['type' => 'hromada', 'oblast_name' => 'Test'],
+            3 => ['name' => 'Вінницька область', 'type' => 'oblast', 'oblast_name' => 'Вінницька область'],
+        ]);
+
         $method = $reflection->getMethod('findFuzzyGlobal');
         $method->setAccessible(true);
 
@@ -350,6 +359,15 @@ class NominatimGeoResolverTest extends TestCase
     {
         $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
+
+        $locationsProperty = $reflection->getProperty('locations');
+        $locationsProperty->setAccessible(true);
+        $locationsProperty->setValue($resolver, [
+            1 => ['name' => 123, 'type' => 'oblast', 'oblast_name' => 'Test'],
+            2 => ['type' => 'oblast', 'oblast_name' => 'Test'],
+            3 => ['name' => 'Вінницька область', 'type' => 'oblast', 'oblast_name' => 'Вінницька область'],
+        ]);
+
         $method = $reflection->getMethod('findOblastFallback');
         $method->setAccessible(true);
 
