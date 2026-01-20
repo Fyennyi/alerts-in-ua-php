@@ -85,13 +85,13 @@ class NominatimGeoResolver
     {
         $address = $nominatim_data['address'] ?? [];
 
-        $nominatimState = $address['state'] ?? $address['city'] ?? null;
+        $nominatim_state = $address['state'] ?? $address['city'] ?? null;
 
-        if (!$nominatimState) {
+        if (!$nominatim_state) {
             return null;
         }
 
-        $relevantLocations = $this->filterLocationsByState($nominatimState);
+        $relevant_locations = $this->filterLocationsByState($nominatim_state);
 
         $candidates = [
             $address['municipality'] ?? null,
@@ -101,28 +101,28 @@ class NominatimGeoResolver
             $address['district'] ?? null
         ];
 
-        foreach ($candidates as $candidateName) {
-            if (!$candidateName) continue;
+        foreach ($candidates as $candidate_name) {
+            if (!$candidate_name) continue;
 
-            $match = $this->findBestMatchInList($candidateName, $relevantLocations);
+            $match = $this->findBestMatchInList($candidate_name, $relevant_locations);
 
             if ($match) {
                 return $match;
             }
         }
 
-        return $this->findOblastFallback($nominatimState);
+        return $this->findOblastFallback($nominatim_state);
     }
 
-    private function filterLocationsByState(string $nominatimState): array
+    private function filterLocationsByState(string $nominatim_state): array
     {
-        $normalizedState = $this->cleanName($nominatimState);
+        $normalized_state = $this->cleanName($nominatim_state);
         $filtered = [];
 
         foreach ($this->locations as $id => $location) {
-            $locState = $location['oblast_name'] ?? $location['name'];
+            $loc_state = $location['oblast_name'] ?? $location['name'];
 
-            if ($this->isSimilar($normalizedState, $this->cleanName($locState), 85)) {
+            if ($this->isSimilar($normalized_state, $this->cleanName($loc_state), 85)) {
                 $filtered[$id] = $location;
             }
         }
@@ -130,16 +130,16 @@ class NominatimGeoResolver
         return $filtered;
     }
 
-    private function findBestMatchInList(string $searchName, array $locationsList): ?array
+    private function findBestMatchInList(string $search_name, array $locations_list): ?array
     {
-        $searchClean = $this->cleanName($searchName);
-        $bestMatch = null;
-        $bestScore = 0;
+        $search_clean = $this->cleanName($search_name);
+        $best_match = null;
+        $best_score = 0;
 
-        foreach ($locationsList as $id => $location) {
-            $locationNameClean = $this->cleanName($location['name']);
+        foreach ($locations_list as $id => $location) {
+            $location_name_clean = $this->cleanName($location['name']);
 
-            if ($searchClean === $locationNameClean) {
+            if ($search_clean === $location_name_clean) {
                  return [
                     'uid' => (int)$id,
                     'name' => $location['name'],
@@ -147,12 +147,12 @@ class NominatimGeoResolver
                 ];
             }
 
-            similar_text($searchClean, $locationNameClean, $percent);
+            similar_text($search_clean, $location_name_clean, $percent);
             $score = $percent / 100;
 
-            if ($score > 0.85 && $score > $bestScore) {
-                $bestScore = $score;
-                $bestMatch = [
+            if ($score > 0.85 && $score > $best_score) {
+                $best_score = $score;
+                $best_match = [
                     'uid' => (int)$id,
                     'name' => $location['name'],
                     'matched_by' => 'fuzzy',
@@ -161,19 +161,19 @@ class NominatimGeoResolver
             }
         }
 
-        return $bestMatch;
+        return $best_match;
     }
 
-    private function findOblastFallback(string $nominatimState): ?array
+    private function findOblastFallback(string $nominatim_state): ?array
     {
-        $cleanState = $this->cleanName($nominatimState);
+        $clean_state = $this->cleanName($nominatim_state);
 
         foreach ($this->locations as $id => $location) {
             if (!in_array($location['type'], ['oblast', 'standalone'])) {
                 continue;
             }
 
-            if ($this->isSimilar($cleanState, $this->cleanName($location['name']), 80)) {
+            if ($this->isSimilar($clean_state, $this->cleanName($location['name']), 80)) {
                  return [
                     'uid' => (int)$id,
                     'name' => $location['name'],
@@ -201,9 +201,9 @@ class NominatimGeoResolver
         return trim(preg_replace('/[^\p{L}0-9]+/u', ' ', $name));
     }
 
-    private function isSimilar(string $str1, string $str2, float $thresholdPercent): bool
+    private function isSimilar(string $str1, string $str2, float $threshold_percent): bool
     {
         similar_text($str1, $str2, $percent);
-        return $percent >= $thresholdPercent;
+        return $percent >= $threshold_percent;
     }
 }
