@@ -204,6 +204,25 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals('Одеська область', $result['name']);
     }
 
+    public function testFindBestMatchInListFuzzyMatch(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findBestMatchInList');
+        $method->setAccessible(true);
+
+        $locations = [
+            1 => ['name' => 'Test Hromada Name', 'type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+        ];
+
+        $result = $method->invoke($resolver, 'Test Hromada Nam', $locations);
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Test Hromada Name', $result['name']);
+        $this->assertEquals('fuzzy', $result['matched_by']);
+        $this->assertArrayHasKey('similarity', $result);
+    }
+
     public function testFindFuzzyGlobalExactMatch(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
