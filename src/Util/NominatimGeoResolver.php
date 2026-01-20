@@ -290,6 +290,11 @@ class NominatimGeoResolver
         $trimmed = (string) preg_replace('/[^\p{L}0-9]+/u', ' ', $name);
         $trimmed = trim($trimmed);
 
+        if (str_contains($trimmed, ' та ')) {
+            $parts = explode(' та ', $trimmed);
+            $trimmed = trim(end($parts));
+        }
+
         return $trimmed;
     }
 
