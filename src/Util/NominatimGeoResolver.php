@@ -111,7 +111,46 @@ class NominatimGeoResolver
             }
         }
 
+        $fallback_match = $this->findFuzzyGlobal($nominatim_state);
+        if ($fallback_match) {
+            return $fallback_match;
+        }
+
         return $this->findOblastFallback($nominatim_state);
+    }
+
+    private function findFuzzyGlobal(string $search_name): ?array
+    {
+        $search_clean = $this->cleanName($search_name);
+        $best_match = null;
+        $best_score = 0;
+
+        foreach ($this->locations as $id => $location) {
+            $location_name_clean = $this->cleanName($location['name']);
+
+            if ($search_clean === $location_name_clean) {
+                 return [
+                    'uid' => (int)$id,
+                    'name' => $location['name'],
+                    'matched_by' => 'global_exact'
+                ];
+            }
+
+            similar_text($search_clean, $location_name_clean, $percent);
+            $score = $percent / 100;
+
+            if ($score > 0.80 && $score > $best_score) {
+                $best_score = $score;
+                $best_match = [
+                    'uid' => (int)$id,
+                    'name' => $location['name'],
+                    'matched_by' => 'global_fuzzy',
+                    'similarity' => $score
+                ];
+            }
+        }
+
+        return $best_match;
     }
 
     private function filterLocationsByState(string $nominatim_state): array
