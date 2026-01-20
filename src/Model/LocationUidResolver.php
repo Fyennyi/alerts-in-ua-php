@@ -42,7 +42,7 @@ class LocationUidResolver
      */
     public function __construct()
     {
-        $json_path = __DIR__ . '/locations_with_hierarchy.json';
+        $json_path = __DIR__ . '/locations.json';
 
         if (! file_exists($json_path)) {
             throw new \RuntimeException("Locations data file not found at {$json_path}");

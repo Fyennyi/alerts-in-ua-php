@@ -45,7 +45,7 @@ class NominatimGeoResolverTest extends TestCase
 
     public function testConstructorWithNonExistentLocationsPath(): void
     {
-        $nonExistentPath = '/non/existent/path/locations_with_hierarchy.json';
+        $nonExistentPath = '/non/existent/path/locations.json';
 
         $this->expectException(\RuntimeException::class);
 
