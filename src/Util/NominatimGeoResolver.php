@@ -117,6 +117,7 @@ class NominatimGeoResolver
         }
 
         $relevant_locations = $this->filterLocationsByState($nominatim_state);
+        $hromada_locations = array_filter($relevant_locations, fn($loc) => ($loc['type'] ?? '') === 'hromada');
 
         $candidates = [
             $address['municipality'] ?? null,
@@ -131,7 +132,7 @@ class NominatimGeoResolver
                 continue;
             }
 
-            $match = $this->findBestMatchInList($candidate_name, $relevant_locations);
+            $match = $this->findBestMatchInList($candidate_name, $hromada_locations);
 
             if ($match) {
                 return $match;
@@ -154,6 +155,7 @@ class NominatimGeoResolver
         $search_clean = $this->cleanName($search_name);
         $best_match = null;
         $best_score = 0.0;
+        $best_type_priority = 100;
 
         foreach ($this->locations as $id => $location) {
             if (! isset($location['name']) || ! is_string($location['name'])) {
@@ -161,20 +163,23 @@ class NominatimGeoResolver
             }
 
             $location_name_clean = $this->cleanName($location['name']);
+            $type = $location['type'] ?? 'hromada';
+            $type_priority = $this->getTypePriority($type);
 
             if ($search_clean === $location_name_clean) {
                  return [
-                    'uid' => (int)$id,
-                    'name' => $location['name'],
-                    'matched_by' => 'global_exact'
-                ];
+                     'uid' => (int)$id,
+                     'name' => $location['name'],
+                     'matched_by' => 'global_exact'
+                 ];
             }
 
             similar_text($search_clean, $location_name_clean, $percent);
             $score = $percent / 100;
 
-            if ($score > 0.80 && $score > $best_score) {
+            if ($score > 0.75 && ($score > $best_score || ($score === $best_score && $type_priority < $best_type_priority))) {
                 $best_score = $score;
+                $best_type_priority = $type_priority;
                 $best_match = [
                     'uid' => (int)$id,
                     'name' => $location['name'],
@@ -215,6 +220,7 @@ class NominatimGeoResolver
         $search_clean = $this->cleanName($search_name);
         $best_match = null;
         $best_score = 0.0;
+        $best_type_priority = 100;
 
         foreach ($locations_list as $id => $location) {
             if (! isset($location['name']) || ! is_string($location['name'])) {
@@ -222,20 +228,39 @@ class NominatimGeoResolver
             }
 
             $location_name_clean = $this->cleanName($location['name']);
+            $type = $location['type'] ?? 'hromada';
+            $type_priority = $this->getTypePriority($type);
 
             if ($search_clean === $location_name_clean) {
-                 return [
+                return [
                     'uid' => (int)$id,
                     'name' => $location['name'],
                     'matched_by' => 'exact'
                 ];
             }
 
+            $prefix_match = $this->checkPrefixMatch($search_clean, $location_name_clean);
+            if ($prefix_match !== null) {
+                if ($prefix_match['score'] > $best_score || 
+                    ($prefix_match['score'] === $best_score && $type_priority < $best_type_priority)) {
+                    $best_score = $prefix_match['score'];
+                    $best_type_priority = $type_priority;
+                    $best_match = [
+                        'uid' => (int)$id,
+                        'name' => $location['name'],
+                        'matched_by' => $prefix_match['type'],
+                        'similarity' => $prefix_match['score']
+                    ];
+                    continue;
+                }
+            }
+
             similar_text($search_clean, $location_name_clean, $percent);
             $score = $percent / 100;
 
-            if ($score > 0.85 && $score > $best_score) {
+            if ($score > 0.75 && $score > $best_score) {
                 $best_score = $score;
+                $best_type_priority = $type_priority;
                 $best_match = [
                     'uid' => (int)$id,
                     'name' => $location['name'],
@@ -246,6 +271,31 @@ class NominatimGeoResolver
         }
 
         return $best_match;
+    }
+
+    private function getTypePriority(string $type): int
+    {
+        return match ($type) {
+            'hromada' => 1,
+            'district' => 2,
+            'oblast', 'standalone' => 3,
+            default => 4
+        };
+    }
+
+    /**
+     * @return array{score: float, type: string}|null
+     */
+    private function checkPrefixMatch(string $search, string $location): ?array
+    {
+        if (str_starts_with($location, $search) || str_starts_with($search, $location)) {
+            $len = max(mb_strlen($search), mb_strlen($location));
+            $score = min(mb_strlen($search), mb_strlen($location)) / $len;
+            if ($score >= 0.7) {
+                return ['score' => $score, 'type' => 'prefix'];
+            }
+        }
+        return null;
     }
 
     /**
