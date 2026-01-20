@@ -412,4 +412,20 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertTrue($method->invoke($resolver, 'київ', 'киев', 75));
         $this->assertFalse($method->invoke($resolver, 'київ', 'харків', 85));
     }
+
+    public function testGetLocationsReturnsAllLocations(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $locations = $resolver->getLocations();
+
+        $this->assertIsArray($locations);
+        $this->assertNotEmpty($locations);
+
+        $this->assertArrayHasKey(4, $locations);
+        $this->assertArrayHasKey(434, $locations);
+        $this->assertArrayHasKey(461, $locations);
+
+        $this->assertEquals('Вінницька область', $locations[4]['name'] ?? null);
+        $this->assertEquals('hromada', $locations[434]['type'] ?? null);
+    }
 }
