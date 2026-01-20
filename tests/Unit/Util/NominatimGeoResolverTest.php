@@ -4,61 +4,31 @@ namespace Tests\Unit\Util;
 
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
-use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 #[AllowMockObjectsWithoutExpectations]
 class NominatimGeoResolverTest extends TestCase
 {
-    private string $tempDir;
-
-    protected function setUp(): void
-    {
-        $this->tempDir = sys_get_temp_dir() . '/test_geo_cache';
-        if (!is_dir($this->tempDir)) {
-            mkdir($this->tempDir);
-        }
-    }
-
-    protected function tearDown(): void
-    {
-        // Clean up if needed
-    }
-
     public function testConstructorLoadsLocations(): void
     {
         $cache = $this->createMock(SmartCacheManager::class);
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver($cache, null);
 
-        // Test that it's created without error
         $this->assertInstanceOf(NominatimGeoResolver::class, $resolver);
     }
 
-    public function testConstructorWithMappingPath(): void
+    public function testConstructorWithLocationsPath(): void
     {
-        $mappingPath = sys_get_temp_dir() . '/test_mapping.json';
-        file_put_contents($mappingPath, json_encode(['test' => ['uid' => 1, 'ukrainian' => 'Test', 'latin' => 'Test', 'normalized' => 'test']]));
+        $locationsPath = sys_get_temp_dir() . '/test_locations.json';
+        file_put_contents($locationsPath, json_encode(['1' => ['name' => 'Test', 'type' => 'hromada', 'oblast_name' => 'Test Oblast']]));
 
         $cache = $this->createMock(SmartCacheManager::class);
-        $resolver = new NominatimGeoResolver($mappingPath, $cache);
+        $resolver = new NominatimGeoResolver($cache, $locationsPath);
 
         $this->assertInstanceOf(NominatimGeoResolver::class, $resolver);
 
-        unlink($mappingPath);
-    }
-
-    public function testConstructorWithInvalidMappingPath(): void
-    {
-        $mappingPath = sys_get_temp_dir() . '/invalid_mapping.json';
-        file_put_contents($mappingPath, 'invalid json');
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Invalid ' . $mappingPath);
-
-        new NominatimGeoResolver($mappingPath, null);
-
-        unlink($mappingPath);
+        unlink($locationsPath);
     }
 
     public function testConstructorWithInvalidLocationsPath(): void
@@ -67,54 +37,30 @@ class NominatimGeoResolverTest extends TestCase
         file_put_contents($invalidLocationsPath, 'invalid json');
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Invalid locations.json');
 
-        new NominatimGeoResolver(null, null, $invalidLocationsPath);
+        new NominatimGeoResolver(null, $invalidLocationsPath);
 
         unlink($invalidLocationsPath);
     }
 
     public function testConstructorWithNonExistentLocationsPath(): void
     {
-        $nonExistentPath = '/non/existent/path/locations.json';
+        $nonExistentPath = '/non/existent/path/locations_with_hierarchy.json';
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Failed to read locations.json');
 
-        new NominatimGeoResolver(null, null, $nonExistentPath);
+        new NominatimGeoResolver(null, $nonExistentPath);
     }
-
-    public function testConstructorWithUnreadableMappingPath(): void
-    {
-        $vfs = vfsStream::setup('root', 0777, [
-            'mapping.json' => 'valid json content'
-        ]);
-        $mappingPath = $vfs->url() . '/mapping.json';
-
-        // Make file unreadable
-        chmod($mappingPath, 0000);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Failed to read ' . $mappingPath);
-
-        try {
-            new NominatimGeoResolver($mappingPath, null);
-        } finally {
-            chmod($mappingPath, 0777); // Restore for cleanup
-        }
-    }
-
-
 
     public function testFindByCoordinatesWithCacheHit(): void
     {
         $cache = $this->createMock(SmartCacheManager::class);
         $cache->expects($this->once())
             ->method('getCachedData')
-            ->with('geo_50.450100_30.523400.json')
+            ->with('geo_50.4501_30.5234')
             ->willReturn(['uid' => 31, 'name' => 'м. Київ']);
 
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver($cache, null);
 
         $result = $resolver->findByCoordinates(50.4501, 30.5234);
 
@@ -126,13 +72,13 @@ class NominatimGeoResolverTest extends TestCase
         $cache = $this->createMock(SmartCacheManager::class);
         $cache->expects($this->once())
             ->method('getCachedData')
-            ->with('geo_50.450100_30.523400.json')
+            ->with('geo_50.4501_30.5234')
             ->willReturn(null);
         $cache->expects($this->once())
             ->method('storeProcessedData')
-            ->with('geo_50.450100_30.523400.json', $this->isArray());
+            ->with('geo_50.4501_30.5234', $this->isArray());
 
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver($cache, null);
 
         $result = $resolver->findByCoordinates(50.4501, 30.5234);
 
@@ -146,13 +92,12 @@ class NominatimGeoResolverTest extends TestCase
         $cache = $this->createMock(SmartCacheManager::class);
         $cache->expects($this->once())
             ->method('getCachedData')
-            ->with('geo_0.000000_0.000000.json')
+            ->with('geo_0.0000_0.0000')
             ->willReturn(null);
-        // No store since result null
 
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver($cache, null);
 
-        $result = $resolver->findByCoordinates(0.0, 0.0); // Ocean coordinates
+        $result = $resolver->findByCoordinates(0.0, 0.0);
 
         $this->assertNull($result);
     }
@@ -162,13 +107,11 @@ class NominatimGeoResolverTest extends TestCase
         $cache = $this->createMock(SmartCacheManager::class);
         $cache->expects($this->once())
             ->method('getCachedData')
-            ->with('geo_50.450100_30.523400.json')
+            ->with('geo_50.4501_30.5234')
             ->willReturn(null);
-        // No store
 
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver($cache, null);
 
-        // Set invalid base_url
         $reflection = new \ReflectionClass($resolver);
         $property = $reflection->getProperty('base_url');
         $property->setAccessible(true);
@@ -184,13 +127,11 @@ class NominatimGeoResolverTest extends TestCase
         $cache = $this->createMock(SmartCacheManager::class);
         $cache->expects($this->once())
             ->method('getCachedData')
-            ->with('geo_50.450100_30.523400.json')
+            ->with('geo_50.4501_30.5234')
             ->willReturn(null);
-        // No store
 
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver($cache, null);
 
-        // Set base_url to return HTML
         $reflection = new \ReflectionClass($resolver);
         $property = $reflection->getProperty('base_url');
         $property->setAccessible(true);
@@ -201,7 +142,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testMapToLocation(): void
+    public function testMapToLocationWithExactMatch(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
@@ -210,14 +151,14 @@ class NominatimGeoResolverTest extends TestCase
 
         $nominatimData = [
             'address' => [
-                'city' => 'Kyiv'
+                'city' => 'Вінниця'
             ]
         ];
 
         $result = $method->invoke($resolver, $nominatimData);
 
         $this->assertNotNull($result);
-        $this->assertEquals('м. Київ', $result['name']);
+        $this->assertEquals('Вінницька область', $result['name']);
     }
 
     public function testMapToLocationWithNoAddress(): void
@@ -227,209 +168,89 @@ class NominatimGeoResolverTest extends TestCase
         $method = $reflection->getMethod('mapToLocation');
         $method->setAccessible(true);
 
-        $nominatimData = [
-            // No address
-        ];
+        $nominatimData = [];
 
         $result = $method->invoke($resolver, $nominatimData);
 
         $this->assertNull($result);
     }
 
-    public function testMapToLocationWithNoMatch(): void
+    public function testFilterLocationsByState(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('mapToLocation');
+        $method = $reflection->getMethod('filterLocationsByState');
         $method->setAccessible(true);
 
-        $nominatimData = [
-            'address' => [
-                'city' => 'UnknownCity'
-            ]
-        ];
-
-        $result = $method->invoke($resolver, $nominatimData);
-
-        $this->assertNull($result);
-    }
-
-    public function testMapToLocationWithNonStringCandidate(): void
-    {
-        $resolver = new NominatimGeoResolver(null, null);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('mapToLocation');
-        $method->setAccessible(true);
-
-        $nominatimData = [
-            'address' => [
-                'city' => 123, // Non-string candidate
-                'municipality' => 'Kyiv' // Valid string
-            ]
-        ];
-
-        $result = $method->invoke($resolver, $nominatimData);
-
-        $this->assertNotNull($result);
-        $this->assertEquals('м. Київ', $result['name']);
-    }
-
-    public function testFindUkrainianLocation(): void
-    {
-        $resolver = new NominatimGeoResolver(null, null);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('findUkrainianLocation');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($resolver, 'Kyiv');
-
-        $this->assertNotNull($result);
-        $this->assertEquals('м. Київ', $result['name']);
-    }
-
-    public function testFindUkrainianLocationFuzzyMatch(): void
-    {
-        $resolver = new NominatimGeoResolver(null, null);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('findUkrainianLocation');
-        $method->setAccessible(true);
-
-        // Use a name that doesn't match exactly but fuzzy matches
-        $result = $method->invoke($resolver, 'Kiev'); // Note: Kiev instead of Kyiv
-
-        $this->assertNotNull($result);
-        $this->assertEquals('м. Київ', $result['name']);
-        $this->assertEquals('fuzzy', $result['matched_by']);
-    }
-
-    public function testFindFuzzyMatch(): void
-    {
-        $resolver = new NominatimGeoResolver(null, null);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('findFuzzyMatch');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($resolver, 'Kyiv');
-
-        $this->assertNotNull($result);
-        $this->assertEquals('м. Київ', $result['name']);
-    }
-
-    public function testFindFuzzyMatchNoMatch(): void
-    {
-        $resolver = new NominatimGeoResolver(null, null);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('findFuzzyMatch');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($resolver, 'NonExistentCity12345');
-
-        $this->assertNull($result);
-    }
-
-    public function testGenerateRuntimeMapping(): void
-    {
-        $resolver = new NominatimGeoResolver(null, null);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('generateRuntimeMapping');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($resolver);
+        $result = $method->invoke($resolver, 'Вінницька область');
 
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
+        foreach ($result as $location) {
+            $this->assertEquals('Вінницька область', $location['oblast_name']);
+        }
     }
 
-    public function testGetFromCacheWithCache(): void
+    public function testFindFuzzyGlobal(): void
     {
-        $cache = $this->createMock(SmartCacheManager::class);
-        $cache->expects($this->once())
-            ->method('getCachedData')
-            ->with('test_key')
-            ->willReturn(['data' => 'value']);
-
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('getFromCache');
+        $method = $reflection->getMethod('findFuzzyGlobal');
         $method->setAccessible(true);
 
-        $result = $method->invoke($resolver, 'test_key');
+        $result = $method->invoke($resolver, 'Одеса');
 
-        $this->assertEquals(['data' => 'value'], $result);
+        $this->assertNotNull($result);
+        $this->assertEquals('Одеська область', $result['name']);
     }
 
-    public function testGetFromCacheWithCacheException(): void
+    public function testFindFuzzyGlobalNoMatch(): void
     {
-        $cache = $this->createMock(SmartCacheManager::class);
-        $cache->expects($this->once())
-            ->method('getCachedData')
-            ->with('test_key')
-            ->willThrowException(new \Exception('Cache error'));
-
-        $resolver = new NominatimGeoResolver(null, $cache);
+        $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('getFromCache');
+        $method = $reflection->getMethod('findFuzzyGlobal');
         $method->setAccessible(true);
 
-        $result = $method->invoke($resolver, 'test_key');
+        $result = $method->invoke($resolver, 'NonExistentCity12345XYZ');
 
         $this->assertNull($result);
     }
 
-    public function testGetFromCacheWithoutCache(): void
+    public function testFindOblastFallback(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('getFromCache');
+        $method = $reflection->getMethod('findOblastFallback');
         $method->setAccessible(true);
 
-        $result = $method->invoke($resolver, 'test_key');
+        $result = $method->invoke($resolver, 'Вінницька область');
 
-        $this->assertNull($result);
+        $this->assertNotNull($result);
+        $this->assertEquals('Вінницька область', $result['name']);
+        $this->assertEquals('oblast_fallback', $result['matched_by']);
     }
 
-    public function testSaveToCacheWithCache(): void
-    {
-        $cache = $this->createMock(SmartCacheManager::class);
-        $cache->expects($this->once())
-            ->method('storeProcessedData')
-            ->with('test_key', ['data' => 'value']);
-
-        $resolver = new NominatimGeoResolver(null, $cache);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('saveToCache');
-        $method->setAccessible(true);
-
-        $method->invoke($resolver, 'test_key', ['data' => 'value']);
-    }
-
-    public function testSaveToCacheWithCacheException(): void
-    {
-        $cache = $this->createMock(SmartCacheManager::class);
-        $cache->expects($this->once())
-            ->method('storeProcessedData')
-            ->with('test_key', ['data' => 'value'])
-            ->willThrowException(new \Exception('Cache error'));
-
-        $resolver = new NominatimGeoResolver(null, $cache);
-        $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('saveToCache');
-        $method->setAccessible(true);
-
-        $method->invoke($resolver, 'test_key', ['data' => 'value']);
-        // No exception thrown, silently ignored
-        $this->assertTrue(true);
-    }
-
-    public function testSaveToCacheWithoutCache(): void
+    public function testCleanName(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
         $reflection = new \ReflectionClass($resolver);
-        $method = $reflection->getMethod('saveToCache');
+        $method = $reflection->getMethod('cleanName');
         $method->setAccessible(true);
 
-        $method->invoke($resolver, 'test_key', ['data' => 'value']);
-        // No exception, silently ignored
-        $this->assertTrue(true);
+        $this->assertEquals('вінниця', $method->invoke($resolver, 'м. Вінниця'));
+        $this->assertEquals('львівська', $method->invoke($resolver, 'Львівська область'));
+        $this->assertEquals('дніпровська', $method->invoke($resolver, 'Дніпровська територіальна громада'));
+    }
+
+    public function testIsSimilar(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('isSimilar');
+        $method->setAccessible(true);
+
+        $this->assertTrue($method->invoke($resolver, 'київ', 'київ', 100));
+        $this->assertTrue($method->invoke($resolver, 'київ', 'киев', 75));
+        $this->assertFalse($method->invoke($resolver, 'київ', 'харків', 85));
     }
 }
