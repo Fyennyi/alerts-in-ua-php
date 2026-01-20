@@ -280,7 +280,7 @@ class NominatimGeoResolver
         $name = mb_strtolower($name);
 
         $remove = [
-            'територіальна громада', 'сільська', 'селищна', 'міська',
+            'територіальна громада', 'сільська', 'селищна', 'міська', 'громада',
             'район', 'область', 'автономна республіка', 'республіка',
             'м.', 'с.', 'смт.', 'селище', 'місто'
         ];
@@ -293,9 +293,14 @@ class NominatimGeoResolver
         return $trimmed;
     }
 
-    private function isSimilar(string $str1, string $str2, float $threshold_percent): bool
+    public function isSimilar(string $str1, string $str2, float $threshold_percent): bool
     {
         similar_text($str1, $str2, $percent);
         return $percent >= $threshold_percent;
+    }
+
+    public function getLocations(): array
+    {
+        return $this->locations;
     }
 }
