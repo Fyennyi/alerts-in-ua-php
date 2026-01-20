@@ -299,6 +299,9 @@ class NominatimGeoResolver
         return $percent >= $threshold_percent;
     }
 
+    /**
+     * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}>
+     */
     public function getLocations(): array
     {
         return $this->locations;
