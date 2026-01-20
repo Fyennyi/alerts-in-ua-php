@@ -42,7 +42,7 @@ class LocationUidResolver
      */
     public function __construct()
     {
-        $json_path = __DIR__ . '/locations.json';
+        $json_path = __DIR__ . '/locations_with_hierarchy.json';
 
         if (! file_exists($json_path)) {
             throw new \RuntimeException("Locations data file not found at {$json_path}");
@@ -53,14 +53,19 @@ class LocationUidResolver
             throw new \RuntimeException("Could not read locations data file from {$json_path}");
         }
 
-        /** @var array<int, string>|null $locations */
+        /** @var array<int, array{name: string, type: string, ...}>|null $locations */
         $locations = json_decode($json_content, true);
 
         if (! is_array($locations)) {
             throw new \RuntimeException("Failed to decode locations JSON from {$json_path}");
         }
 
-        $this->uid_to_location = $locations;
+        foreach ($locations as $uid => $data) {
+            if (isset($data['name']) && is_string($data['name'])) {
+                $this->uid_to_location[$uid] = $data['name'];
+            }
+        }
+
         $this->location_to_uid = array_flip($this->uid_to_location);
     }
 
