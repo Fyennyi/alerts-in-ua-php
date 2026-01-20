@@ -2,20 +2,6 @@
 
 This functionality allows you to get alerts by geographic coordinates.
 
-## Installation
-
-```bash
-composer require ashtokalo/php-translit mjaschen/phpgeo
-```
-
-## Name Mapping Generation (one time)
-
-```bash
-composer run-script generate-mapping
-```
-
-This will create the `src/Model/name_mapping.json` file with transliterated names.
-
 ## Usage
 
 ### Getting Alert History by Coordinates
@@ -72,10 +58,9 @@ try {
 
 ## How it Works
 
-1. **Transliteration**: Ukrainian names are converted to Latin using `ashtokalo/php-translit`
-2. **Nominatim API**: Free OpenStreetMap API for reverse geocoding (no key required)
-3. **Automatic Matching**: English names from Nominatim are automatically matched with Ukrainian ones through fuzzy matching (similarity > 70%)
-4. **Caching**: Geocoding results are cached using the client's PSR-16 cache for 24 hours
+1. **Nominatim API**: Free OpenStreetMap API for reverse geocoding (no key required) with Ukrainian language preference
+2. **Location Matching**: Nominatim responses are compared against Ukrainian location names using fuzzy matching
+3. **Caching**: Geocoding results are cached using the client's PSR-16 cache for 24 hours
 
 ## Nominatim Limits
 
