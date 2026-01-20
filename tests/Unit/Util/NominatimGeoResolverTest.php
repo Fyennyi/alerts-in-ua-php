@@ -428,4 +428,67 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals('Вінницька область', $locations[4]['name'] ?? null);
         $this->assertEquals('hromada', $locations[434]['type'] ?? null);
     }
+
+    public function testFindBestMatchInListFuzzyMatchOnly(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findBestMatchInList');
+        $method->setAccessible(true);
+
+        $locations = [
+            1 => ['name' => 'Test Location Name', 'type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+            2 => ['name' => 'Another Place Name', 'type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+        ];
+
+        $result = $method->invoke($resolver, 'Test Locatin Nam', $locations);
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Test Location Name', $result['name']);
+        $this->assertEquals('fuzzy', $result['matched_by']);
+    }
+
+    public function testCheckPrefixMatchReturnsNull(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('checkPrefixMatch');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'абвгд', 'xyzabc');
+
+        $this->assertNull($result);
+    }
+
+    public function testCheckPrefixMatchLowScore(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('checkPrefixMatch');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'а', 'abcdefghij');
+
+        $this->assertNull($result);
+    }
+
+    public function testMapToLocationReturnsMatchFromHromada(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('mapToLocation');
+        $method->setAccessible(true);
+
+        $nominatimData = [
+            'address' => [
+                'municipality' => 'Дніпровська міська громада',
+                'state' => 'Дніпропетровська область'
+            ]
+        ];
+
+        $result = $method->invoke($resolver, $nominatimData);
+
+        $this->assertNotNull($result);
+        $this->assertStringContainsString('Дніпровська', $result['name']);
+    }
 }
