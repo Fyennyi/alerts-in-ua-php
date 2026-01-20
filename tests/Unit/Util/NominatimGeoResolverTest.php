@@ -204,6 +204,35 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals('Одеська область', $result['name']);
     }
 
+    public function testFindFuzzyGlobalExactMatch(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findFuzzyGlobal');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'Вінницька область');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Вінницька область', $result['name']);
+        $this->assertEquals('global_exact', $result['matched_by']);
+    }
+
+    public function testFindFuzzyGlobalFuzzyMatch(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findFuzzyGlobal');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'Луганск');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Луганська область', $result['name']);
+        $this->assertEquals('global_fuzzy', $result['matched_by']);
+        $this->assertArrayHasKey('similarity', $result);
+    }
+
     public function testFindFuzzyGlobalNoMatch(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
@@ -228,6 +257,25 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNotNull($result);
         $this->assertEquals('Вінницька область', $result['name']);
         $this->assertEquals('oblast_fallback', $result['matched_by']);
+    }
+
+    public function testMapToLocationWithOblastFallback(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('mapToLocation');
+        $method->setAccessible(true);
+
+        $nominatimData = [
+            'address' => [
+                'state' => 'NonExistentRegionXYZ123456',
+                'city' => 'UnknownCityABC789',
+            ]
+        ];
+
+        $result = $method->invoke($resolver, $nominatimData);
+
+        $this->assertNull($result);
     }
 
     public function testCleanName(): void
