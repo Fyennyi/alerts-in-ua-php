@@ -14,7 +14,7 @@ class LocationUidResolverTest extends TestCase
 
     protected function setUp() : void
     {
-        $this->locationsPath = __DIR__ . '/../../src/Model/locations.json';
+        $this->locationsPath = __DIR__ . '/../../src/Model/locations_with_hierarchy.json';
         $this->backupPath = $this->locationsPath . '.bak';
 
         if (file_exists($this->locationsPath)) {
@@ -22,8 +22,8 @@ class LocationUidResolverTest extends TestCase
         }
 
         $testLocations = [
-            31 => 'м. Київ',
-            22 => 'Харківська область',
+            31 => ['name' => 'м. Київ', 'type' => 'standalone', 'oblast_id' => 31, 'oblast_name' => 'м. Київ'],
+            22 => ['name' => 'Харківська область', 'type' => 'oblast', 'oblast_id' => 22, 'oblast_name' => 'Харківська область'],
         ];
         file_put_contents($this->locationsPath, json_encode($testLocations));
     }
@@ -31,7 +31,6 @@ class LocationUidResolverTest extends TestCase
     protected function tearDown() : void
     {
         if (file_exists($this->locationsPath)) {
-            // Restore permissions before unlinking to ensure cleanup works
             chmod($this->locationsPath, 0644);
             unlink($this->locationsPath);
         }
@@ -42,12 +41,11 @@ class LocationUidResolverTest extends TestCase
 
     public function testConstructorThrowsExceptionIfFileCannotBeRead() : void
     {
-        // Ensure the file exists and then make it unreadable
-        file_put_contents($this->locationsPath, json_encode(['test' => 'data']));
+        file_put_contents($this->locationsPath, json_encode(['test' => ['name' => 'test']]));
         chmod($this->locationsPath, 000);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Could not read locations data file from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+        $this->expectExceptionMessage("Could not read locations data file from " . realpath(__DIR__ . '/../../src/Model/locations_with_hierarchy.json'));
 
         new LocationUidResolver();
     }
@@ -84,26 +82,20 @@ class LocationUidResolverTest extends TestCase
 
     public function testConstructorThrowsExceptionIfLocationsFileNotFound() : void
     {
-        unlink($this->locationsPath); // Remove the file to simulate it not being found
+        unlink($this->locationsPath);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Locations data file not found at " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+        $this->expectExceptionMessage("Locations data file not found at " . realpath(__DIR__ . '/../../src/Model/locations_with_hierarchy.json'));
 
         new LocationUidResolver();
     }
 
-    /**
-     * Test that the constructor throws a RuntimeException if the JSON content is invalid.
-     * This specifically targets line 31 in src/Model/LocationUidResolver.php,
-     * ensuring that the `!is_array($locations)` condition is met when json_decode fails.
-     */
     public function testConstructorThrowsExceptionIfJsonIsInvalid() : void
     {
-        // Ensure the locations file exists but contains invalid JSON
         file_put_contents($this->locationsPath, 'this is not valid json');
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Failed to decode locations JSON from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+        $this->expectExceptionMessage("Failed to decode locations JSON from " . realpath(__DIR__ . '/../../src/Model/locations_with_hierarchy.json'));
 
         new LocationUidResolver();
     }
