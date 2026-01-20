@@ -30,15 +30,20 @@ class NominatimGeoResolver
         if (! is_array($decoded)) {
             throw new \RuntimeException('Invalid locations_with_hierarchy.json structure');
         }
+        /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}> $decoded */
         $this->locations = $decoded;
         $this->cache_manager = $cache_manager;
     }
 
+    /**
+     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null
+     */
     public function findByCoordinates(float $lat, float $lon): ?array
     {
         $cache_key = sprintf('geo_%s_%s', number_format($lat, 4), number_format($lon, 4));
 
         if ($this->cache_manager && $cached = $this->cache_manager->getCachedData($cache_key)) {
+            /** @var array{uid: int, name: string, matched_by: string, similarity?: float}|null $cached */
             return $cached;
         }
 
@@ -57,6 +62,12 @@ class NominatimGeoResolver
         return $result;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    /**
+     * @return array<string, mixed>|null
+     */
     private function reverseGeocode(float $lat, float $lon): ?array
     {
         $params = [
@@ -78,16 +89,30 @@ class NominatimGeoResolver
         ]);
 
         $response = @file_get_contents($url, false, $context);
-        return $response ? json_decode($response, true) : null;
+        if ($response === false) {
+            return null;
+        }
+        $decoded = json_decode($response, true);
+        /** @var array<string, mixed>|null $result */
+        $result = is_array($decoded) ? $decoded : null;
+        return $result;
     }
 
+    /**
+     * @param array<string, mixed> $nominatim_data
+     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null
+     */
     private function mapToLocation(array $nominatim_data): ?array
     {
         $address = $nominatim_data['address'] ?? [];
 
+        if (! is_array($address)) {
+            return null;
+        }
+
         $nominatim_state = $address['state'] ?? $address['city'] ?? null;
 
-        if (!$nominatim_state) {
+        if (! is_string($nominatim_state) || $nominatim_state === '') {
             return null;
         }
 
@@ -102,7 +127,9 @@ class NominatimGeoResolver
         ];
 
         foreach ($candidates as $candidate_name) {
-            if (!$candidate_name) continue;
+            if (! is_string($candidate_name) || $candidate_name === '') {
+                continue;
+            }
 
             $match = $this->findBestMatchInList($candidate_name, $relevant_locations);
 
@@ -119,13 +146,20 @@ class NominatimGeoResolver
         return $this->findOblastFallback($nominatim_state);
     }
 
+    /**
+     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null
+     */
     private function findFuzzyGlobal(string $search_name): ?array
     {
         $search_clean = $this->cleanName($search_name);
         $best_match = null;
-        $best_score = 0;
+        $best_score = 0.0;
 
         foreach ($this->locations as $id => $location) {
+            if (! isset($location['name']) || ! is_string($location['name'])) {
+                continue;
+            }
+
             $location_name_clean = $this->cleanName($location['name']);
 
             if ($search_clean === $location_name_clean) {
@@ -153,6 +187,9 @@ class NominatimGeoResolver
         return $best_match;
     }
 
+    /**
+     * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}>
+     */
     private function filterLocationsByState(string $nominatim_state): array
     {
         $normalized_state = $this->cleanName($nominatim_state);
@@ -169,13 +206,21 @@ class NominatimGeoResolver
         return $filtered;
     }
 
+    /**
+     * @param array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}> $locations_list
+     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null
+     */
     private function findBestMatchInList(string $search_name, array $locations_list): ?array
     {
         $search_clean = $this->cleanName($search_name);
         $best_match = null;
-        $best_score = 0;
+        $best_score = 0.0;
 
         foreach ($locations_list as $id => $location) {
+            if (! isset($location['name']) || ! is_string($location['name'])) {
+                continue;
+            }
+
             $location_name_clean = $this->cleanName($location['name']);
 
             if ($search_clean === $location_name_clean) {
@@ -203,12 +248,19 @@ class NominatimGeoResolver
         return $best_match;
     }
 
+    /**
+     * @return array{uid: int, name: string, matched_by: string}|null
+     */
     private function findOblastFallback(string $nominatim_state): ?array
     {
         $clean_state = $this->cleanName($nominatim_state);
 
         foreach ($this->locations as $id => $location) {
-            if (!in_array($location['type'], ['oblast', 'standalone'])) {
+            if (! isset($location['type']) || ! in_array($location['type'], ['oblast', 'standalone'], true)) {
+                continue;
+            }
+
+            if (! isset($location['name']) || ! is_string($location['name'])) {
                 continue;
             }
 
@@ -234,10 +286,11 @@ class NominatimGeoResolver
         ];
 
         $name = str_replace($remove, '', $name);
+        $name = (string) preg_replace('/\(.*?\)/', '', $name);
+        $trimmed = (string) preg_replace('/[^\p{L}0-9]+/u', ' ', $name);
+        $trimmed = trim($trimmed);
 
-        $name = preg_replace('/\(.*?\)/', '', $name);
-
-        return trim(preg_replace('/[^\p{L}0-9]+/u', ' ', $name));
+        return $trimmed;
     }
 
     private function isSimilar(string $str1, string $str2, float $threshold_percent): bool
