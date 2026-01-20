@@ -175,6 +175,22 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNull($result);
     }
 
+    public function testMapToLocationWithInvalidAddress(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('mapToLocation');
+        $method->setAccessible(true);
+
+        $nominatimData = [
+            'address' => 'not an array'
+        ];
+
+        $result = $method->invoke($resolver, $nominatimData);
+
+        $this->assertNull($result);
+    }
+
     public function testFilterLocationsByState(): void
     {
         $resolver = new NominatimGeoResolver(null, null);
@@ -293,6 +309,64 @@ class NominatimGeoResolverTest extends TestCase
         ];
 
         $result = $method->invoke($resolver, $nominatimData);
+
+        $this->assertNull($result);
+    }
+
+    public function testFindBestMatchInListWithInvalidLocations(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findBestMatchInList');
+        $method->setAccessible(true);
+
+        $locations = [
+            1 => ['name' => 'Test Location', 'type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+            2 => ['type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+            3 => ['name' => 123, 'type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+            4 => ['name' => 'Test Location 2', 'type' => 'hromada', 'oblast_name' => 'Test Oblast'],
+        ];
+
+        $result = $method->invoke($resolver, 'Test Location 2', $locations);
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Test Location 2', $result['name']);
+    }
+
+    public function testFindFuzzyGlobalWithInvalidLocations(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findFuzzyGlobal');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'Вінницька');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Вінницька область', $result['name']);
+    }
+
+    public function testFindOblastFallbackWithInvalidLocations(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findOblastFallback');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'Вінницька область');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('Вінницька область', $result['name']);
+    }
+
+    public function testFindOblastFallbackSkipsNonOblastTypes(): void
+    {
+        $resolver = new NominatimGeoResolver(null, null);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('findOblastFallback');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 'NonExistentOblast');
 
         $this->assertNull($result);
     }
