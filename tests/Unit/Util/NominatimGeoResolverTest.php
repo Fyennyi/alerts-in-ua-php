@@ -168,9 +168,9 @@ class NominatimGeoResolverTest extends TestCase
 
         $resolver = new NominatimGeoResolver(null, $cache);
 
-        // Set invalid baseUrl
+        // Set invalid base_url
         $reflection = new \ReflectionClass($resolver);
-        $property = $reflection->getProperty('baseUrl');
+        $property = $reflection->getProperty('base_url');
         $property->setAccessible(true);
         $property->setValue($resolver, 'http://127.0.0.1:9999/reverse');
 
@@ -190,9 +190,9 @@ class NominatimGeoResolverTest extends TestCase
 
         $resolver = new NominatimGeoResolver(null, $cache);
 
-        // Set baseUrl to return HTML
+        // Set base_url to return HTML
         $reflection = new \ReflectionClass($resolver);
-        $property = $reflection->getProperty('baseUrl');
+        $property = $reflection->getProperty('base_url');
         $property->setAccessible(true);
         $property->setValue($resolver, 'http://httpbin.org/html');
 
@@ -200,12 +200,6 @@ class NominatimGeoResolverTest extends TestCase
 
         $this->assertNull($result);
     }
-
-
-
-
-
-
 
     public function testMapToLocation(): void
     {
