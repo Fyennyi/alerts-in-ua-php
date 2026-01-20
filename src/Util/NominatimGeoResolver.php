@@ -95,7 +95,7 @@ class NominatimGeoResolver
             'lat' => $lat,
             'lon' => $lon,
             'accept-language' => 'uk,en',
-            'zoom' => '10'
+            'zoom' => '18'
         ];
 
         $url = $this->base_url . '?' . http_build_query($params);
