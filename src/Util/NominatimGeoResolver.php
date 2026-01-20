@@ -3,70 +3,42 @@
 namespace Fyennyi\AlertsInUa\Util;
 
 use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
-use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 
 class NominatimGeoResolver
 {
     private string $base_url;
 
-    /** @var array<int, string> */
+    /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}> */
     private array $locations;
 
-    /** @var array<string, array<string, mixed>> */
-    private array $name_mapping;
     private ?SmartCacheManager $cache_manager;
 
-    public function __construct(?string $mapping_path = null, ?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
+    public function __construct(?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
     {
         $this->base_url = 'https://nominatim.openstreetmap.org/reverse';
 
         if ($locations_path === null) {
-            $locations_path = __DIR__ . '/../Model/locations.json';
+            $locations_path = __DIR__ . '/../Model/locations_with_hierarchy.json';
         }
 
         $content = @file_get_contents($locations_path);
         if ($content === false) {
-            throw new \RuntimeException('Failed to read locations.json');
+            throw new \RuntimeException('Failed to read locations_with_hierarchy.json');
         }
         $decoded = json_decode($content, true);
         if (! is_array($decoded)) {
-            throw new \RuntimeException('Invalid locations.json');
+            throw new \RuntimeException('Invalid locations_with_hierarchy.json structure');
         }
-        /** @var array<int, string> $decoded */
         $this->locations = $decoded;
-
-        if ($mapping_path === null) {
-            $mapping_path = __DIR__ . '/../Model/name_mapping.json';
-        }
-
-        if ($mapping_path && file_exists($mapping_path)) {
-            $content = @file_get_contents($mapping_path);
-            if ($content === false) {
-                throw new \RuntimeException("Failed to read {$mapping_path}");
-            }
-            $decoded = json_decode($content, true);
-            if (! is_array($decoded)) {
-                throw new \RuntimeException("Invalid {$mapping_path}");
-            }
-            /** @var array<string, array<string, mixed>> $decoded */
-            $this->name_mapping = $decoded;
-        } else {
-            $this->name_mapping = $this->generateRuntimeMapping();
-        }
-
         $this->cache_manager = $cache_manager;
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
     public function findByCoordinates(float $lat, float $lon): ?array
     {
-        $cache_key = sprintf('geo_%f_%f.json', $lat, $lon);
-        $cached = $this->getFromCache($cache_key);
+        $cache_key = sprintf('geo_%s_%s', number_format($lat, 4), number_format($lon, 4));
 
-        if ($cached !== null) {
+        if ($this->cache_manager && $cached = $this->cache_manager->getCachedData($cache_key)) {
             return $cached;
         }
 
@@ -78,24 +50,22 @@ class NominatimGeoResolver
 
         $result = $this->mapToLocation($nominatim_result);
 
-        if ($result !== null) {
-            $this->saveToCache($cache_key, $result);
+        if ($result !== null && $this->cache_manager) {
+            $this->cache_manager->storeProcessedData($cache_key, $result);
         }
 
         return $result;
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
     private function reverseGeocode(float $lat, float $lon): ?array
     {
         $params = [
             'format' => 'json',
             'lat' => $lat,
             'lon' => $lon,
-            'accept-language' => 'uk,en',
-            'zoom' => '18'
+            'addressdetails' => 1,
+            'accept-language' => 'uk',
+            'zoom' => 18
         ];
 
         $url = $this->base_url . '?' . http_build_query($params);
@@ -108,145 +78,132 @@ class NominatimGeoResolver
         ]);
 
         $response = @file_get_contents($url, false, $context);
-
-        if ($response === false) {
-            return null;
-        }
-
-        $data = json_decode($response, true);
-        /** @var array<string, mixed>|null $data */
-        return $data;
+        return $response ? json_decode($response, true) : null;
     }
 
-    /**
-     * @param  array<string, mixed>  $nominatim_data
-     * @return array<string, mixed>|null
-     */
     private function mapToLocation(array $nominatim_data): ?array
     {
-        $raw_address = $nominatim_data['address'] ?? null;
-        if (! is_array($raw_address)) {
+        $address = $nominatim_data['address'] ?? [];
+
+        $nominatimState = $address['state'] ?? $address['city'] ?? null;
+
+        if (!$nominatimState) {
             return null;
         }
-        /** @var array<string, mixed> $raw_address */
-        $address = $raw_address;
+
+        $relevantLocations = $this->filterLocationsByState($nominatimState);
 
         $candidates = [
             $address['municipality'] ?? null,
             $address['city'] ?? null,
-            $address['district'] ?? null,
-            $address['state'] ?? null,
-            $address['region'] ?? null,
-            $address['county'] ?? null
+            $address['town'] ?? null,
+            $address['village'] ?? null,
+            $address['district'] ?? null
         ];
 
-        foreach ($candidates as $candidate) {
-            if ($candidate === null || $candidate === '' || ! is_string($candidate)) {
-                continue;
-            }
+        foreach ($candidates as $candidateName) {
+            if (!$candidateName) continue;
 
-            $result = $this->findUkrainianLocation($candidate);
+            $match = $this->findBestMatchInList($candidateName, $relevantLocations);
 
-            if ($result !== null) {
-                return $result;
+            if ($match) {
+                return $match;
             }
         }
 
-        return null;
+        return $this->findOblastFallback($nominatimState);
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function findUkrainianLocation(string $english_name): ?array
+    private function filterLocationsByState(string $nominatimState): array
     {
-        $normalized_candidate = TransliterationHelper::normalizeForMatching($english_name);
+        $normalizedState = $this->cleanName($nominatimState);
+        $filtered = [];
 
-        if (isset($this->name_mapping[$normalized_candidate])) {
-            /** @var array{uid: int, ukrainian: string, latin: string, normalized: string} $entry */
-            $entry = $this->name_mapping[$normalized_candidate];
-            return [
-                'uid' => $entry['uid'],
-                'name' => $entry['ukrainian'],
-                'matched_by' => 'exact'
-            ];
+        foreach ($this->locations as $id => $location) {
+            $locState = $location['oblast_name'] ?? $location['name'];
+
+            if ($this->isSimilar($normalizedState, $this->cleanName($locState), 85)) {
+                $filtered[$id] = $location;
+            }
         }
 
-        return $this->findFuzzyMatch($normalized_candidate);
+        return $filtered;
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function findFuzzyMatch(string $normalized_candidate): ?array
+    private function findBestMatchInList(string $searchName, array $locationsList): ?array
     {
-        $best_match = null;
-        $best_score = 0;
+        $searchClean = $this->cleanName($searchName);
+        $bestMatch = null;
+        $bestScore = 0;
 
-        foreach ($this->locations as $uid => $ukrainian_name) {
-            $normalized_ukrainian = TransliterationHelper::normalizeForMatching($ukrainian_name);
+        foreach ($locationsList as $id => $location) {
+            $locationNameClean = $this->cleanName($location['name']);
 
-            $score = similar_text($normalized_candidate, $normalized_ukrainian, $percent);
-            $similarity = $percent / 100;
+            if ($searchClean === $locationNameClean) {
+                 return [
+                    'uid' => (int)$id,
+                    'name' => $location['name'],
+                    'matched_by' => 'exact'
+                ];
+            }
 
-            if ($similarity > 0.7 && $similarity > $best_score) {
-                $best_score = $similarity;
-                $best_match = [
-                    'uid' => (int)$uid,
-                    'name' => $ukrainian_name,
+            similar_text($searchClean, $locationNameClean, $percent);
+            $score = $percent / 100;
+
+            if ($score > 0.85 && $score > $bestScore) {
+                $bestScore = $score;
+                $bestMatch = [
+                    'uid' => (int)$id,
+                    'name' => $location['name'],
                     'matched_by' => 'fuzzy',
-                    'similarity' => $similarity
+                    'similarity' => $score
                 ];
             }
         }
 
-        return $best_match;
+        return $bestMatch;
     }
 
-    /**
-     * @return array<string, array<string, mixed>>
-     */
-    private function generateRuntimeMapping(): array
+    private function findOblastFallback(string $nominatimState): ?array
     {
-        $mapping = [];
+        $cleanState = $this->cleanName($nominatimState);
 
-        foreach ($this->locations as $uid => $name) {
-            $latin = TransliterationHelper::normalizeForMatching($name);
-            $mapping[$latin] = ['uid' => (int)$uid, 'ukrainian' => $name, 'latin' => $latin, 'normalized' => $latin];
-        }
+        foreach ($this->locations as $id => $location) {
+            if (!in_array($location['type'], ['oblast', 'standalone'])) {
+                continue;
+            }
 
-        return $mapping;
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function getFromCache(string $key): ?array
-    {
-        if (! $this->cache_manager) {
-            return null;
-        }
-
-        try {
-            $data = $this->cache_manager->getCachedData($key);
-            /** @var array<string, mixed>|null $data */
-            return $data;
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function saveToCache(string $key, array $data): void
-    {
-        if ($this->cache_manager) {
-            try {
-                $this->cache_manager->storeProcessedData($key, $data);
-            } catch (\Throwable $e) {
-                // Ignore cache errors
+            if ($this->isSimilar($cleanState, $this->cleanName($location['name']), 80)) {
+                 return [
+                    'uid' => (int)$id,
+                    'name' => $location['name'],
+                    'matched_by' => 'oblast_fallback'
+                ];
             }
         }
+        return null;
+    }
+
+    private function cleanName(string $name): string
+    {
+        $name = mb_strtolower($name);
+
+        $remove = [
+            'територіальна громада', 'сільська', 'селищна', 'міська',
+            'район', 'область', 'автономна республіка', 'республіка',
+            'м.', 'с.', 'смт.', 'селище', 'місто'
+        ];
+
+        $name = str_replace($remove, '', $name);
+
+        $name = preg_replace('/\(.*?\)/', '', $name);
+
+        return trim(preg_replace('/[^\p{L}0-9]+/u', ' ', $name));
+    }
+
+    private function isSimilar(string $str1, string $str2, float $thresholdPercent): bool
+    {
+        similar_text($str1, $str2, $percent);
+        return $percent >= $thresholdPercent;
     }
 }
