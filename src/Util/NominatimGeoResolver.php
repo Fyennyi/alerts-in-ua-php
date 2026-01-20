@@ -128,7 +128,7 @@ class NominatimGeoResolver
         if (! is_array($raw_address)) {
             return null;
         }
-        /** @var array<string, mixed> $rawAddress */
+        /** @var array<string, mixed> $raw_address */
         $address = $raw_address;
 
         $candidates = [
