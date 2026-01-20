@@ -8,7 +8,7 @@ use Fyennyi\AlertsInUa\Util\UserAgent;
 
 class NominatimGeoResolver
 {
-    private string $baseUrl;
+    private string $base_url;
 
     /** @var array<int, string> */
     private array $locations;
@@ -19,7 +19,7 @@ class NominatimGeoResolver
 
     public function __construct(?string $mapping_path = null, ?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
     {
-        $this->baseUrl = 'https://nominatim.openstreetmap.org/reverse';
+        $this->base_url = 'https://nominatim.openstreetmap.org/reverse';
 
         if ($locations_path === null) {
             $locations_path = __DIR__ . '/../Model/locations.json';
@@ -98,7 +98,7 @@ class NominatimGeoResolver
             'zoom' => '10'
         ];
 
-        $url = $this->baseUrl . '?' . http_build_query($params);
+        $url = $this->base_url . '?' . http_build_query($params);
 
         $context = stream_context_create([
             'http' => [
@@ -124,12 +124,12 @@ class NominatimGeoResolver
      */
     private function mapToLocation(array $nominatim_data): ?array
     {
-        $rawAddress = $nominatim_data['address'] ?? null;
-        if (! is_array($rawAddress)) {
+        $raw_address = $nominatim_data['address'] ?? null;
+        if (! is_array($raw_address)) {
             return null;
         }
         /** @var array<string, mixed> $rawAddress */
-        $address = $rawAddress;
+        $address = $raw_address;
 
         $candidates = [
             $address['municipality'] ?? null,
