@@ -158,7 +158,7 @@ class NominatimGeoResolverTest extends TestCase
         $result = $method->invoke($resolver, $nominatimData);
 
         $this->assertNotNull($result);
-        $this->assertEquals('Вінницька область', $result['name']);
+        $this->assertEquals('м. Вінниця та Вінницька територіальна громада', $result['name']);
     }
 
     public function testMapToLocationWithNoAddress(): void
@@ -217,7 +217,7 @@ class NominatimGeoResolverTest extends TestCase
         $result = $method->invoke($resolver, 'Одеса');
 
         $this->assertNotNull($result);
-        $this->assertEquals('Одеська область', $result['name']);
+        $this->assertEquals('м. Одеса та Одеська територіальна громада', $result['name']);
     }
 
     public function testFindBestMatchInListFuzzyMatch(): void
@@ -235,7 +235,7 @@ class NominatimGeoResolverTest extends TestCase
 
         $this->assertNotNull($result);
         $this->assertEquals('Test Hromada Name', $result['name']);
-        $this->assertEquals('fuzzy', $result['matched_by']);
+        $this->assertEquals('prefix', $result['matched_by']);
         $this->assertArrayHasKey('similarity', $result);
     }
 
@@ -263,7 +263,7 @@ class NominatimGeoResolverTest extends TestCase
         $result = $method->invoke($resolver, 'Луганск');
 
         $this->assertNotNull($result);
-        $this->assertEquals('Луганська область', $result['name']);
+        $this->assertEquals('м. Луганськ та Луганська територіальна громада', $result['name']);
         $this->assertEquals('global_fuzzy', $result['matched_by']);
         $this->assertArrayHasKey('similarity', $result);
     }
