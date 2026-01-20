@@ -117,7 +117,7 @@ class NominatimGeoResolver
         }
 
         $relevant_locations = $this->filterLocationsByState($nominatim_state);
-        $hromada_locations = array_filter($relevant_locations, fn($loc) => ($loc['type'] ?? '') === 'hromada');
+        $hromada_locations = array_filter($relevant_locations, fn($loc) => $loc['type'] === 'hromada');
 
         $candidates = [
             $address['municipality'] ?? null,
