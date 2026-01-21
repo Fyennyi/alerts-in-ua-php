@@ -52,7 +52,7 @@ class NominatimGeoResolver
      * @param  float  $lon  Longitude
      * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null The matched location data or null if not found
      */
-    public function findByCoordinates(float $lat, float $lon): ?array
+    public function findByCoordinates(float $lat, float $lon) : ?array
     {
         $cache_key = sprintf('geo_%s_%s', number_format($lat, 4), number_format($lon, 4));
 
@@ -94,7 +94,7 @@ class NominatimGeoResolver
      * @param  int  $zoom  Zoom level for result granularity
      * @return array<string, mixed>|null The decoded JSON response or null on failure
      */
-    protected function reverseGeocode(float $lat, float $lon, int $zoom = 18): ?array
+    protected function reverseGeocode(float $lat, float $lon, int $zoom = 18) : ?array
     {
         $params = [
             'format' => 'json',
@@ -131,7 +131,7 @@ class NominatimGeoResolver
      * @param  int  $zoom  The zoom level used for the request
      * @return array{uid: int, name: string, matched_by: string}|null Matched location info or null
      */
-    private function matchByOsmId(array $nominatim_data, int $zoom): ?array
+    private function matchByOsmId(array $nominatim_data, int $zoom) : ?array
     {
         $osm_id = $nominatim_data['osm_id'] ?? null;
         if (! is_numeric($osm_id)) {
@@ -158,7 +158,7 @@ class NominatimGeoResolver
      *
      * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}>
      */
-    public function getLocations(): array
+    public function getLocations() : array
     {
         return $this->locations;
     }
