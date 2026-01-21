@@ -75,7 +75,7 @@ class NominatimGeoResolver
     /**
      * @return array<string, mixed>|null
      */
-    private function reverseGeocode(float $lat, float $lon, int $zoom = 18): ?array
+    protected function reverseGeocode(float $lat, float $lon, int $zoom = 18): ?array
     {
         $params = [
             'format' => 'json',
@@ -112,12 +112,14 @@ class NominatimGeoResolver
     private function matchByOsmId(array $nominatim_data, int $zoom): ?array
     {
         $osm_id = $nominatim_data['osm_id'] ?? null;
-        if (! $osm_id) {
+        if (! is_numeric($osm_id)) {
             return null;
         }
 
+        $osm_id = (int)$osm_id;
+
         foreach ($this->locations as $uid => $location) {
-            if (isset($location['osm_id']) && (int)$location['osm_id'] === (int)$osm_id) {
+            if (isset($location['osm_id']) && (int)$location['osm_id'] === $osm_id) {
                 return [
                     'uid' => (int)$uid,
                     'name' => $location['name'],
