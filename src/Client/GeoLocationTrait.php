@@ -23,12 +23,8 @@ trait GeoLocationTrait
      *
      * @throws InvalidParameterException If location not found for coordinates
      */
-    public function getAlertsByCoordinatesAsync(
-        float $lat,
-        float $lon,
-        string $period = 'week_ago',
-        bool $use_cache = false
-    ): PromiseInterface {
+    public function getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false) : PromiseInterface
+    {
         if (! isset($this->geo_resolver)) {
             $this->geo_resolver = new NominatimGeoResolver($this->cache_manager ?? null, null);
         }
@@ -57,12 +53,8 @@ trait GeoLocationTrait
      *
      * @throws InvalidParameterException If location not found for coordinates
      */
-    public function getAirRaidAlertStatusByCoordinatesAsync(
-        float $lat,
-        float $lon,
-        bool $oblast_level_only = false,
-        bool $use_cache = false
-    ): PromiseInterface {
+    public function getAirRaidAlertStatusByCoordinatesAsync(float $lat,float $lon,bool $oblast_level_only = false,bool $use_cache = false) : PromiseInterface
+    {
         if (! isset($this->geo_resolver)) {
             $this->geo_resolver = new NominatimGeoResolver($this->cache_manager ?? null, null);
         }
