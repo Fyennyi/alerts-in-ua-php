@@ -145,6 +145,73 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNull($result);
     }
 
+    public function testConstructorWithNonExistentLocationsPath(): void
+    {
+        $nonExistentPath = '/non/existent/path/locations.json';
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to read locations.json');
+        new NominatimGeoResolver(null, $nonExistentPath);
+    }
+
+    public function testConstructorWithInvalidLocationsPath(): void
+    {
+        $invalidLocationsPath = sys_get_temp_dir() . '/invalid_locations.json';
+        file_put_contents($invalidLocationsPath, 'invalid json');
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Invalid locations.json structure');
+        try {
+            new NominatimGeoResolver(null, $invalidLocationsPath);
+        } finally {
+            unlink($invalidLocationsPath);
+        }
+    }
+
+    public function testReverseGeocodeReturnsNullOnFailure(): void
+    {
+        $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
+        $reflection = new \ReflectionClass($resolver);
+        $property = $reflection->getProperty('base_url');
+        $property->setAccessible(true);
+        $property->setValue($resolver, 'http://invalid-url-that-causes-failure.test');
+
+        $method = $reflection->getMethod('reverseGeocode');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, 50.0, 30.0, 10);
+        $this->assertNull($result);
+    }
+
+    public function testFindByCoordinatesContinuesOnNullData(): void
+    {
+        $resolver = $this->getMockBuilder(NominatimGeoResolver::class)
+            ->setConstructorArgs([null, $this->tempLocationsPath])
+            ->onlyMethods(['reverseGeocode'])
+            ->getMock();
+
+        // zoom 10 returns null (triggering line 60 'continue'), zoom 8 finds it
+        $resolver->expects($this->exactly(2))
+            ->method('reverseGeocode')
+            ->willReturnMap([
+                [50.0, 30.0, 10, null],
+                [50.0, 30.0, 8, ['osm_id' => 11923012]],
+            ]);
+
+        $result = $resolver->findByCoordinates(50.0, 30.0);
+        $this->assertNotNull($result);
+        $this->assertEquals(114, $result['uid']);
+    }
+
+    public function testMatchByOsmIdReturnsNullOnNonNumericId(): void
+    {
+        $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
+        $reflection = new \ReflectionClass($resolver);
+        $method = $reflection->getMethod('matchByOsmId');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($resolver, ['osm_id' => 'not-a-number'], 10);
+        $this->assertNull($result);
+    }
+
     public function testGetLocationsReturnsAllLocations(): void
     {
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
