@@ -116,12 +116,12 @@ class NominatimGeoResolver
             return null;
         }
 
-        $osm_id = (int)$osm_id;
+        $osm_id = (int) $osm_id;
 
         foreach ($this->locations as $uid => $location) {
-            if (isset($location['osm_id']) && (int)$location['osm_id'] === $osm_id) {
+            if (isset($location['osm_id']) && (int) $location['osm_id'] === $osm_id) {
                 return [
-                    'uid' => (int)$uid,
+                    'uid' => (int) $uid,
                     'name' => $location['name'],
                     'matched_by' => 'osm_id_zoom_' . $zoom
                 ];
