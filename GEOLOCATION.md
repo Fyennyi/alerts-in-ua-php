@@ -58,15 +58,18 @@ try {
 
 ## How it Works
 
-1. **Nominatim API**: Free OpenStreetMap API for reverse geocoding (no key required) with Ukrainian language preference
-2. **Location Matching**: Nominatim responses are compared against Ukrainian location names using fuzzy matching
-3. **Caching**: Geocoding results are cached using the client's PSR-16 cache for 24 hours
+1. **Nominatim API**: Free OpenStreetMap API for reverse geocoding (no key required) with Ukrainian language preference.
+2. **Hierarchical Resolution**: The library performs hierarchical reverse geocoding requests to determine the location:
+   - **Zoom 10**: Checks if the coordinates belong to a specific city or municipality (hromada) by its OSM Relation ID.
+   - **Zoom 8**: If no hromada is found, it falls back to checking the district (raion) level.
+   - **Zoom 5**: If no district is found, it falls back to the oblast (state) level.
+3. **OSM ID Matching**: Nominatim's `osm_id` is matched against a local database, ensuring 100% accuracy for supported administrative units.
+4. **Caching**: Geocoding results are cached using the client's PSR-16 cache for 24 hours to stay within Nominatim's rate limits.
 
 ## Nominatim Limits
 
-- **1 request/second**
-- Please use caching
-- Add `User-Agent` with your project name
+- **1 request/second** (the library uses caching to minimize API calls)
+- Add `User-Agent` with your project name via `AIU_USER_AGENT` environment variable if needed
 
 ## Caching
 
