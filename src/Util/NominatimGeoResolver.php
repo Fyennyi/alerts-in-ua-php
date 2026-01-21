@@ -9,7 +9,7 @@ class NominatimGeoResolver
 {
     private string $base_url;
 
-    /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}> */
+    /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> */
     private array $locations;
 
     private ?SmartCacheManager $cache_manager;
@@ -30,7 +30,7 @@ class NominatimGeoResolver
         if (! is_array($decoded)) {
             throw new \RuntimeException('Invalid locations.json structure');
         }
-        /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}> $decoded */
+        /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> $decoded */
         $this->locations = $decoded;
         $this->cache_manager = $cache_manager;
     }
@@ -47,28 +47,46 @@ class NominatimGeoResolver
             return $cached;
         }
 
-        $nominatim_result = $this->reverseGeocode($lat, $lon);
+        // Strategy: Hierarchical reverse geocoding by zoom levels
+        // Zoom 10 usually gives municipalities/cities (hromadas)
+        // Zoom 8 usually gives districts
+        // Zoom 5 usually gives states/oblasts
+        $zoom_levels = [10, 8, 5];
+        $nominatim_data = null;
 
-        if (! $nominatim_result) {
-            return null;
+        foreach ($zoom_levels as $zoom) {
+            $nominatim_data = $this->reverseGeocode($lat, $lon, $zoom);
+            if (! $nominatim_data) {
+                continue;
+            }
+
+            $result = $this->matchByOsmId($nominatim_data, $zoom);
+            if ($result) {
+                if ($this->cache_manager) {
+                    $this->cache_manager->storeProcessedData($cache_key, $result);
+                }
+                return $result;
+            }
         }
 
-        $result = $this->mapToLocation($nominatim_result);
-
-        if ($result !== null && $this->cache_manager) {
-            $this->cache_manager->storeProcessedData($cache_key, $result);
+        // Final fallback: try mapping the last received nominatim data by name if osm_id match failed
+        if ($nominatim_data) {
+            $result = $this->matchByNameFallback($nominatim_data);
+            if ($result) {
+                if ($this->cache_manager) {
+                    $this->cache_manager->storeProcessedData($cache_key, $result);
+                }
+                return $result;
+            }
         }
 
-        return $result;
+        return null;
     }
 
     /**
      * @return array<string, mixed>|null
      */
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function reverseGeocode(float $lat, float $lon): ?array
+    private function reverseGeocode(float $lat, float $lon, int $zoom = 18): ?array
     {
         $params = [
             'format' => 'json',
@@ -76,7 +94,7 @@ class NominatimGeoResolver
             'lon' => $lon,
             'addressdetails' => 1,
             'accept-language' => 'uk',
-            'zoom' => 18
+            'zoom' => $zoom
         ];
 
         $url = $this->base_url . '?' . http_build_query($params);
@@ -100,51 +118,62 @@ class NominatimGeoResolver
 
     /**
      * @param array<string, mixed> $nominatim_data
+     * @return array{uid: int, name: string, matched_by: string}|null
+     */
+    private function matchByOsmId(array $nominatim_data, int $zoom): ?array
+    {
+        $osm_id = $nominatim_data['osm_id'] ?? null;
+        if (! $osm_id) {
+            return null;
+        }
+
+        foreach ($this->locations as $uid => $location) {
+            if (isset($location['osm_id']) && (int)$location['osm_id'] === (int)$osm_id) {
+                return [
+                    'uid' => (int)$uid,
+                    'name' => $location['name'],
+                    'matched_by' => 'osm_id_zoom_' . $zoom
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $nominatim_data
      * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null
      */
-    private function mapToLocation(array $nominatim_data): ?array
+    private function matchByNameFallback(array $nominatim_data): ?array
     {
         $address = $nominatim_data['address'] ?? [];
-
         if (! is_array($address)) {
             return null;
         }
 
-        $nominatim_state = $address['state'] ?? $address['city'] ?? null;
-
-        if (! is_string($nominatim_state) || $nominatim_state === '') {
-            return null;
-        }
-
-        $relevant_locations = $this->filterLocationsByState($nominatim_state);
-        $hromada_locations = array_filter($relevant_locations, fn($loc) => $loc['type'] === 'hromada');
-
+        // Try candidate names from Nominatim address
         $candidates = [
             $address['municipality'] ?? null,
             $address['city'] ?? null,
             $address['town'] ?? null,
             $address['village'] ?? null,
-            $address['district'] ?? null
+            $address['district'] ?? null,
+            $address['state'] ?? null
         ];
 
-        foreach ($candidates as $candidate_name) {
-            if (! is_string($candidate_name) || $candidate_name === '') {
+        foreach ($candidates as $name) {
+            if (! is_string($name) || $name === '') {
                 continue;
             }
 
-            $match = $this->findBestMatchInList($candidate_name, $hromada_locations);
-
+            $match = $this->findFuzzyGlobal($name);
             if ($match) {
+                $match['matched_by'] = 'name_fallback_' . $match['matched_by'];
                 return $match;
             }
         }
 
-        $fallback_match = $this->findFuzzyGlobal($nominatim_state);
-        if ($fallback_match) {
-            return $fallback_match;
-        }
-
-        return $this->findOblastFallback($nominatim_state);
+        return null;
     }
 
     /**
