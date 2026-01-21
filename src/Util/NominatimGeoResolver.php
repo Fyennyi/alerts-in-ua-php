@@ -30,7 +30,7 @@ use Fyennyi\AlertsInUa\Util\UserAgent;
 class NominatimGeoResolver
 {
     /** @var string The base URL for the Nominatim API */
-    private string $base_url;
+    private string $base_url = 'https://nominatim.openstreetmap.org/reverse';
 
     /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> List of locations from the local database */
     private array $locations;
@@ -48,8 +48,6 @@ class NominatimGeoResolver
      */
     public function __construct(?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
     {
-        $this->base_url = 'https://nominatim.openstreetmap.org/reverse';
-
         if ($locations_path === null) {
             $locations_path = __DIR__ . '/../Model/locations.json';
         }
