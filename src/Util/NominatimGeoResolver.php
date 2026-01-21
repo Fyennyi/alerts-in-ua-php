@@ -7,13 +7,23 @@ use Fyennyi\AlertsInUa\Util\UserAgent;
 
 class NominatimGeoResolver
 {
+    /** @var string The base URL for the Nominatim API */
     private string $base_url;
 
-    /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> */
+    /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> List of locations from the local database */
     private array $locations;
 
+    /** @var SmartCacheManager|null The cache manager instance, or null if caching is disabled */
     private ?SmartCacheManager $cache_manager;
 
+    /**
+     * Constructor for NominatimGeoResolver
+     *
+     * @param  SmartCacheManager|null  $cache_manager  Optional cache manager for caching API responses
+     * @param  string|null  $locations_path  Optional path to the locations.json file
+     *
+     * @throws \RuntimeException If the locations file cannot be read or decoded
+     */
     public function __construct(?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
     {
         $this->base_url = 'https://nominatim.openstreetmap.org/reverse';
@@ -36,7 +46,11 @@ class NominatimGeoResolver
     }
 
     /**
-     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null
+     * Finds a location UID by geographic coordinates
+     *
+     * @param  float  $lat  Latitude
+     * @param  float  $lon  Longitude
+     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null The matched location data or null if not found
      */
     public function findByCoordinates(float $lat, float $lon): ?array
     {
@@ -73,7 +87,12 @@ class NominatimGeoResolver
     }
 
     /**
-     * @return array<string, mixed>|null
+     * Performs a reverse geocoding request to Nominatim API
+     *
+     * @param  float  $lat  Latitude
+     * @param  float  $lon  Longitude
+     * @param  int  $zoom  Zoom level for result granularity
+     * @return array<string, mixed>|null The decoded JSON response or null on failure
      */
     protected function reverseGeocode(float $lat, float $lon, int $zoom = 18): ?array
     {
@@ -106,8 +125,11 @@ class NominatimGeoResolver
     }
 
     /**
-     * @param array<string, mixed> $nominatim_data
-     * @return array{uid: int, name: string, matched_by: string}|null
+     * Matches Nominatim response data to a local location by OSM ID
+     *
+     * @param  array<string, mixed>  $nominatim_data  Data from Nominatim API
+     * @param  int  $zoom  The zoom level used for the request
+     * @return array{uid: int, name: string, matched_by: string}|null Matched location info or null
      */
     private function matchByOsmId(array $nominatim_data, int $zoom): ?array
     {
@@ -132,7 +154,9 @@ class NominatimGeoResolver
     }
 
     /**
-     * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null}>
+     * Retrieves the loaded locations array
+     *
+     * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}>
      */
     public function getLocations(): array
     {
