@@ -224,7 +224,7 @@ class AlertsClient
         $cache_key = $endpoint . $cache_key_suffix;
         return $this->cache_manager->getOrSet(
             $cache_key,
-            function () use ($endpoint, $processor, $cache_key) {
+            function () use ($endpoint, $processor, $cache_key, $type) {
                 $headers = [
                     'Authorization' => 'Bearer ' . $this->token,
                     'Accept'        => 'application/json',
@@ -239,7 +239,7 @@ class AlertsClient
                 return $this->client->requestAsync('GET', $this->base_url . $endpoint, [
                     'headers' => $headers,
                 ])->then(
-                    function (ResponseInterface $response) use ($cache_key, $processor) {
+                    function (ResponseInterface $response) use ($cache_key, $processor, $type) {
                         if (304 === $response->getStatusCode()) {
                             return $this->cache_manager->getCachedData($cache_key);
                         }
@@ -250,7 +250,7 @@ class AlertsClient
                         }
 
                         $processed = $processor($response);
-                        $this->cache_manager->storeProcessedData($cache_key, $processed);
+                        $this->cache_manager->storeProcessedData($cache_key, $processed, $type);
 
                         return $processed;
                     },

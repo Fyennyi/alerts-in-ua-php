@@ -97,7 +97,7 @@ class NominatimGeoResolver
             $result = $this->matchByOsmId($nominatim_data, $zoom);
             if ($result) {
                 if ($this->cache_manager) {
-                    $this->cache_manager->storeProcessedData($cache_key, $result);
+                    $this->cache_manager->storeProcessedData($cache_key, $result, 'location_resolver');
                 }
                 return $result;
             }

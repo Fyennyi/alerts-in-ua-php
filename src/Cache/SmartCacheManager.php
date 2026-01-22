@@ -185,16 +185,19 @@ class SmartCacheManager
      *
      * @param  string  $key  The base cache key associated with the API endpoint
      * @param  mixed  $data  The processed result (e.g., Alerts, AirRaidAlertStatus, etc.)
+     * @param  string  $type  Request type to determine TTL (default: 'default')
      * @return void
      */
-    public function storeProcessedData(string $key, mixed $data) : void
+    public function storeProcessedData(string $key, mixed $data, string $type = 'default') : void
     {
+        $ttl = $this->ttl_config[$type] ?? 86400;
+
         $cache_key = $key . '.processed';
         $this->cache->delete($cache_key);
-        $this->cache->get($cache_key, function (ItemInterface $item) use ($key, $data) {
-            $item->expiresAfter(86400);
+        $this->cache->get($cache_key, function (ItemInterface $item) use ($data, $ttl, $type) {
+            $item->expiresAfter($ttl);
             if ($this->cache instanceof TagAwareCacheInterface) {
-                $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $key);
+                $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
                 $item->tag($sanitized_tag);
             }
             return $data;
