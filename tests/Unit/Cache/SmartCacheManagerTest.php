@@ -118,7 +118,7 @@ class SmartCacheManagerTest extends TestCase
                 function ($key, $callable) {
                     $itemMock = $this->createMock(ItemInterface::class);
                     $itemMock->expects($this->once())->method('expiresAfter')->with(86400);
-                    $itemMock->expects($this->once())->method('tag')->with('key');
+                    $itemMock->expects($this->once())->method('tag')->with('default');
                     return $callable($itemMock);
                 }
             );
