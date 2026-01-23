@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class NotFoundErrorTest extends TestCase
 {
-    public function testNotFoundErrorCanBeCreated(): void
+    public function testNotFoundErrorCanBeCreated() : void
     {
         $exception = new NotFoundError('Test message');
         $this->assertInstanceOf(NotFoundError::class, $exception);

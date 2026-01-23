@@ -60,7 +60,7 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $this->assertJsonStringEqualsJsonString($expectedJson, (string) $statuses);
     }
 
-    public function testJsonSerialize(): void
+    public function testJsonSerialize() : void
     {
         $data = 'ANP';
         $statuses = new AirRaidAlertOblastStatuses($data, false);

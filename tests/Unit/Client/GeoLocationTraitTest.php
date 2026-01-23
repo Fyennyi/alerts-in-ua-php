@@ -23,7 +23,7 @@ class DummyGeoLocationClient
 
 class GeoLocationTraitTest extends TestCase
 {
-    public function testTraitInstantiation(): void
+    public function testTraitInstantiation() : void
     {
         $client = new DummyGeoLocationClient();
         $this->assertInstanceOf(DummyGeoLocationClient::class, $client);

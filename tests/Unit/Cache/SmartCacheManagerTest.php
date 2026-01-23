@@ -16,7 +16,7 @@ class SmartCacheManagerTest extends TestCase
     private $cacheMock;
     private SmartCacheManager $manager;
 
-    protected function setUp(): void
+    protected function setUp() : void
     {
         parent::setUp();
         $this->cacheMock = $this->createMock(TagAwareCacheInterface::class);

@@ -32,7 +32,7 @@ class AirRaidAlertStatusTest extends TestCase
         $this->assertNull($airRaidAlertStatus->getUid());
     }
 
-    public function testJsonSerialize(): void
+    public function testJsonSerialize() : void
     {
         $status = new AirRaidAlertStatus('Test Location', 'active', 123);
         $expected = [
