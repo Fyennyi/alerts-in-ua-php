@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class BadRequestErrorTest extends TestCase
 {
-    public function testBadRequestErrorCanBeCreated(): void
+    public function testBadRequestErrorCanBeCreated() : void
     {
         $exception = new BadRequestError('Test message');
         $this->assertInstanceOf(BadRequestError::class, $exception);

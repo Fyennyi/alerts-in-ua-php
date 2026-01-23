@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class UnauthorizedErrorTest extends TestCase
 {
-    public function testUnauthorizedErrorCanBeCreated(): void
+    public function testUnauthorizedErrorCanBeCreated() : void
     {
         $exception = new UnauthorizedError('Test message');
         $this->assertInstanceOf(UnauthorizedError::class, $exception);

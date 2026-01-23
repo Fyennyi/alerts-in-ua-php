@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class ApiErrorTest extends TestCase
 {
-    public function testApiErrorCanBeCreated(): void
+    public function testApiErrorCanBeCreated() : void
     {
         $exception = new ApiError('Test message');
         $this->assertInstanceOf(ApiError::class, $exception);

@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class InternalServerErrorTest extends TestCase
 {
-    public function testInternalServerErrorCanBeCreated(): void
+    public function testInternalServerErrorCanBeCreated() : void
     {
         $exception = new InternalServerError('Test message');
         $this->assertInstanceOf(InternalServerError::class, $exception);

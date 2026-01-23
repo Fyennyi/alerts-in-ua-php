@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class ForbiddenErrorTest extends TestCase
 {
-    public function testForbiddenErrorCanBeCreated(): void
+    public function testForbiddenErrorCanBeCreated() : void
     {
         $exception = new ForbiddenError('Test message');
         $this->assertInstanceOf(ForbiddenError::class, $exception);

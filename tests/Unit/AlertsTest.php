@@ -219,7 +219,7 @@ class AlertsTest extends TestCase
         $this->assertStringContainsString('Test disclaimer', $string);
     }
 
-    public function testToStringReturnsEmptyStringOnJsonFailure(): void
+    public function testToStringReturnsEmptyStringOnJsonFailure() : void
     {
         // Create a mock Alert with invalid UTF-8 characters in a string property
         $invalidUtf8Data = [

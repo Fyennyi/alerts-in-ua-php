@@ -12,7 +12,7 @@ class NominatimGeoResolverTest extends TestCase
 {
     private string $tempLocationsPath;
 
-    protected function setUp(): void
+    protected function setUp() : void
     {
         $this->tempLocationsPath = sys_get_temp_dir() . '/test_locations.json';
         $testData = [
@@ -38,21 +38,21 @@ class NominatimGeoResolverTest extends TestCase
         file_put_contents($this->tempLocationsPath, json_encode($testData));
     }
 
-    protected function tearDown(): void
+    protected function tearDown() : void
     {
         if (file_exists($this->tempLocationsPath)) {
             unlink($this->tempLocationsPath);
         }
     }
 
-    public function testConstructorLoadsLocations(): void
+    public function testConstructorLoadsLocations() : void
     {
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
         $this->assertInstanceOf(NominatimGeoResolver::class, $resolver);
         $this->assertCount(3, $resolver->getLocations());
     }
 
-    public function testFindByCoordinatesWithCacheHit(): void
+    public function testFindByCoordinatesWithCacheHit() : void
     {
         $cache = $this->createMock(SmartCacheManager::class);
         $cache->expects($this->once())
@@ -65,7 +65,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals(188, $result['uid']);
     }
 
-    public function testMatchByOsmIdAtZoom10(): void
+    public function testMatchByOsmIdAtZoom10() : void
     {
         $resolver = $this->getMockBuilder(NominatimGeoResolver::class)
             ->setConstructorArgs([null, $this->tempLocationsPath])
@@ -85,7 +85,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals('osm_id_zoom_10', $result['matched_by']);
     }
 
-    public function testFallbackToZoom8(): void
+    public function testFallbackToZoom8() : void
     {
         $resolver = $this->getMockBuilder(NominatimGeoResolver::class)
             ->setConstructorArgs([null, $this->tempLocationsPath])
@@ -107,7 +107,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals('osm_id_zoom_8', $result['matched_by']);
     }
 
-    public function testFallbackToZoom5(): void
+    public function testFallbackToZoom5() : void
     {
         $resolver = $this->getMockBuilder(NominatimGeoResolver::class)
             ->setConstructorArgs([null, $this->tempLocationsPath])
@@ -129,7 +129,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals('osm_id_zoom_5', $result['matched_by']);
     }
 
-    public function testReturnsNullIfNoMatchFound(): void
+    public function testReturnsNullIfNoMatchFound() : void
     {
         $resolver = $this->getMockBuilder(NominatimGeoResolver::class)
             ->setConstructorArgs([null, $this->tempLocationsPath])
@@ -145,7 +145,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testConstructorWithNonExistentLocationsPath(): void
+    public function testConstructorWithNonExistentLocationsPath() : void
     {
         $nonExistentPath = '/non/existent/path/locations.json';
         $this->expectException(\RuntimeException::class);
@@ -153,7 +153,7 @@ class NominatimGeoResolverTest extends TestCase
         new NominatimGeoResolver(null, $nonExistentPath);
     }
 
-    public function testConstructorWithInvalidLocationsPath(): void
+    public function testConstructorWithInvalidLocationsPath() : void
     {
         $invalidLocationsPath = sys_get_temp_dir() . '/invalid_locations.json';
         file_put_contents($invalidLocationsPath, 'invalid json');
@@ -166,7 +166,7 @@ class NominatimGeoResolverTest extends TestCase
         }
     }
 
-    public function testReverseGeocodeReturnsNullOnFailure(): void
+    public function testReverseGeocodeReturnsNullOnFailure() : void
     {
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
         $reflection = new \ReflectionClass($resolver);
@@ -181,7 +181,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testFindByCoordinatesContinuesOnNullData(): void
+    public function testFindByCoordinatesContinuesOnNullData() : void
     {
         $resolver = $this->getMockBuilder(NominatimGeoResolver::class)
             ->setConstructorArgs([null, $this->tempLocationsPath])
@@ -201,7 +201,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertEquals(114, $result['uid']);
     }
 
-    public function testMatchByOsmIdReturnsNullOnNonNumericId(): void
+    public function testMatchByOsmIdReturnsNullOnNonNumericId() : void
     {
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
         $reflection = new \ReflectionClass($resolver);
@@ -212,7 +212,7 @@ class NominatimGeoResolverTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testGetLocationsReturnsAllLocations(): void
+    public function testGetLocationsReturnsAllLocations() : void
     {
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
         $locations = $resolver->getLocations();
