@@ -53,12 +53,13 @@ trait GeoLocationTrait
 
         return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
             function (?array $location) use ($lat, $lon, $period, $use_cache) {
-                if ($location === null) {
+                if ($location === null || ! isset($location['uid'])) {
                     throw new InvalidParameterException(
                         sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
                     );
                 }
 
+                /** @var int|string $uid */
                 $uid = $location['uid'];
                 return $this->getAlertsHistoryAsync($uid, $period, $use_cache);
             }
@@ -84,12 +85,13 @@ trait GeoLocationTrait
 
         return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
             function (?array $location) use ($lat, $lon, $oblast_level_only, $use_cache) {
-                if ($location === null) {
+                if ($location === null || ! isset($location['uid'])) {
                     throw new InvalidParameterException(
                         sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
                     );
                 }
 
+                /** @var int|string $uid */
                 $uid = $location['uid'];
                 return $this->getAirRaidAlertStatusAsync(
                     $uid,

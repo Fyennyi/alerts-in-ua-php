@@ -125,7 +125,9 @@ class NominatimGeoResolver
      */
     public function findByCoordinates(float $lat, float $lon) : ?array
     {
-        return $this->findByCoordinatesAsync($lat, $lon)->wait();
+        /** @var array{uid: int, name: string, matched_by: string, similarity?: float}|null $result */
+        $result = $this->findByCoordinatesAsync($lat, $lon)->wait();
+        return $result;
     }
 
     /**
