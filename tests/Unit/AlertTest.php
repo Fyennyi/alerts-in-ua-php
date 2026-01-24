@@ -5,6 +5,8 @@ namespace Tests\Unit;
 use DateInterval;
 use DateTime;
 use Fyennyi\AlertsInUa\Model\Alert;
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -73,8 +75,8 @@ class AlertTest extends TestCase
 
         $this->assertEquals(123, $alert->getId());
         $this->assertEquals('Київ', $alert->getLocationTitle());
-        $this->assertEquals('city', $alert->getLocationType());
-        $this->assertEquals('air_raid', $alert->getAlertType());
+        $this->assertEquals(LocationType::CITY, $alert->getLocationType());
+        $this->assertEquals(AlertType::AIR_RAID, $alert->getAlertType());
         $this->assertEquals(31, $alert->getLocationUid());
         $this->assertEquals('м. Київ', $alert->getLocationOblast());
         $this->assertEquals(31, $alert->getLocationOblastUid());
@@ -141,6 +143,10 @@ class AlertTest extends TestCase
         $alert = new Alert($this->activeAlertData);
         $this->assertTrue($alert->isType('air_raid'));
         $this->assertFalse($alert->isType('artillery_shelling'));
+        
+        // Test with Enum object
+        $this->assertTrue($alert->isType(AlertType::AIR_RAID));
+        $this->assertFalse($alert->isType(AlertType::ARTILLERY_SHELLING));
     }
 
     public function testIsInLocation()
@@ -156,11 +162,11 @@ class AlertTest extends TestCase
         $alert = new Alert($this->finishedAlertData);
         $this->assertEquals(2, $alert->getProperty('id'));
         $this->assertEquals('Харківська область', $alert->getProperty('location_title'));
-        $this->assertEquals('oblast', $alert->getProperty('location_type'));
+        $this->assertEquals(LocationType::OBLAST, $alert->getProperty('location_type'));
         $this->assertInstanceOf(\DateTimeInterface::class, $alert->getProperty('started_at'));
         $this->assertInstanceOf(\DateTimeInterface::class, $alert->getProperty('finished_at'));
         $this->assertInstanceOf(\DateTimeInterface::class, $alert->getProperty('updated_at'));
-        $this->assertEquals('artillery_shelling', $alert->getProperty('alert_type'));
+        $this->assertEquals(AlertType::ARTILLERY_SHELLING, $alert->getProperty('alert_type'));
         $this->assertEquals(32, $alert->getProperty('location_uid'));
         $this->assertEquals('Харківська область', $alert->getProperty('location_oblast'));
         $this->assertEquals(32, $alert->getProperty('location_oblast_uid'));
@@ -210,11 +216,11 @@ class AlertTest extends TestCase
         $alert = new Alert([]);
         $this->assertSame(0, $alert->getId());
         $this->assertSame('', $alert->getLocationTitle());
-        $this->assertNull($alert->getLocationType());
+        $this->assertSame(LocationType::UNKNOWN, $alert->getLocationType());
         $this->assertNull($alert->getStartedAt());
         $this->assertNull($alert->getFinishedAt());
         $this->assertNull($alert->getUpdatedAt());
-        $this->assertNull($alert->getAlertType());
+        $this->assertSame(AlertType::UNKNOWN, $alert->getAlertType());
         $this->assertNull($alert->getLocationUid());
         $this->assertNull($alert->getLocationOblast());
         $this->assertNull($alert->getLocationOblastUid());
@@ -232,5 +238,25 @@ class AlertTest extends TestCase
         $alert = new Alert($data);
         $this->assertSame(31, $alert->getLocationUid());
         $this->assertSame(32, $alert->getLocationOblastUid());
+    }
+
+    public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
+    {
+        $alert = new Alert($this->activeAlertData);
+        
+        $reflection = new \ReflectionClass($alert);
+        $property = $reflection->getProperty('location_title');
+        $property->setAccessible(true);
+        // Insert invalid UTF-8 to cause json_encode error
+        $property->setValue($alert, "\xB1\x31");
+
+        $originalErrorLog = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            $this->assertEquals('', (string)$alert);
+        } finally {
+            ini_set('error_log', $originalErrorLog);
+        }
     }
 }

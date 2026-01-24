@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
 use GuzzleHttp\Client as GuzzleClient;
@@ -15,9 +16,9 @@ class AirRaidAlertStatusesTest extends TestCase
 {
     public function testConstructorAndUidCachePopulation()
     {
-        $status1 = new AirRaidAlertStatus('', 'active', 1);
-        $status2 = new AirRaidAlertStatus('', 'no_alert', 2);
-        $status3 = new AirRaidAlertStatus('', 'partly', 3);
+        $status1 = new AirRaidAlertStatus('', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('', AlertStatus::NO_ALERT, 2);
+        $status3 = new AirRaidAlertStatus('', AlertStatus::PARTLY, 3);
 
         $statuses = [$status1, $status2, $status3];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
@@ -46,37 +47,39 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testFilterByStatus()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
-        $status3 = new AirRaidAlertStatus('Одеська область', 'partly', 3);
-        $status4 = new AirRaidAlertStatus('Харківська область', 'active', 4);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
+        $status3 = new AirRaidAlertStatus('Одеська область', AlertStatus::PARTLY, 3);
+        $status4 = new AirRaidAlertStatus('Харківська область', AlertStatus::ACTIVE, 4);
 
         $statuses = [$status1, $status2, $status3, $status4];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
-        $activeStatuses = $airRaidAlertStatuses->filterByStatus('active');
+        $activeStatuses = $airRaidAlertStatuses->filterByStatus(AlertStatus::ACTIVE);
         $this->assertCount(2, $activeStatuses);
         $this->assertContains($status1, $activeStatuses);
         $this->assertContains($status4, $activeStatuses);
 
-        $noAlertStatuses = $airRaidAlertStatuses->filterByStatus('no_alert');
+        $noAlertStatuses = $airRaidAlertStatuses->filterByStatus(AlertStatus::NO_ALERT);
         $this->assertCount(1, $noAlertStatuses);
         $this->assertContains($status2, $noAlertStatuses);
 
-        $partlyStatuses = $airRaidAlertStatuses->filterByStatus('partly');
+        $partlyStatuses = $airRaidAlertStatuses->filterByStatus(AlertStatus::PARTLY);
         $this->assertCount(1, $partlyStatuses);
         $this->assertContains($status3, $partlyStatuses);
 
-        $nonExistentStatuses = $airRaidAlertStatuses->filterByStatus('unknown');
-        $this->assertCount(0, $nonExistentStatuses);
+        // 'non-existent' will fallback to NO_ALERT in our implementation of fromString
+        $nonExistentStatuses = $airRaidAlertStatuses->filterByStatus('non-existent');
+        $this->assertCount(1, $nonExistentStatuses);
+        $this->assertContains($status2, $nonExistentStatuses);
     }
 
     public function testGetActiveAlertStatuses()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
-        $status3 = new AirRaidAlertStatus('Одеська область', 'partly', 3);
-        $status4 = new AirRaidAlertStatus('Харківська область', 'active', 4);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
+        $status3 = new AirRaidAlertStatus('Одеська область', AlertStatus::PARTLY, 3);
+        $status4 = new AirRaidAlertStatus('Харківська область', AlertStatus::ACTIVE, 4);
 
         $statuses = [$status1, $status2, $status3, $status4];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
@@ -89,10 +92,10 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testGetPartlyActiveAlertStatuses()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
-        $status3 = new AirRaidAlertStatus('Одеська область', 'partly', 3);
-        $status4 = new AirRaidAlertStatus('Харківська область', 'active', 4);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
+        $status3 = new AirRaidAlertStatus('Одеська область', AlertStatus::PARTLY, 3);
+        $status4 = new AirRaidAlertStatus('Харківська область', AlertStatus::ACTIVE, 4);
 
         $statuses = [$status1, $status2, $status3, $status4];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
@@ -104,10 +107,10 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testGetNoAlertStatuses()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
-        $status3 = new AirRaidAlertStatus('Одеська область', 'partly', 3);
-        $status4 = new AirRaidAlertStatus('Харківська область', 'active', 4);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
+        $status3 = new AirRaidAlertStatus('Одеська область', AlertStatus::PARTLY, 3);
+        $status4 = new AirRaidAlertStatus('Харківська область', AlertStatus::ACTIVE, 4);
 
         $statuses = [$status1, $status2, $status3, $status4];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
@@ -119,8 +122,8 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testGetIterator()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
         $statuses = [$status1, $status2];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
@@ -134,8 +137,8 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testCount()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
         $statuses = [$status1, $status2];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
@@ -144,8 +147,8 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testOffsetExists()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
         $statuses = [$status1, $status2];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
@@ -156,8 +159,8 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testOffsetGet()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
         $statuses = [$status1, $status2];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
@@ -168,12 +171,12 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testOffsetSetAndUnset()
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
         $statuses = [$status1];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
         // Test that offsetSet does not modify the collection (read-only)
-        $airRaidAlertStatuses[1] = new AirRaidAlertStatus('Одеська область', 'partly', 3);
+        $airRaidAlertStatuses[1] = new AirRaidAlertStatus('Одеська область', AlertStatus::PARTLY, 3);
         $this->assertCount(1, $airRaidAlertStatuses);
         $this->assertNull($airRaidAlertStatuses[1]);
 
@@ -185,8 +188,8 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testJsonSerialize() : void
     {
-        $status1 = new AirRaidAlertStatus('Київська область', 'active', 1);
-        $status2 = new AirRaidAlertStatus('Львівська область', 'no_alert', 2);
+        $status1 = new AirRaidAlertStatus('Київська область', AlertStatus::ACTIVE, 1);
+        $status2 = new AirRaidAlertStatus('Львівська область', AlertStatus::NO_ALERT, 2);
         $statuses = [$status1, $status2];
         $airRaidAlertStatuses = new AirRaidAlertStatuses($statuses);
 
@@ -204,5 +207,26 @@ class AirRaidAlertStatusesTest extends TestCase
         ]);
 
         $this->assertJsonStringEqualsJsonString($expectedJson, json_encode($airRaidAlertStatuses));
+    }
+
+    public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
+    {
+        $status = new AirRaidAlertStatus('Test', AlertStatus::ACTIVE, 1);
+        $statuses = new AirRaidAlertStatuses([$status]);
+        
+        $reflection = new \ReflectionClass($statuses);
+        $property = $reflection->getProperty('statuses');
+        $property->setAccessible(true);
+        // Insert a resource to cause json_encode failure
+        $property->setValue($statuses, [fopen('php://memory', 'r')]);
+
+        $originalErrorLog = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            $this->assertEquals('', (string)$statuses);
+        } finally {
+            ini_set('error_log', $originalErrorLog);
+        }
     }
 }

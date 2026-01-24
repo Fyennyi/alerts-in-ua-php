@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use PHPUnit\Framework\TestCase;
 
 class AirRaidAlertStatusTest extends TestCase
@@ -10,7 +11,7 @@ class AirRaidAlertStatusTest extends TestCase
     public function testAirRaidAlertStatusGetters() : void
     {
         $locationTitle = 'Test Location';
-        $status = 'active';
+        $status = AlertStatus::ACTIVE;
         $uid = 123;
 
         $airRaidAlertStatus = new AirRaidAlertStatus($locationTitle, $status, $uid);
@@ -23,7 +24,7 @@ class AirRaidAlertStatusTest extends TestCase
     public function testAirRaidAlertStatusGettersWithNullUid() : void
     {
         $locationTitle = 'Another Location';
-        $status = 'no_alert';
+        $status = AlertStatus::NO_ALERT;
 
         $airRaidAlertStatus = new AirRaidAlertStatus($locationTitle, $status);
 
@@ -43,5 +44,25 @@ class AirRaidAlertStatusTest extends TestCase
 
         $this->assertEquals($expected, $status->jsonSerialize());
         $this->assertJsonStringEqualsJsonString(json_encode($expected), json_encode($status));
+    }
+
+    public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
+    {
+        $status = new AirRaidAlertStatus('Test', AlertStatus::ACTIVE, 1);
+        
+        $reflection = new \ReflectionClass($status);
+        $property = $reflection->getProperty('location_title');
+        $property->setAccessible(true);
+        // Insert invalid UTF-8
+        $property->setValue($status, "\xB1\x31");
+
+        $originalErrorLog = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            $this->assertEquals('', (string)$status);
+        } finally {
+            ini_set('error_log', $originalErrorLog);
+        }
     }
 }
