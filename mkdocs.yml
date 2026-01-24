@@ -58,6 +58,15 @@ markdown_extensions:
   - toc:
       permalink: true
 
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: datetime
+  - git-committers:
+      repository: Fyennyi/alerts-in-ua-php
+      branch: main
+
 extra:
   social:
     - icon: fontawesome/brands/github
