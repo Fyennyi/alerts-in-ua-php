@@ -29,18 +29,18 @@
     "5351": {
         "name": "м. Нікополь",
         "type": "city",
-        "oblast_id": 4,
+        "oblast_id": 9,
         "oblast_name": "Дніпропетровська область",
-        "district_id": 46,
+        "district_id": 47,
         "district_name": "Нікопольський район",
         "osm_id": 2318332
     },
     "5349": {
         "name": "м. Марганець",
         "type": "city",
-        "oblast_id": 4,
+        "oblast_id": 9,
         "oblast_name": "Дніпропетровська область",
-        "district_id": 46,
+        "district_id": 47,
         "district_name": "Нікопольський район",
         "osm_id": 2762261
     },
