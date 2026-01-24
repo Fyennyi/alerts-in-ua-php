@@ -298,6 +298,24 @@ Fetches a detailed list of all air raid alert statuses, including community-leve
 
 ---
 
+#### `getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false): Promise<Alerts>`
+
+Fetches the alert history for the location at the given coordinates.
+
+---
+
+#### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatus>`
+
+Returns air raid alert status for the location at the given coordinates.
+
+---
+
+#### `setRequestInterval(int $seconds): void`
+
+Sets the minimum interval between identical API requests (default: 5 seconds). Use `0` to disable internal rate limiting (useful for tests).
+
+---
+
 > [!NOTE]
 > All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
 
