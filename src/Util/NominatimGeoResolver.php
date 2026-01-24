@@ -43,10 +43,11 @@ class NominatimGeoResolver
      *
      * @param  CacheInterface|null  $cache  Optional cache for caching API responses
      * @param  string|null  $locations_path  Optional path to the locations.json file
+     * @param  NominatimClient|null $nominatim Optional Nominatim client instance
      *
      * @throws \RuntimeException If the locations file cannot be read or decoded
      */
-    public function __construct(?CacheInterface $cache = null, ?string $locations_path = null)
+    public function __construct(?CacheInterface $cache = null, ?string $locations_path = null, ?NominatimClient $nominatim = null)
     {
         if ($locations_path === null) {
             $locations_path = __DIR__ . '/../Model/locations.json';
@@ -63,7 +64,7 @@ class NominatimGeoResolver
         /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> $decoded */
         $this->locations = $decoded;
         
-        $this->nominatim = new NominatimClient(null, $cache);
+        $this->nominatim = $nominatim ?? new NominatimClient(null, $cache);
     }
 
     /**
