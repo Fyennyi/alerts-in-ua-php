@@ -356,6 +356,9 @@ Returns the duration of the alert as a `DateInterval` object.
 #### `getDurationInSeconds(): ?int`
 Returns the duration of the alert in seconds.
 
+#### `__toString(): string`
+Returns a JSON representation of the alert.
+
 ---
 
 ### Alerts
@@ -409,6 +412,9 @@ Returns the disclaimer text provided with the alerts.
 #### `count(): int`
 Returns the total number of alerts in the collection.
 
+#### `__toString(): string`
+Returns a JSON representation of the entire alerts collection.
+
 ---
 
 ### AirRaidAlertOblastStatus
@@ -429,6 +435,9 @@ Returns `true` if only part of the oblast has an active alert.
 
 #### `isNoAlert(): bool`
 Returns `true` if there are no active alerts in the oblast.
+
+#### `__toString(): string`
+Returns a JSON representation of the oblast status.
 
 ---
 
@@ -451,6 +460,9 @@ Returns a filtered list of oblasts with `no_alert` status.
 #### `count(): int`
 Returns the total number of oblasts in the collection.
 
+#### `__toString(): string`
+Returns a JSON representation of the oblast statuses collection.
+
 ---
 
 ### AirRaidAlertStatus
@@ -465,6 +477,9 @@ Returns the current alert status for the location (e.g., `'active'`, `'partly'`,
 
 #### `getUid(): ?int`
 Returns the unique identifier (UID) of the location.
+
+#### `__toString(): string`
+Returns a JSON representation of the location status.
 
 ---
 
@@ -487,6 +502,9 @@ Returns a single `AirRaidAlertStatus` for a specific location UID.
 
 #### `count(): int`
 Returns the total number of statuses in the collection.
+
+#### `__toString(): string`
+Returns a JSON representation of the statuses collection.
 
 ## Districts and Regions (UIDs)
 
