@@ -58,8 +58,11 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
       auto_title: true
-      pygments_options:
-        startinline: true
+      extend_pygments_lang:
+        - name: php
+          lang: php
+          options:
+            startinline: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.tabbed:
