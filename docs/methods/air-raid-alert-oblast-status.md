@@ -15,7 +15,7 @@ The status of an oblast can be:
 
 ```php
 public function getOblast(): string
-public function getStatus(): string
+public function getStatus(): AlertStatus
 ```
 
 ### Helper Booleans
