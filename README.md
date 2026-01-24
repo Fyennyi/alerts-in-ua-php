@@ -310,6 +310,12 @@ Returns air raid alert status for the location at the given coordinates.
 
 ---
 
+#### `getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
+
+Returns air raid alert status for the location at the given coordinates using the bulk status endpoint.
+
+---
+
 #### `setRequestInterval(int $seconds): void`
 
 Sets the minimum interval between identical API requests (default: 5 seconds). Use `0` to disable internal rate limiting (useful for tests).
