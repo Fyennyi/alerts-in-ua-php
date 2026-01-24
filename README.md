@@ -311,8 +311,8 @@ Returns the unique identifier of the alert.
 #### `getLocationTitle(): string`
 Returns the name of the location where the alert is active (e.g., `'Харківська область'`).
 
-#### `getLocationType(): ?string`
-Returns the type of the location (e.g., `'oblast'`, `'raion'`, `'hromada'`).
+#### `getLocationType(): LocationType`
+Returns the type of the location as a `LocationType` enum (e.g., `LocationType::OBLAST`).
 
 #### `getStartedAt(): ?DateTimeInterface`
 Returns the start time of the alert.
@@ -323,8 +323,8 @@ Returns the end time of the alert, or `null` if it is still active.
 #### `getUpdatedAt(): ?DateTimeInterface`
 Returns the time of the last update for the alert.
 
-#### `getAlertType(): string`
-Returns the type of the alert (e.g., `'air_raid'`).
+#### `getAlertType(): AlertType`
+Returns the type of the alert as an `AlertType` enum (e.g., `AlertType::AIR_RAID`).
 
 #### `getLocationUid(): ?int`
 Returns the unique identifier (UID) of the location.
@@ -394,6 +394,15 @@ Returns a filtered list of hromada-level alerts.
 
 #### `getCityAlerts(): Alert[]`
 Returns a filtered list of city-level alerts.
+
+#### `getAlertsByAlertType(AlertType|string $alert_type): Alert[]`
+Filters the collection and returns only alerts of a specific type.
+
+#### `getAlertsByLocationType(LocationType|string $location_type): Alert[]`
+Returns a filtered list of alerts for a specific location type.
+
+#### `getAlertsByLocationTitle(string $location_title): Alert[]`
+Filters the collection and returns alerts for a specific location title.
 
 #### `getAlertsByOblast(string $oblast_title): Alert[]`
 Filters the collection and returns alerts for a specific oblast.
