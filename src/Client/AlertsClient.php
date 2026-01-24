@@ -1,30 +1,29 @@
 <?php
 
 /*
- *
- *     _    _           _       ___       _   _
+ * 
+ *     _    _           _       ___       _   _ 
  *    / \  | | ___ _ __| |_ ___|_ _|_ __ | | | | __ _
  *   / _ \ | |/ _ \ '__| __/ __|| || '_ \| | | |/ _` |
  *  / ___ \| |  __/ |  | |_\__ \| || | | | |_| | (_| |
  * /_/   \_\_|\___|_|   \__|___/___|_| |_|\___/ \__,_|
- *
+ * 
  * This program is free software: you can redistribute and/or modify
  * it under the terms of the CSSM Unlimited License v2.0.
- *
+ * 
  * This license permits unlimited use, modification, and distribution
  * for any purpose while maintaining authorship attribution.
- *
+ * 
  * The software is provided "as is" without warranty of any kind.
- *
+ * 
  * @author Serhii Cherneha
  * @link https://chernega.eu.org/
- *
+ * 
  *
  */
 
 namespace Fyennyi\AlertsInUa\Client;
 
-use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\BadRequestError;
 use Fyennyi\AlertsInUa\Exception\ForbiddenError;
@@ -41,13 +40,19 @@ use Fyennyi\AlertsInUa\Model\AirRaidAlertStatusResolver;
 use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
+use Fyennyi\AsyncCache\AsyncCacheManager;
+use Fyennyi\AsyncCache\CacheOptions;
+use Fyennyi\AsyncCache\RateLimiter\InMemoryRateLimiter;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\Cache\Adapter\Psr16Adapter;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlertsClient
 {
@@ -62,8 +67,23 @@ class AlertsClient
     /** @var string Base URL for the API */
     private string $base_url = 'https://api.alerts.in.ua/v1/';
 
-    /** @var SmartCacheManager Manages caching of API responses using a PSR-16 compatible cache internally */
-    private SmartCacheManager $cache_manager;
+    /** @var AsyncCacheManager Manages async caching */
+    private AsyncCacheManager $async_cache;
+
+    /** @var CacheInterface Underlying PSR-16 cache for direct access */
+    private CacheInterface $cache;
+
+    /** @var InMemoryRateLimiter Rate limiter instance */
+    private InMemoryRateLimiter $rate_limiter;
+
+    /** @var array<string, int> Time-to-live in seconds per request type */
+    private array $ttl_config = [
+        'active_alerts' => 30,
+        'air_raid_status' => 15,
+        'air_raid_statuses' => 15,
+        'alerts_history' => 300,
+        'location_resolver' => 86400,
+    ];
 
     /**
      * Constructor for alerts.in.ua API client
@@ -77,8 +97,9 @@ class AlertsClient
         $this->client = $client ?? new Client();
         $this->token = $token;
 
-        $symfony_cache = $cache ? new Psr16Adapter($cache) : null;
-        $this->cache_manager = new SmartCacheManager($symfony_cache);
+        $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
+        $this->rate_limiter = new InMemoryRateLimiter();
+        $this->async_cache = new AsyncCacheManager($this->cache, $this->rate_limiter);
     }
 
     /**
@@ -204,7 +225,7 @@ class AlertsClient
             }
 
             return new AirRaidAlertStatuses($statuses);
-        }, 'air_raid_statuses_all');
+        }, 'air_raid_statuses');
     }
 
     /**
@@ -222,16 +243,34 @@ class AlertsClient
     private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default', string $cache_key_suffix = '') : PromiseInterface
     {
         $cache_key = $endpoint . $cache_key_suffix;
-        return $this->cache_manager->getOrSet(
+        $ttl = $this->ttl_config[$type] ?? 300;
+        
+        // Configure rate limit: default to 5 seconds per endpoint (key)
+        $this->rate_limiter->configure($cache_key, 5);
+
+        // Prepare tags if adapter supports them
+        $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
+        $tags = [$sanitized_tag];
+
+        $options = new CacheOptions(
+            ttl: $ttl,
+            rate_limit_key: $cache_key,
+            serve_stale_if_limited: true,
+            force_refresh: !$use_cache,
+            tags: $tags
+        );
+
+        return $this->async_cache->wrap(
             $cache_key,
-            function () use ($endpoint, $processor, $cache_key, $type) {
+            function () use ($endpoint, $processor, $cache_key) {
                 $headers = [
                     'Authorization' => 'Bearer ' . $this->token,
                     'Accept'        => 'application/json',
                     'User-Agent'    => UserAgent::getUserAgent(),
                 ];
 
-                $last_modified = $this->cache_manager->getLastModified($cache_key);
+                // Handle Last-Modified for conditional requests
+                $last_modified = $this->cache->get($cache_key . '.last_modified');
                 if ($last_modified) {
                     $headers['If-Modified-Since'] = $last_modified;
                 }
@@ -239,20 +278,33 @@ class AlertsClient
                 return $this->client->requestAsync('GET', $this->base_url . $endpoint, [
                     'headers' => $headers,
                 ])->then(
-                    function (ResponseInterface $response) use ($cache_key, $processor, $type) {
+                    function (ResponseInterface $response) use ($cache_key, $processor) {
                         if (304 === $response->getStatusCode()) {
-                            return $this->cache_manager->getCachedData($cache_key);
+                            // If 304 Not Modified, we return the cached data.
+                            // However, we are inside the factory function because AsyncCacheManager deemed it a "miss" (or expired).
+                            // We need to retrieve the STALE data from the cache manually to return it.
+                            // Since AsyncCacheManager doesn't pass the stale data, we assume it's still in the backend.
+                            // Note: AsyncCacheManager's internal check might handle stale data if serve_stale_if_limited is used,
+                            // but here we are in the "refresh" path because of TTL expiry.
+                            $cached = $this->cache->get($cache_key);
+                            if ($cached !== null) {
+                                return $cached;
+                            }
+                            // If for some reason we got 304 but have no data, we have to fail or return something empty?
+                            // This shouldn't happen if logic is correct, but let's be safe.
+                            // Actually if it's 304, it means we sent If-Modified-Since. 
+                            // We only send If-Modified-Since if we found a timestamp.
+                            // Which implies we had data.
+                            // But maybe the data was evicted but timestamp wasn't? Unlikely but possible.
+                            throw new ApiError('Received 304 Not Modified but no cached data found.');
                         }
 
                         $last_modified = $response->getHeaderLine('Last-Modified');
                         if ($last_modified) {
-                            $this->cache_manager->setLastModified($cache_key, $last_modified);
+                            $this->cache->set($cache_key . '.last_modified', $last_modified, 86400); // Keep timestamp for 24h
                         }
 
-                        $processed = $processor($response);
-                        $this->cache_manager->storeProcessedData($cache_key, $processed, $type);
-
-                        return $processed;
+                        return $processor($response);
                     },
                     function (\Throwable $e) {
                         if ($e instanceof \Exception) {
@@ -263,8 +315,7 @@ class AlertsClient
                     }
                 );
             },
-            $type,
-            $use_cache
+            $options
         );
     }
 
@@ -341,9 +392,7 @@ class AlertsClient
      */
     public function configureCacheTtl(array $ttl_config) : void
     {
-        foreach ($ttl_config as $type => $ttl) {
-            $this->cache_manager->setTtl($type, $ttl);
-        }
+        $this->ttl_config = array_merge($this->ttl_config, $ttl_config);
     }
 
     /**
@@ -354,6 +403,8 @@ class AlertsClient
      */
     public function clearCache(string|array $tags) : void
     {
-        $this->cache_manager->invalidateTags($tags);
+        if (method_exists($this->cache, 'invalidateTags')) {
+            $this->cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
+        }
     }
 }
