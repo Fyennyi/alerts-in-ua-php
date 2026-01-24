@@ -80,6 +80,36 @@ class AirRaidAlertStatus implements JsonSerializable
     }
 
     /**
+     * Check if the location has an active alert
+     *
+     * @return bool
+     */
+    public function isActive() : bool
+    {
+        return $this->status === AlertStatus::ACTIVE;
+    }
+
+    /**
+     * Check if the location has a partly active alert
+     *
+     * @return bool
+     */
+    public function isPartlyActive() : bool
+    {
+        return $this->status === AlertStatus::PARTLY;
+    }
+
+    /**
+     * Check if the location has no alert
+     *
+     * @return bool
+     */
+    public function isNoAlert() : bool
+    {
+        return $this->status === AlertStatus::NO_ALERT;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function jsonSerialize() : array
