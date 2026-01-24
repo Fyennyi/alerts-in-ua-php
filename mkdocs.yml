@@ -1,0 +1,47 @@
+site_name: Alerts in UA PHP
+site_description: Comprehensive PHP library for accessing alerts.in.ua API for real-time air raid alerts in Ukraine.
+site_url: https://fyennyi.github.io/alerts-in-ua-php
+
+theme:
+  name: material
+  features:
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: pink
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: pink
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - API Reference:
+    - Overview: methods/index.md
+    - AlertsClient: methods/alerts-client.md
+    - Models:
+      - Alert: methods/alert.md
+      - Alerts (Collection): methods/alerts.md
+      - AirRaidAlertStatus: methods/air-raid-alert-status.md
+      - AirRaidAlertStatuses: methods/air-raid-alert-statuses.md
+      - AirRaidAlertOblastStatus: methods/air-raid-alert-oblast-status.md
+      - AirRaidAlertOblastStatuses: methods/air-raid-alert-oblast-statuses.md
+
+markdown_extensions:
+  - codehilite
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
