@@ -244,7 +244,7 @@ class AlertsClient
     {
         $cache_key = $endpoint . $cache_key_suffix;
         $ttl = $this->ttl_config[$type] ?? 300;
-        
+
         // Configure rate limit: default to 5 seconds per endpoint (key)
         $this->rate_limiter->configure($cache_key, 5);
 
