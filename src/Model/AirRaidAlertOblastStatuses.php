@@ -25,6 +25,7 @@
 namespace Fyennyi\AlertsInUa\Model;
 
 use Countable;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use IteratorAggregate;
 use JsonSerializable;
 
@@ -80,12 +81,13 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     /**
      * Filter statuses by a specific status value
      *
-     * @param  string  $status  Status to filter by ('no_alert', 'active', 'partly')
+     * @param  AlertStatus|string  $status  Status to filter by
      * @return array<int, AirRaidAlertOblastStatus> Filtered list of status objects
      */
-    public function filterByStatus(string $status) : array
+    public function filterByStatus(AlertStatus|string $status) : array
     {
-        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $status);
+        $statusValue = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
+        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $statusValue);
     }
 
     /**
@@ -95,7 +97,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function getActiveAlertOblasts() : array
     {
-        return $this->filterByStatus('active');
+        return $this->filterByStatus(AlertStatus::ACTIVE);
     }
 
     /**
@@ -105,7 +107,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function getPartlyActiveAlertOblasts() : array
     {
-        return $this->filterByStatus('partly');
+        return $this->filterByStatus(AlertStatus::PARTLY);
     }
 
     /**
@@ -115,7 +117,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function getNoAlertOblasts() : array
     {
-        return $this->filterByStatus('no_alert');
+        return $this->filterByStatus(AlertStatus::NO_ALERT);
     }
 
     /**
