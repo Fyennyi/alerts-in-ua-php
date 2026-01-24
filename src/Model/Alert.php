@@ -68,11 +68,11 @@ class Alert implements JsonSerializable
     {
         $this->id = isset($data['id']) && is_int($data['id']) ? $data['id'] : 0;
         $this->location_title = isset($data['location_title']) && is_string($data['location_title']) ? $data['location_title'] : '';
-        $this->location_type = LocationType::fromString($data['location_type'] ?? null);
+        $this->location_type = LocationType::fromString(isset($data['location_type']) && is_string($data['location_type']) ? $data['location_type'] : null);
         $this->started_at = isset($data['started_at']) && is_string($data['started_at']) ? UaDateParser::parseDate($data['started_at']) : null;
         $this->finished_at = isset($data['finished_at']) && is_string($data['finished_at']) ? UaDateParser::parseDate($data['finished_at']) : null;
         $this->updated_at = isset($data['updated_at']) && is_string($data['updated_at']) ? UaDateParser::parseDate($data['updated_at']) : null;
-        $this->alert_type = AlertType::fromString($data['alert_type'] ?? null);
+        $this->alert_type = AlertType::fromString(isset($data['alert_type']) && is_string($data['alert_type']) ? $data['alert_type'] : null);
         $this->location_uid = isset($data['location_uid']) && (is_int($data['location_uid']) || is_string($data['location_uid'])) ? (int) $data['location_uid'] : null;
         $this->location_oblast = isset($data['location_oblast']) && is_string($data['location_oblast']) ? $data['location_oblast'] : null;
         $this->location_oblast_uid = isset($data['location_oblast_uid']) && (is_int($data['location_oblast_uid']) || is_string($data['location_oblast_uid'])) ? (int) $data['location_oblast_uid'] : null;
