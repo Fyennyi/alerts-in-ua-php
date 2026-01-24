@@ -56,3 +56,18 @@ markdown_extensions:
       alternate_style: true
   - toc:
       permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Fyennyi
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/CSSMGroup
+    - icon: fontawesome/brands/instagram
+      link: https://www.instagram.com/cssm.group
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/cssm.group
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/cssmgroup
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:questions@cssm.pp.ua
