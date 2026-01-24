@@ -409,7 +409,7 @@ class AlertsClient
     /**
      * Sets the minimum interval between identical API requests
      * 
-     * @param int $seconds
+     * @param  int  $seconds  Minimum interval in seconds
      * @return void
      */
     public function setRequestInterval(int $seconds): void

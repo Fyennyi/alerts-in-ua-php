@@ -39,6 +39,9 @@ enum LocationType: string implements JsonSerializable
 
     /**
      * Create from string with fallback to UNKNOWN
+     * 
+     * @param  string|null  $value  Raw string value
+     * @return self
      */
     public static function fromString(?string $value) : self
     {

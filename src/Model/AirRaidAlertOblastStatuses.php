@@ -121,7 +121,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     }
 
     /**
-     * @return \Traversable<int, AirRaidAlertOblastStatus>
+     * @return \Traversable<int, AirRaidAlertOblastStatus> Iterator for oblast statuses
      */
     public function getIterator() : \Traversable
     {
@@ -134,7 +134,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     }
 
     /**
-     * @return list<AirRaidAlertOblastStatus>
+     * @return list<AirRaidAlertOblastStatus> Data for JSON serialization
      */
     public function jsonSerialize(): array
     {

@@ -37,6 +37,9 @@ enum AlertStatus: string implements JsonSerializable
 
     /**
      * Create from string with fallback to NO_ALERT
+     * 
+     * @param  string|null  $value  Raw string value
+     * @return self
      */
     public static function fromString(?string $value) : self
     {

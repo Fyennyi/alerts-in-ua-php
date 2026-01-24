@@ -110,7 +110,7 @@ class AirRaidAlertStatus implements JsonSerializable
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed> Data for JSON serialization
      */
     public function jsonSerialize() : array
     {

@@ -88,10 +88,10 @@ class NominatimGeoResolver
     /**
      * Recursive helper to try different zoom levels asynchronously
      * 
-     * @param float $lat
-     * @param float $lon
-     * @param int[] $zooms
-     * @return PromiseInterface
+     * @param  float  $lat  Latitude
+     * @param  float  $lon  Longitude
+     * @param  int[]  $zooms  Array of zoom levels to try
+     * @return PromiseInterface Promise resolving to location array or null
      */
     private function resolveByZoomLevelsAsync(float $lat, float $lon, array $zooms) : PromiseInterface
     {
@@ -163,7 +163,7 @@ class NominatimGeoResolver
     /**
      * Retrieves the loaded locations array
      *
-     * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}>
+     * @return array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> Map of UID to location details
      */
     public function getLocations() : array
     {
