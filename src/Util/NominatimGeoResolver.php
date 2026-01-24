@@ -24,8 +24,7 @@
  
 namespace Fyennyi\AlertsInUa\Util;
 
-use Fyennyi\AlertsInUa\Cache\SmartCacheManager;
-use Fyennyi\AlertsInUa\Util\UserAgent;
+use Psr\SimpleCache\CacheInterface;
 
 class NominatimGeoResolver
 {
@@ -35,18 +34,18 @@ class NominatimGeoResolver
     /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> List of locations from the local database */
     private array $locations;
 
-    /** @var SmartCacheManager|null The cache manager instance, or null if caching is disabled */
-    private ?SmartCacheManager $cache_manager;
+    /** @var CacheInterface|null The cache instance, or null if caching is disabled */
+    private ?CacheInterface $cache;
 
     /**
      * Constructor for NominatimGeoResolver
      *
-     * @param  SmartCacheManager|null  $cache_manager  Optional cache manager for caching API responses
+     * @param  CacheInterface|null  $cache  Optional cache for caching API responses
      * @param  string|null  $locations_path  Optional path to the locations.json file
      *
      * @throws \RuntimeException If the locations file cannot be read or decoded
      */
-    public function __construct(?SmartCacheManager $cache_manager = null, ?string $locations_path = null)
+    public function __construct(?CacheInterface $cache = null, ?string $locations_path = null)
     {
         if ($locations_path === null) {
             $locations_path = __DIR__ . '/../Model/locations.json';
@@ -62,7 +61,7 @@ class NominatimGeoResolver
         }
         /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> $decoded */
         $this->locations = $decoded;
-        $this->cache_manager = $cache_manager;
+        $this->cache = $cache;
     }
 
     /**
@@ -76,7 +75,7 @@ class NominatimGeoResolver
     {
         $cache_key = sprintf('geo_%s_%s', number_format($lat, 4), number_format($lon, 4));
 
-        if ($this->cache_manager && $cached = $this->cache_manager->getCachedData($cache_key)) {
+        if ($this->cache && $cached = $this->cache->get($cache_key)) {
             /** @var array{uid: int, name: string, matched_by: string, similarity?: float}|null $cached */
             return $cached;
         }
@@ -96,8 +95,8 @@ class NominatimGeoResolver
 
             $result = $this->matchByOsmId($nominatim_data, $zoom);
             if ($result) {
-                if ($this->cache_manager) {
-                    $this->cache_manager->storeProcessedData($cache_key, $result, 'location_resolver');
+                if ($this->cache) {
+                    $this->cache->set($cache_key, $result, 86400);
                 }
                 return $result;
             }
