@@ -11,7 +11,7 @@
     "6293": {
         "name": "м. Харків",
         "type": "city",
-        "oblast_id": 20,
+        "oblast_id": 22,
         "oblast_name": "Харківська область",
         "district_id": 124,
         "district_name": "Харківський район",
@@ -20,7 +20,7 @@
     "5564": {
         "name": "м. Запоріжжя",
         "type": "city",
-        "oblast_id": 9,
+        "oblast_id": 12,
         "oblast_name": "Запорізька область",
         "district_id": 149,
         "district_name": "Запорізький район",
