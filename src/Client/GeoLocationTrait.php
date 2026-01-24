@@ -51,17 +51,18 @@ trait GeoLocationTrait
             $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
         }
 
-        /** @var array{uid: int, name: string, matched_by: string}|null $location */
-        $location = $this->geo_resolver->findByCoordinates($lat, $lon);
+        return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
+            function (?array $location) use ($lat, $lon, $period, $use_cache) {
+                if ($location === null) {
+                    throw new InvalidParameterException(
+                        sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
+                    );
+                }
 
-        if ($location === null) {
-            throw new InvalidParameterException(
-                sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
-            );
-        }
-
-        $uid = $location['uid'];
-        return $this->getAlertsHistoryAsync($uid, $period, $use_cache);
+                $uid = $location['uid'];
+                return $this->getAlertsHistoryAsync($uid, $period, $use_cache);
+            }
+        );
     }
 
     /**
@@ -81,20 +82,21 @@ trait GeoLocationTrait
             $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
         }
 
-        /** @var array{uid: int, name: string, matched_by: string}|null $location */
-        $location = $this->geo_resolver->findByCoordinates($lat, $lon);
+        return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
+            function (?array $location) use ($lat, $lon, $oblast_level_only, $use_cache) {
+                if ($location === null) {
+                    throw new InvalidParameterException(
+                        sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
+                    );
+                }
 
-        if ($location === null) {
-            throw new InvalidParameterException(
-                sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
-            );
-        }
-
-        $uid = $location['uid'];
-        return $this->getAirRaidAlertStatusAsync(
-            $uid,
-            $oblast_level_only,
-            $use_cache
+                $uid = $location['uid'];
+                return $this->getAirRaidAlertStatusAsync(
+                    $uid,
+                    $oblast_level_only,
+                    $use_cache
+                );
+            }
         );
     }
 }
