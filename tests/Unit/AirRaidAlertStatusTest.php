@@ -19,6 +19,27 @@ class AirRaidAlertStatusTest extends TestCase
         $this->assertEquals($locationTitle, $airRaidAlertStatus->getLocationTitle());
         $this->assertEquals($status, $airRaidAlertStatus->getStatus());
         $this->assertEquals($uid, $airRaidAlertStatus->getUid());
+        $this->assertTrue($airRaidAlertStatus->isActive());
+        $this->assertFalse($airRaidAlertStatus->isPartlyActive());
+        $this->assertFalse($airRaidAlertStatus->isNoAlert());
+    }
+
+    public function testAirRaidAlertStatusHelpers() : void
+    {
+        $statusActive = new AirRaidAlertStatus('Title', AlertStatus::ACTIVE);
+        $this->assertTrue($statusActive->isActive());
+        $this->assertFalse($statusActive->isPartlyActive());
+        $this->assertFalse($statusActive->isNoAlert());
+
+        $statusPartly = new AirRaidAlertStatus('Title', AlertStatus::PARTLY);
+        $this->assertFalse($statusPartly->isActive());
+        $this->assertTrue($statusPartly->isPartlyActive());
+        $this->assertFalse($statusPartly->isNoAlert());
+
+        $statusNoAlert = new AirRaidAlertStatus('Title', AlertStatus::NO_ALERT);
+        $this->assertFalse($statusNoAlert->isActive());
+        $this->assertFalse($statusNoAlert->isPartlyActive());
+        $this->assertTrue($statusNoAlert->isNoAlert());
     }
 
     public function testAirRaidAlertStatusGettersWithNullUid() : void
