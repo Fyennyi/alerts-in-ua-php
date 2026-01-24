@@ -44,6 +44,33 @@
         "district_name": "Нікопольський район",
         "osm_id": 2762261
     },
+    "5279": {
+        "name": "м. Кривий Ріг",
+        "type": "city",
+        "oblast_id": 9,
+        "oblast_name": "Дніпропетровська область",
+        "district_id": 46,
+        "district_name": "Криворізький район",
+        "osm_id": 1821193
+    },
+    "5332": {
+        "name": "м. Дніпро",
+        "type": "city",
+        "oblast_id": 9,
+        "oblast_name": "Дніпропетровська область",
+        "district_id": 44,
+        "district_name": "Дніпровський район",
+        "osm_id": 1017311
+    },
+    "5786": {
+        "name": "м. Світловодськ",
+        "type": "city",
+        "oblast_id": 15,
+        "oblast_name": "Кіровоградська область",
+        "district_id": 80,
+        "district_name": "Олександрійський район",
+        "osm_id": 18298365
+    },
     "30": {
         "name": "м. Севастополь",
         "type": "standalone",
