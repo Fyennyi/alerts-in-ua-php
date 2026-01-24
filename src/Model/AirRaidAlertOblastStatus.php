@@ -81,7 +81,7 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Check if the oblast has an active alert
      *
-     * @return bool
+     * @return bool True if active
      */
     public function isActive() : bool
     {
@@ -91,7 +91,7 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Check if the oblast has a partly active alert
      *
-     * @return bool
+     * @return bool True if partly active
      */
     public function isPartlyActive() : bool
     {
@@ -101,7 +101,7 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Check if the oblast has no alert
      *
-     * @return bool
+     * @return bool True if no alert
      */
     public function isNoAlert() : bool
     {

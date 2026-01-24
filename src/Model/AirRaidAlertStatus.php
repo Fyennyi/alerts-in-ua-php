@@ -82,7 +82,7 @@ class AirRaidAlertStatus implements JsonSerializable
     /**
      * Check if the location has an active alert
      *
-     * @return bool
+     * @return bool True if active
      */
     public function isActive() : bool
     {
@@ -92,7 +92,7 @@ class AirRaidAlertStatus implements JsonSerializable
     /**
      * Check if the location has a partly active alert
      *
-     * @return bool
+     * @return bool True if partly active
      */
     public function isPartlyActive() : bool
     {
@@ -102,7 +102,7 @@ class AirRaidAlertStatus implements JsonSerializable
     /**
      * Check if the location has no alert
      *
-     * @return bool
+     * @return bool True if no alert
      */
     public function isNoAlert() : bool
     {
