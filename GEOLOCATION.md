@@ -59,6 +59,30 @@ try {
 }
 ```
 
+### Getting Air Raid Alert Status by Coordinates (Bulk Method)
+
+This method is more efficient when checking status for many coordinates as it retrieves all statuses in a single request and matches the location locally.
+
+```php
+<?php
+
+use Fyennyi\AlertsInUa\Client\AlertsClient;
+
+$client = new AlertsClient('your_api_token');
+
+try {
+    $status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(
+        46.4825, 
+        30.7233
+    )->wait(); // Odesa
+
+    echo "Location: {$status->getLocationTitle()}\n";
+    echo "Status: {$status->getStatus()->value}\n";
+} catch (\Throwable $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+```
+
 ## How it Works
 
 1. **Nominatim API**: Uses the `fyennyi/nominatim-async` client to query OpenStreetMap (Nominatim) for reverse geocoding with Ukrainian language preference.
@@ -98,4 +122,14 @@ Returns air raid alert status for a location by coordinates.
 - `$lat` – The latitude of the location.
 - `$lon` – The longitude of the location.
 - `$oblast_level_only` – Only oblast-level alerts (default `false`).
+- `$use_cache` – Whether to use cached data (default `false`).
+
+---
+
+### `getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
+
+Returns air raid alert status for a location by coordinates using the bulk status endpoint.
+
+- `$lat` – The latitude of the location.
+- `$lon` – The longitude of the location.
 - `$use_cache` – Whether to use cached data (default `false`).
