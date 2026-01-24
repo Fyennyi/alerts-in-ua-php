@@ -24,18 +24,19 @@
  
 namespace Fyennyi\AlertsInUa\Util;
 
+use Fyennyi\Nominatim\Client as NominatimClient;
+use Fyennyi\Nominatim\Model\Place;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use Psr\SimpleCache\CacheInterface;
 
 class NominatimGeoResolver
 {
-    /** @var string The base URL for the Nominatim API */
-    private string $base_url = 'https://nominatim.openstreetmap.org/reverse';
-
     /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> List of locations from the local database */
     private array $locations;
 
-    /** @var CacheInterface|null The cache instance, or null if caching is disabled */
-    private ?CacheInterface $cache;
+    /** @var NominatimClient The async Nominatim client */
+    private NominatimClient $nominatim;
 
     /**
      * Constructor for NominatimGeoResolver
@@ -61,11 +62,62 @@ class NominatimGeoResolver
         }
         /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> $decoded */
         $this->locations = $decoded;
-        $this->cache = $cache;
+        
+        $this->nominatim = new NominatimClient(null, $cache);
     }
 
     /**
-     * Finds a location UID by geographic coordinates
+     * Finds a location UID by geographic coordinates asynchronously
+     *
+     * @param  float  $lat  Latitude
+     * @param  float  $lon  Longitude
+     * @return PromiseInterface Promise that resolves to array{uid: int, name: string, matched_by: string}|null
+     */
+    public function findByCoordinatesAsync(float $lat, float $lon) : PromiseInterface
+    {
+        // Strategy: Hierarchical reverse geocoding by zoom levels
+        // Zoom 10 usually gives municipalities/cities (hromadas)
+        // Zoom 8 usually gives districts
+        // Zoom 5 usually gives states/oblasts
+        $zoom_levels = [10, 8, 5];
+        
+        return $this->resolveByZoomLevelsAsync($lat, $lon, $zoom_levels);
+    }
+
+    /**
+     * Recursive helper to try different zoom levels asynchronously
+     * 
+     * @param float $lat
+     * @param float $lon
+     * @param int[] $zooms
+     * @return PromiseInterface
+     */
+    private function resolveByZoomLevelsAsync(float $lat, float $lon, array $zooms) : PromiseInterface
+    {
+        if (empty($zooms)) {
+            return Create::promiseFor(null);
+        }
+
+        $zoom = array_shift($zooms);
+
+        return $this->nominatim->reverse($lat, $lon, [
+            'zoom' => $zoom,
+            'addressdetails' => 1,
+            'accept-language' => 'uk'
+        ])->then(function (?Place $place) use ($lat, $lon, $zooms, $zoom) {
+            if ($place) {
+                $result = $this->matchByOsmId($place, $zoom);
+                if ($result) {
+                    return $result;
+                }
+            }
+
+            return $this->resolveByZoomLevelsAsync($lat, $lon, $zooms);
+        });
+    }
+
+    /**
+     * Finds a location UID by geographic coordinates (synchronous wrapper)
      *
      * @param  float  $lat  Latitude
      * @param  float  $lon  Longitude
@@ -73,87 +125,20 @@ class NominatimGeoResolver
      */
     public function findByCoordinates(float $lat, float $lon) : ?array
     {
-        $cache_key = sprintf('geo_%s_%s', number_format($lat, 4), number_format($lon, 4));
-
-        if ($this->cache && $cached = $this->cache->get($cache_key)) {
-            /** @var array{uid: int, name: string, matched_by: string, similarity?: float}|null $cached */
-            return $cached;
-        }
-
-        // Strategy: Hierarchical reverse geocoding by zoom levels
-        // Zoom 10 usually gives municipalities/cities (hromadas)
-        // Zoom 8 usually gives districts
-        // Zoom 5 usually gives states/oblasts
-        $zoom_levels = [10, 8, 5];
-        $nominatim_data = null;
-
-        foreach ($zoom_levels as $zoom) {
-            $nominatim_data = $this->reverseGeocode($lat, $lon, $zoom);
-            if (! $nominatim_data) {
-                continue;
-            }
-
-            $result = $this->matchByOsmId($nominatim_data, $zoom);
-            if ($result) {
-                if ($this->cache) {
-                    $this->cache->set($cache_key, $result, 86400);
-                }
-                return $result;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Performs a reverse geocoding request to Nominatim API
-     *
-     * @param  float  $lat  Latitude
-     * @param  float  $lon  Longitude
-     * @param  int  $zoom  Zoom level for result granularity
-     * @return array<string, mixed>|null The decoded JSON response or null on failure
-     */
-    protected function reverseGeocode(float $lat, float $lon, int $zoom = 18) : ?array
-    {
-        $params = [
-            'format' => 'json',
-            'lat' => $lat,
-            'lon' => $lon,
-            'addressdetails' => 1,
-            'accept-language' => 'uk',
-            'zoom' => $zoom
-        ];
-
-        $url = $this->base_url . '?' . http_build_query($params);
-
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => "User-Agent: " . UserAgent::getUserAgent() . "\r\n"
-            ]
-        ]);
-
-        $response = @file_get_contents($url, false, $context);
-        if ($response === false) {
-            return null;
-        }
-        $decoded = json_decode($response, true);
-        /** @var array<string, mixed>|null $result */
-        $result = is_array($decoded) ? $decoded : null;
-        return $result;
+        return $this->findByCoordinatesAsync($lat, $lon)->wait();
     }
 
     /**
      * Matches Nominatim response data to a local location by OSM ID
      *
-     * @param  array<string, mixed>  $nominatim_data  Data from Nominatim API
+     * @param  Place  $place  Place object from Nominatim API
      * @param  int  $zoom  The zoom level used for the request
      * @return array{uid: int, name: string, matched_by: string}|null Matched location info or null
      */
-    private function matchByOsmId(array $nominatim_data, int $zoom) : ?array
+    private function matchByOsmId(Place $place, int $zoom) : ?array
     {
-        $osm_id = $nominatim_data['osm_id'] ?? null;
-        if (! is_numeric($osm_id)) {
+        $osm_id = $place->getOsmId();
+        if ($osm_id === null) {
             return null;
         }
 
