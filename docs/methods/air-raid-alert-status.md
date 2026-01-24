@@ -18,9 +18,17 @@ use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 
 $status = $statusCollection->getStatus(12345);
 
-if ($status && $status->getStatus() === AlertStatus::ACTIVE) {
+if ($status && $status->isActive()) {
     echo "{$status->getLocationTitle()} is UNDER ALERT!";
 }
+```
+
+## Helper Methods
+
+```php
+public function isActive(): bool
+public function isPartlyActive(): bool
+public function isNoAlert(): bool
 ```
 
 ## Serialization

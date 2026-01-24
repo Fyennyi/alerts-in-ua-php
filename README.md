@@ -508,6 +508,15 @@ Returns the current alert status for the location as an `AlertStatus` enum (e.g.
 #### `getUid(): ?int`
 Returns the unique identifier (UID) of the location.
 
+#### `isActive(): bool`
+Returns `true` if the location has an active alert.
+
+#### `isPartlyActive(): bool`
+Returns `true` if the location has a partly active alert.
+
+#### `isNoAlert(): bool`
+Returns `true` if the location has no active alerts.
+
 #### `__toString(): string`
 Returns a JSON representation of the location status.
 
