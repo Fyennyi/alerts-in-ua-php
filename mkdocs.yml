@@ -15,6 +15,7 @@ theme:
     - navigation.tracking
     - navigation.expand
     - navigation.tabs
+    - navigation.footer
     - content.code.copy
   palette:
     - scheme: default
