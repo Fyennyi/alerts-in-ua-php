@@ -510,6 +510,123 @@ class AlertsClientTest extends TestCase
 
         $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsync()
+    {
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, null);
+
+        // Position 31 is Kyiv. 'A' means active alert.
+        $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
+        $this->mockHandler->append(new Response(200, [], $statusString));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+
+        $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
+        $lastRequest = end($this->historyContainer)['request'];
+        $this->assertEquals('GET', $lastRequest->getMethod());
+        $this->assertStringContainsString('/v1/iot/active_air_raid_alerts.json', $lastRequest->getUri()->getPath());
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
+        $this->assertEquals('м. Київ', $result->getLocationTitle());
+        $this->assertTrue($result->isActive());
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncByDistrict()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor([
+                'uid' => 12345, // Some Hromada UID
+                'name' => 'Some Hromada',
+                'district_id' => 31, // Kyiv district UID for testing
+            ]));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
+        $this->mockHandler->append(new Response(200, [], $statusString));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
+        $this->assertEquals('м. Київ', $result->getLocationTitle());
+        $this->assertTrue($result->isActive());
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncByOblast()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor([
+                'uid' => 54321,
+                'name' => 'Some Village',
+                'oblast_id' => 31, // Kyiv oblast UID for testing
+            ]));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
+        $this->mockHandler->append(new Response(200, [], $statusString));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
+        $this->assertEquals('м. Київ', $result->getLocationTitle());
+        $this->assertTrue($result->isActive());
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncLocationNotFound()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor(null));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
+
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(0.0, 0.0)->wait();
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncStatusNotAvailable()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor([
+                'uid' => 999,
+                'name' => 'Unknown Location',
+            ]));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        // Empty/short status string where UID 999 is definitely not present
+        $this->mockHandler->append(new Response(200, [], 'NNN'));
+
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Status not available for location: Unknown Location (UID: 999)');
+
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(0.0, 0.0)->wait();
+    }
 }
 
 /**
