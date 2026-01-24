@@ -2,6 +2,9 @@ site_name: Alerts in UA PHP
 site_description: Comprehensive PHP library for accessing alerts.in.ua API for real-time air raid alerts in Ukraine.
 site_url: https://fyennyi.github.io/alerts-in-ua-php
 
+repo_name: Fyennyi/alerts-in-ua-php
+repo_url: https://github.com/Fyennyi/alerts-in-ua-php
+
 theme:
   name: material
   features:
