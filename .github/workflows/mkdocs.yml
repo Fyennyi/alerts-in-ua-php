@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - uses: actions/setup-python@v5
         with:
@@ -33,7 +35,10 @@ jobs:
             mkdocs-material-
             
       - name: Install dependencies
-        run: pip install mkdocs-material
+        run: |
+          pip install mkdocs-material \
+                      mkdocs-git-revision-date-localized-plugin \
+                      mkdocs-git-committers-plugin-2
 
       - name: Build MkDocs
         run: mkdocs build
