@@ -29,3 +29,11 @@ if (isset($statuses[31])) {
     $kyiv = $statuses[31];
 }
 ```
+
+## Serialization
+
+The class implements `JsonSerializable` and `__toString()`, returning the JSON representation of the statuses.
+
+```php
+echo (string) $statuses; // JSON string
+```

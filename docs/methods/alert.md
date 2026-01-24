@@ -101,8 +101,9 @@ if ($alert->isInLocation('Київ')) {
 
 ## JSON Serialization
 
-The class implements `JsonSerializable`, so you can pass it directly to `json_encode()`.
+The class implements `JsonSerializable`, so you can pass it directly to `json_encode()`. Additionally, converting the object to a string via `(string)` or `echo` will return its JSON representation.
 
 ```php
+echo (string) $alert; // Returns JSON string
 echo json_encode($alert);
 ```

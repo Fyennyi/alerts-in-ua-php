@@ -30,6 +30,10 @@ if ($oblast->isActive()) {
 }
 ```
 
-## String Representation
+## Serialization
 
-Converting the object to a string returns the format used in the API's compact string response: `status:OblastName` (e.g., `A:Київська область`).
+The class implements `JsonSerializable` and `__toString()`.
+
+```php
+echo (string) $oblast; // Returns JSON: {"oblast":"...","status":"..."}
+```

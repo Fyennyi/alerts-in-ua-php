@@ -22,5 +22,9 @@ echo "Currently, " . count($dangerousRegions) . " oblasts are under full alert."
 
 ## Serialization
 
-- **`jsonSerialize`**: Returns a list of the status objects.
-- **`__toString`**: Returns the raw JSON representation.
+- **`jsonSerialize`**: Returns a list of the status objects for JSON encoding.
+- **`__toString`**: Returns the JSON representation of the entire collection.
+
+```php
+echo (string) $allStatuses; // JSON string
+```

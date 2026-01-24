@@ -69,3 +69,11 @@ $kyiv = $alerts->getAlertsByLocationTitle('м. Київ');
 // Find by internal UID
 $myRegion = $alerts->getAlertsByLocationUid('12345');
 ```
+
+## Serialization
+
+The class implements `JsonSerializable` and `__toString()`, both returning a JSON representation of the entire collection.
+
+```php
+echo (string) $alerts; // JSON string
+```

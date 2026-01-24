@@ -20,3 +20,11 @@ if ($status) {
     echo "{$status->getLocationTitle()}: {$status->getStatus()}";
 }
 ```
+
+## Serialization
+
+The class implements `JsonSerializable` and `__toString()`.
+
+```php
+echo (string) $status; // Returns JSON: {"location_title":"...","status":"...","uid":...}
+```
