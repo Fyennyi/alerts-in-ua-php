@@ -18,6 +18,9 @@ theme:
     - navigation.tabs
     - navigation.footer
     - content.code.copy
+    - content.code.annotate
+    - content.code.select
+    - content.tooltips
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
