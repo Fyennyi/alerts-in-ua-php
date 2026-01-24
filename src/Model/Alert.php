@@ -360,4 +360,19 @@ class Alert implements JsonSerializable
     {
         return $this->toArray();
     }
+
+    /**
+     * Get string representation of the alert
+     *
+     * @return string JSON representation
+     */
+    public function __toString() : string
+    {
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize Alert to string: ' . $e->getMessage());
+            return '';
+        }
+    }
 }

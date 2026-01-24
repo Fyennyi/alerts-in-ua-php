@@ -139,12 +139,18 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
         return $this->statuses;
     }
 
+    /**
+     * Get string representation of the oblast statuses
+     *
+     * @return string JSON representation
+     */
     public function __toString() : string
     {
-        $json = json_encode($this->statuses);
-        if (false === $json) {
-            return ''; // Or throw an exception
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertOblastStatuses to string: ' . $e->getMessage());
+            return '';
         }
-        return $json;
     }
 }

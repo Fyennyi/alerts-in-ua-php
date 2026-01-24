@@ -107,9 +107,19 @@ class AirRaidAlertOblastStatus implements JsonSerializable
         return $this->status === 'no_alert';
     }
 
+    /**
+     * Get string representation of the oblast status
+     *
+     * @return string JSON representation
+     */
     public function __toString() : string
     {
-        return sprintf("%s:%s", $this->status, $this->oblast);
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertOblastStatus to string: ' . $e->getMessage());
+            return '';
+        }
     }
 
     /**

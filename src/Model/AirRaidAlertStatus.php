@@ -89,4 +89,19 @@ class AirRaidAlertStatus implements JsonSerializable
             'uid' => $this->uid,
         ];
     }
+
+    /**
+     * Get string representation of the alert status
+     *
+     * @return string JSON representation
+     */
+    public function __toString() : string
+    {
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertStatus to string: ' . $e->getMessage());
+            return '';
+        }
+    }
 }
