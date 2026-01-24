@@ -128,6 +128,7 @@ trait GeoLocationTrait
 
                 return $this->getAirRaidAlertStatusesAsync($use_cache)->then(
                     function (\Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses $statuses) use ($location) {
+                        /** @var array{uid: int, name: string, district_id: int|null, oblast_id: int|null} $location */
                         $uid = (int) $location['uid'];
                         $status = $statuses->getStatus($uid);
 
@@ -143,7 +144,7 @@ trait GeoLocationTrait
 
                         if ($status === null) {
                             throw new InvalidParameterException(
-                                sprintf('Status not available for location: %s (UID: %d)', $location['name'], $uid)
+                                sprintf('Status not available for location: %s (UID: %d)', (string) $location['name'], $uid)
                             );
                         }
 
