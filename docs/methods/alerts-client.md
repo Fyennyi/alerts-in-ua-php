@@ -102,6 +102,18 @@ public function getAirRaidAlertStatusesAsync(bool $use_cache = false): PromiseIn
 
 **Returns:** A Promise resolving to an [`AirRaidAlertStatuses`](air-raid-alert-statuses.md) collection.
 
+---
+
+### `setRequestInterval`
+
+Sets the minimum interval between identical API requests to prevent triggering rate limits.
+
+```php
+public function setRequestInterval(int $seconds): void
+```
+
+- **`$seconds`**: Minimum wait time between identical requests (default: `5`).
+
 ## Error Handling
 
 The client throws specific exceptions from the `Fyennyi\AlertsInUa\Exception` namespace, allowing for granular error handling.

@@ -26,6 +26,8 @@ namespace Fyennyi\AlertsInUa\Model;
 
 use DateInterval;
 use DateTimeImmutable;
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 use JsonSerializable;
 
@@ -35,7 +37,7 @@ class Alert implements JsonSerializable
 
     private string $location_title;
 
-    private ?string $location_type;
+    private LocationType $location_type;
 
     private ?\DateTimeInterface $started_at;
 
@@ -43,7 +45,7 @@ class Alert implements JsonSerializable
 
     private ?\DateTimeInterface $updated_at;
 
-    private ?string $alert_type;
+    private AlertType $alert_type;
 
     private ?int $location_uid;
 
@@ -66,11 +68,11 @@ class Alert implements JsonSerializable
     {
         $this->id = isset($data['id']) && is_int($data['id']) ? $data['id'] : 0;
         $this->location_title = isset($data['location_title']) && is_string($data['location_title']) ? $data['location_title'] : '';
-        $this->location_type = isset($data['location_type']) && is_string($data['location_type']) ? $data['location_type'] : null;
+        $this->location_type = LocationType::fromString(isset($data['location_type']) && is_string($data['location_type']) ? $data['location_type'] : null);
         $this->started_at = isset($data['started_at']) && is_string($data['started_at']) ? UaDateParser::parseDate($data['started_at']) : null;
         $this->finished_at = isset($data['finished_at']) && is_string($data['finished_at']) ? UaDateParser::parseDate($data['finished_at']) : null;
         $this->updated_at = isset($data['updated_at']) && is_string($data['updated_at']) ? UaDateParser::parseDate($data['updated_at']) : null;
-        $this->alert_type = isset($data['alert_type']) && is_string($data['alert_type']) ? $data['alert_type'] : null;
+        $this->alert_type = AlertType::fromString(isset($data['alert_type']) && is_string($data['alert_type']) ? $data['alert_type'] : null);
         $this->location_uid = isset($data['location_uid']) && (is_int($data['location_uid']) || is_string($data['location_uid'])) ? (int) $data['location_uid'] : null;
         $this->location_oblast = isset($data['location_oblast']) && is_string($data['location_oblast']) ? $data['location_oblast'] : null;
         $this->location_oblast_uid = isset($data['location_oblast_uid']) && (is_int($data['location_oblast_uid']) || is_string($data['location_oblast_uid'])) ? (int) $data['location_oblast_uid'] : null;
@@ -100,11 +102,11 @@ class Alert implements JsonSerializable
     }
 
     /**
-     * Get location type (oblast, raion, hromada, city, etc.)
+     * Get location type
      *
-     * @return string|null Location type or null if not specified
+     * @return LocationType Location type enum
      */
-    public function getLocationType() : ?string
+    public function getLocationType() : LocationType
     {
         return $this->location_type;
     }
@@ -140,11 +142,11 @@ class Alert implements JsonSerializable
     }
 
     /**
-     * Get alert type (air_raid, artillery_shelling, urban_fights, nuclear, chemical, etc.)
+     * Get alert type
      *
-     * @return string|null Alert type or null if not specified
+     * @return AlertType Alert type enum
      */
-    public function getAlertType() : ?string
+    public function getAlertType() : AlertType
     {
         return $this->alert_type;
     }
@@ -290,12 +292,16 @@ class Alert implements JsonSerializable
     /**
      * Check if alert is of specific type
      *
-     * @param  string  $type  Alert type to check (air_raid, artillery_shelling, etc.)
+     * @param  AlertType|string  $type  Alert type to check
      * @return bool True if alert matches the type
      */
-    public function isType(string $type) : bool
+    public function isType(AlertType|string $type) : bool
     {
-        return $type === $this->alert_type;
+        if ($type instanceof AlertType) {
+            return $type === $this->alert_type;
+        }
+
+        return $type === $this->alert_type->value;
     }
 
     /**
@@ -321,11 +327,11 @@ class Alert implements JsonSerializable
         return [
             'id' => $this->id,
             'location_title' => $this->location_title,
-            'location_type' => $this->location_type,
+            'location_type' => $this->location_type->value,
             'started_at' => $this->started_at?->format('Y-m-d H:i:s'),
             'finished_at' => $this->finished_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'alert_type' => $this->alert_type,
+            'alert_type' => $this->alert_type->value,
             'location_uid' => $this->location_uid,
             'location_oblast' => $this->location_oblast,
             'location_oblast_uid' => $this->location_oblast_uid,
@@ -359,5 +365,20 @@ class Alert implements JsonSerializable
     public function jsonSerialize() : array
     {
         return $this->toArray();
+    }
+
+    /**
+     * Get string representation of the alert
+     *
+     * @return string JSON representation
+     */
+    public function __toString() : string
+    {
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize Alert to string: ' . $e->getMessage());
+            return '';
+        }
     }
 }

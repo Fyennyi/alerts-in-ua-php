@@ -1,13 +1,14 @@
 # Caching Strategies
 
-The library includes a sophisticated caching mechanism called `SmartCacheManager` designed to balance data freshness with API rate limits and performance.
+The library includes a sophisticated caching mechanism powered by `async-cache-php`, designed to balance data freshness with API rate limits and performance in an asynchronous environment.
 
 ## Overview
 
-When you pass a PSR-16 cache implementation to the client constructor, `SmartCacheManager` wraps it and adds logic for:
-- **Rate Limiting**: Prevents making identical requests too frequently (e.g., spamming the refresh button).
+When you pass a PSR-16 cache implementation to the client constructor, the client uses `AsyncCacheManager` to wrap it and add logic for:
+- **Asynchronous Caching**: Handles caching within promise chains without blocking.
+- **Rate Limiting**: Prevents making identical requests too frequently.
+- **Stale-While-Revalidate**: Can serve stale data if the rate limit is hit (configurable).
 - **Conditional Requests**: Uses HTTP `If-Modified-Since` headers to save bandwidth.
-- **Tagging**: Allows efficient clearing of related cache items.
 
 ## Default TTL Configuration
 
@@ -17,6 +18,7 @@ The library comes with sensible defaults for Time-To-Live (TTL) values, tailored
 | :--- | :--- | :--- |
 | `active_alerts` | **30s** | Active alerts change rapidly. |
 | `air_raid_status` | **15s** | Status checks need to be near real-time. |
+| `air_raid_statuses` | **15s** | Status checks need to be near real-time. |
 | `alerts_history` | **5m (300s)** | History data is relatively static. |
 | `location_resolver` | **24h** | Geo-coordinates to city mappings almost never change. |
 
@@ -33,11 +35,13 @@ $client->configureCacheTtl([
 
 ## Rate Limiting Logic
 
-The internal rate limiter enforces a minimum interval of **5 seconds** between identical requests to the API, regardless of cache expiration. If you request the same resource twice within 5 seconds, and the cache is expired/missing, the second request might be rejected with a `RateLimitError` (internally handled) or simply wait, protecting your API quota.
+The internal rate limiter enforces a minimum interval of **5 seconds** between identical requests to the API. If you request the same resource twice within 5 seconds:
+1. If the cache is fresh, it is returned immediately.
+2. If the cache is stale or missing, the request might be delayed or serve stale data (if enabled) to protect your API quota.
 
 ## Clearing Cache
 
-You can manually invalidate cache entries using tags. This is useful if you receive a webhook notification that data has changed and want to force a refresh.
+You can manually invalidate cache entries using tags, provided your underlying cache implementation supports `invalidateTags` (e.g., Symfony's `TagAwareAdapter`).
 
 ```php
 // Clear only active alerts cache

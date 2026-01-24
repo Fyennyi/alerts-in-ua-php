@@ -40,23 +40,27 @@ $hromadas = $alerts->getHromadaAlerts(); // Only territorial communities
 ### By Threat Type
 
 ```php
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+
 $raids    = $alerts->getAirRaidAlerts();
 $shelling = $alerts->getArtilleryShellingAlerts();
-$nuclear  = $alerts->getNuclearAlerts();
-// ... and others
+$specific = $alerts->getAlertsByAlertType(AlertType::NUCLEAR);
 ```
 
 ### Advanced Filtering
 
 #### `filter(mixed ...$args)`
 
-A flexible method to filter by multiple property-value pairs.
+A flexible method to filter by multiple property-value pairs. Supports Enum objects or their string values.
 
 ```php
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+use Fyennyi\AlertsInUa\Model\Enum\LocationType;
+
 // Find all air raids in Kyiv Oblast
 $results = $alerts->filter(
     'location_oblast', 'Київська область',
-    'alert_type', 'air_raid'
+    'alert_type', AlertType::AIR_RAID
 );
 ```
 
@@ -68,4 +72,12 @@ $kyiv = $alerts->getAlertsByLocationTitle('м. Київ');
 
 // Find by internal UID
 $myRegion = $alerts->getAlertsByLocationUid('12345');
+```
+
+## Serialization
+
+The class implements `JsonSerializable` and `__toString()`, both returning a JSON representation of the entire collection.
+
+```php
+echo (string) $alerts; // JSON string
 ```

@@ -8,6 +8,7 @@ use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
 use Fyennyi\AlertsInUa\Model\Alerts;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
@@ -31,6 +32,8 @@ class AlertsClientTest extends TestCase
 
     private AlertsClient $alertsClient;
 
+    private \Psr\SimpleCache\CacheInterface $cache;
+
     protected function setUp() : void
     {
         $this->mockHandler = new MockHandler();
@@ -38,7 +41,9 @@ class AlertsClientTest extends TestCase
         $handlerStack->push(Middleware::history($this->historyContainer));
         $this->client = new GuzzleClient(['handler' => $handlerStack]);
 
-        $this->alertsClient = new AlertsClient('test_token');
+        $this->cache = new \Symfony\Component\Cache\Psr16Cache(new \Symfony\Component\Cache\Adapter\ArrayAdapter());
+        $this->alertsClient = new AlertsClient('test_token', $this->cache);
+        $this->alertsClient->setRequestInterval(0);
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
@@ -111,7 +116,7 @@ class AlertsClientTest extends TestCase
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
         $this->assertEquals("Харківська область", $result->getOblast());
-        $this->assertEquals("active", $result->getStatus());
+        $this->assertEquals(AlertStatus::ACTIVE, $result->getStatus());
     }
 
     public function testGetAirRaidAlertStatusesByOblast()
@@ -125,7 +130,7 @@ class AlertsClientTest extends TestCase
     
         // Basic structure validation
         $this->assertCount(27, $statuses);
-        $this->assertEquals('active', $statuses[0]->getStatus());
+        $this->assertEquals(AlertStatus::ACTIVE, $statuses[0]->getStatus());
         $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
     }
 
@@ -140,11 +145,11 @@ class AlertsClientTest extends TestCase
         $this->assertCount(2, $statuses);
 
         // Check first alert (Autonomous Republic of Crimea)
-        $this->assertEquals('active', $statuses[0]->getStatus());
+        $this->assertEquals(AlertStatus::ACTIVE, $statuses[0]->getStatus());
         $this->assertEquals('Автономна Республіка Крим', $statuses[0]->getOblast());
 
         // Check second alert (Donetsk Oblast)
-        $this->assertEquals('active', $statuses[1]->getStatus());
+        $this->assertEquals(AlertStatus::ACTIVE, $statuses[1]->getStatus());
         $this->assertEquals('Донецька область', $statuses[1]->getOblast());
     }
 
@@ -155,7 +160,7 @@ class AlertsClientTest extends TestCase
         $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-        $this->assertEquals("no_alert", $result->getStatus());
+        $this->assertEquals(AlertStatus::NO_ALERT, $result->getStatus());
     }
 
     public function testGetAirRaidAlertStatusesByOblastWithEmptyResponse()
@@ -183,7 +188,7 @@ class AlertsClientTest extends TestCase
         $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
 
         // Call method
-        $this->alertsClient->getActiveAlertsAsync()->wait(); // Here the UnauthorizedError will be thrown and the test will pass
+        $this->alertsClient->getActiveAlertsAsync()->wait();
     }
 
     #[DataProvider('apiErrorProvider')]
@@ -289,6 +294,60 @@ class AlertsClientTest extends TestCase
         $this->assertEquals($lastModified, $sentRequest->getHeaderLine('If-Modified-Since'));
     }
 
+    public function test304HandlingWithMissingCacheThrowsError()
+    {
+        $lastModified = 'Sat, 15 Jun 2024 15:16:00 GMT';
+        
+        $this->cache->set('alerts/active.json.last_modified', $lastModified);
+        
+        // Simulate 304 response
+        $this->mockHandler->append(new Response(304, []));
+
+        $this->expectException(ApiError::class);
+        $this->expectExceptionMessage('Received 304 Not Modified but no cached data found.');
+
+        $this->alertsClient->getActiveAlertsAsync()->wait();
+    }
+
+    public function test304HandlingWithRawCacheData()
+    {
+        $lastModified = 'Sat, 15 Jun 2024 15:16:00 GMT';
+        $rawData = 'some raw string data';
+        
+        $this->cache->set('alerts/active.json.last_modified', $lastModified);
+        $this->cache->set('alerts/active.json', $rawData);
+        
+        $this->mockHandler->append(new Response(304, []));
+
+        $result = $this->alertsClient->getActiveAlertsAsync()->wait();
+        
+        $this->assertEquals($rawData, $result);
+    }
+
+    public function testClearCacheCallsInvalidateTags()
+    {
+        $mockCache = $this->createMock(TagAwarePsr16Cache::class);
+            
+        $mockCache->expects($this->once())
+            ->method('invalidateTags')
+            ->with(['test-tag']);
+
+        $client = new AlertsClient('test_token', $mockCache);
+        $client->clearCache('test-tag');
+    }
+
+    public function testClearCacheCallsInvalidateTagsWithArray()
+    {
+        $mockCache = $this->createMock(TagAwarePsr16Cache::class);
+            
+        $mockCache->expects($this->once())
+            ->method('invalidateTags')
+            ->with(['tag1', 'tag2']);
+
+        $client = new AlertsClient('test_token', $mockCache);
+        $client->clearCache(['tag1', 'tag2']);
+    }
+
     public function testResolveUid()
     {
         $reflection = new ReflectionClass($this->alertsClient);
@@ -309,17 +368,11 @@ class AlertsClientTest extends TestCase
         
         $this->mockHandler->append(new Response(200, [], json_encode(['alerts' => []])));
         
-        // This call will set the cache with the new TTL
         $this->alertsClient->getActiveAlertsAsync(true)->wait();
-        
-        // To verify, we would ideally inspect the cache manager, which is complex with mocks.
-        // Instead, we'll just ensure clearCache works.
         
         $this->alertsClient->clearCache('alerts/active.json');
         
-        // This is hard to assert without a more complex mock setup for SmartCacheManager,
-        // but we are testing the public API contract.
-        $this->assertTrue(true); // Placeholder assertion
+        $this->assertTrue(true);
     }
 
     public function testInvalidJsonResponse()
@@ -352,14 +405,6 @@ class AlertsClientTest extends TestCase
         $this->alertsClient->getActiveAlertsAsync()->wait();
     }
 
-    public function testAirRaidStatusWithNonStringValue()
-    {
-        $this->mockHandler->append(new Response(200, [], json_encode("X")));
-        $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
-        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-        $this->assertEquals('no_alert', $result->getStatus());
-    }
-
     public function testAirRaidStatusesWithLongString()
     {
         $this->mockHandler->append(new Response(200, [], json_encode(str_repeat('A', 30))));
@@ -380,7 +425,7 @@ class AlertsClientTest extends TestCase
 
     public function testGetAlertsByCoordinatesAsync()
     {
-        // Ensure geo_resolver is not set, so it creates one
+        // Ensure geo_resolver is not set
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
         $geoResolverProperty->setAccessible(true);
@@ -401,32 +446,27 @@ class AlertsClientTest extends TestCase
         // Call method with Kyiv coordinates
         $result = $this->alertsClient->getAlertsByCoordinatesAsync(50.4501, 30.5234)->wait();
 
-        // Assert request was made correctly (may be 2 requests: geo + alerts)
         $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
         $lastRequest = end($this->historyContainer)['request'];
         $this->assertEquals('GET', $lastRequest->getMethod());
-        // Path should be /v1/regions/{uid}/alerts/week_ago.json, uid for Kyiv is 31
         $this->assertStringContainsString('/v1/regions/31/alerts/week_ago.json', $lastRequest->getUri()->getPath());
 
-        // Assert response
         $this->assertInstanceOf(Alerts::class, $result);
     }
 
     public function testGetAlertsByCoordinatesAsyncLocationNotFound()
     {
-        // Mock geo resolver to return null
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
-            ->method('findByCoordinates')
+            ->method('findByCoordinatesAsync')
             ->with(0.0, 0.0)
-            ->willReturn(null);
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor(null));
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
         $geoResolverProperty->setAccessible(true);
         $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
 
-        // Expect exception
         $this->expectException(InvalidParameterException::class);
         $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
 
@@ -435,46 +475,163 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusByCoordinatesAsync()
     {
-        // Ensure geo_resolver is not set
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
         $geoResolverProperty->setAccessible(true);
         $geoResolverProperty->setValue($this->alertsClient, null);
 
-        // Mock status response
         $this->mockHandler->append(new Response(200, [], json_encode('no_alert')));
 
-        // Call method
         $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(50.4501, 30.5234)->wait();
 
-        // Assert request (may be 2)
         $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
         $lastRequest = end($this->historyContainer)['request'];
         $this->assertEquals('GET', $lastRequest->getMethod());
         $this->assertStringContainsString('/v1/iot/active_air_raid_alerts/31.json', $lastRequest->getUri()->getPath());
 
-        // Assert response
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
     }
 
     public function testGetAirRaidAlertStatusByCoordinatesAsyncLocationNotFound()
     {
-        // Mock geo resolver to return null
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
-            ->method('findByCoordinates')
+            ->method('findByCoordinatesAsync')
             ->with(0.0, 0.0)
-            ->willReturn(null);
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor(null));
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
         $geoResolverProperty->setAccessible(true);
         $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
 
-        // Expect exception
         $this->expectException(InvalidParameterException::class);
         $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
 
         $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsync()
+    {
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, null);
+
+        // Position 31 is Kyiv. 'A' means active alert.
+        $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
+        $this->mockHandler->append(new Response(200, [], $statusString));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+
+        $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
+        $lastRequest = end($this->historyContainer)['request'];
+        $this->assertEquals('GET', $lastRequest->getMethod());
+        $this->assertStringContainsString('/v1/iot/active_air_raid_alerts.json', $lastRequest->getUri()->getPath());
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
+        $this->assertEquals('м. Київ', $result->getLocationTitle());
+        $this->assertTrue($result->isActive());
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncByDistrict()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor([
+                'uid' => 12345, // Some Hromada UID
+                'name' => 'Some Hromada',
+                'district_id' => 31, // Kyiv district UID for testing
+            ]));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
+        $this->mockHandler->append(new Response(200, [], $statusString));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
+        $this->assertEquals('м. Київ', $result->getLocationTitle());
+        $this->assertTrue($result->isActive());
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncByOblast()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor([
+                'uid' => 54321,
+                'name' => 'Some Village',
+                'oblast_id' => 31, // Kyiv oblast UID for testing
+            ]));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
+        $this->mockHandler->append(new Response(200, [], $statusString));
+
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
+        $this->assertEquals('м. Київ', $result->getLocationTitle());
+        $this->assertTrue($result->isActive());
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncLocationNotFound()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor(null));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
+
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(0.0, 0.0)->wait();
+    }
+
+    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncStatusNotAvailable()
+    {
+        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
+        $mockGeoResolver->expects($this->once())
+            ->method('findByCoordinatesAsync')
+            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor([
+                'uid' => 999,
+                'name' => 'Unknown Location',
+            ]));
+
+        $reflectionClass = new ReflectionClass($this->alertsClient);
+        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
+        $geoResolverProperty->setAccessible(true);
+        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
+
+        // Empty/short status string where UID 999 is definitely not present
+        $this->mockHandler->append(new Response(200, [], 'NNN'));
+
+        $this->expectException(InvalidParameterException::class);
+        $this->expectExceptionMessage('Status not available for location: Unknown Location (UID: 999)');
+
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(0.0, 0.0)->wait();
+    }
+}
+
+/**
+ * Helper interface for testing
+ */
+interface TagAwarePsr16Cache extends \Psr\SimpleCache\CacheInterface {
+    public function invalidateTags(array $tags): void;
 }

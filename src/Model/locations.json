@@ -8,6 +8,69 @@
         "district_name": null,
         "osm_id": 421866
     },
+    "6293": {
+        "name": "м. Харків",
+        "type": "city",
+        "oblast_id": 22,
+        "oblast_name": "Харківська область",
+        "district_id": 124,
+        "district_name": "Харківський район",
+        "osm_id": 3154746
+    },
+    "5564": {
+        "name": "м. Запоріжжя",
+        "type": "city",
+        "oblast_id": 12,
+        "oblast_name": "Запорізька область",
+        "district_id": 149,
+        "district_name": "Запорізький район",
+        "osm_id": 1418311
+    },
+    "5351": {
+        "name": "м. Нікополь",
+        "type": "city",
+        "oblast_id": 9,
+        "oblast_name": "Дніпропетровська область",
+        "district_id": 47,
+        "district_name": "Нікопольський район",
+        "osm_id": 2318332
+    },
+    "5349": {
+        "name": "м. Марганець",
+        "type": "city",
+        "oblast_id": 9,
+        "oblast_name": "Дніпропетровська область",
+        "district_id": 47,
+        "district_name": "Нікопольський район",
+        "osm_id": 2762261
+    },
+    "5279": {
+        "name": "м. Кривий Ріг",
+        "type": "city",
+        "oblast_id": 9,
+        "oblast_name": "Дніпропетровська область",
+        "district_id": 46,
+        "district_name": "Криворізький район",
+        "osm_id": 1821193
+    },
+    "5332": {
+        "name": "м. Дніпро",
+        "type": "city",
+        "oblast_id": 9,
+        "oblast_name": "Дніпропетровська область",
+        "district_id": 44,
+        "district_name": "Дніпровський район",
+        "osm_id": 1017311
+    },
+    "5786": {
+        "name": "м. Світловодськ",
+        "type": "city",
+        "oblast_id": 15,
+        "oblast_name": "Кіровоградська область",
+        "district_id": 80,
+        "district_name": "Олександрійський район",
+        "osm_id": 18298365
+    },
     "30": {
         "name": "м. Севастополь",
         "type": "standalone",

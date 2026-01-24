@@ -8,11 +8,11 @@ An `Alert` object contains the following data points:
 
 - **ID**: Unique identifier for the alert.
 - **Location Title**: Human-readable name (e.g., "Полтавська область").
-- **Location Type**: `oblast`, `raion`, `hromada`, or `city`.
+- **Location Type**: `LocationType` enum (`oblast`, `raion`, `hromada`, or `city`).
 - **Location UID**: Unique system ID for the location.
 - **Started At**: DateTime when the alert began.
 - **Finished At**: DateTime when the alert ended (or `null` if active).
-- **Alert Type**: `air_raid` (standard), `artillery_shelling`, `urban_fights`, etc.
+- **Alert Type**: `AlertType` enum (`air_raid`, `artillery_shelling`, `urban_fights`, etc.).
 - **Notes**: Additional context (e.g., "Загроза ракетного удару").
 
 ## Accessor Methods
@@ -22,8 +22,8 @@ An `Alert` object contains the following data points:
 ```php
 public function getId(): int
 public function getLocationTitle(): string
-public function getLocationType(): ?string
-public function getAlertType(): ?string
+public function getLocationType(): LocationType
+public function getAlertType(): AlertType
 public function getNotes(): ?string
 ```
 
@@ -82,11 +82,13 @@ $seconds = $alert->getDurationInSeconds();
 
 ### `isType`
 
-Check the alert category.
+Check the alert category. Supports both `AlertType` enum and raw string values.
 
 ```php
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+
+if ($alert->isType(AlertType::AIR_RAID)) { ... }
 if ($alert->isType('air_raid')) { ... }
-if ($alert->isType('artillery_shelling')) { ... }
 ```
 
 ### `isInLocation`
@@ -101,8 +103,9 @@ if ($alert->isInLocation('Київ')) {
 
 ## JSON Serialization
 
-The class implements `JsonSerializable`, so you can pass it directly to `json_encode()`.
+The class implements `JsonSerializable`, so you can pass it directly to `json_encode()`. Additionally, converting the object to a string via `(string)` or `echo` will return its JSON representation.
 
 ```php
+echo (string) $alert; // Returns JSON string
 echo json_encode($alert);
 ```

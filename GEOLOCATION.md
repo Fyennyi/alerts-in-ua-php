@@ -1,6 +1,6 @@
 # Geo-location Feature
 
-This functionality allows you to get alerts by geographic coordinates.
+This functionality allows you to get alerts by geographic coordinates. It is powered by the `fyennyi/nominatim-async` library and provides truly non-blocking reverse geocoding.
 
 ## Usage
 
@@ -16,12 +16,13 @@ use Fyennyi\AlertsInUa\Client\AlertsClient;
 $client = new AlertsClient('your_api_token');
 
 try {
-    $alerts = $client->getAlertsByCoordinatesAsync(49.9935, 36.2304)->wait();
+    $alerts = $client->getAlertsByCoordinatesAsync(49.8397, 24.0297)->wait(); // Lviv
 
-    echo "Found alerts for location: {$alerts->getDisclaimer()}\n";
+    echo "Last alerts for this area:\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
+        // alert_type is now an AlertType enum
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}\n";
     }
 } catch (\Throwable $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -34,6 +35,7 @@ try {
 <?php
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 
 $client = new AlertsClient('your_api_token');
 
@@ -43,14 +45,39 @@ try {
         30.5234
     )->wait();
 
-    echo "Location: {$status->getLocationTitle()}\n";
-    echo "Status: {$status->getStatus()}\n";
+    echo "Location: {$status->getOblast()}\n";
+    // status is now an AlertStatus enum
+    echo "Status: {$status->getStatus()->value}\n";
 
     if ($status->isActive()) {
-        echo "Air raid alert is ACTIVE!\n";
+        echo "⚠️ AIR RAID ALERT IN YOUR AREA!\n";
     } else {
-        echo "No air raid alert\n";
+        echo "✅ All clear.\n";
     }
+} catch (\Throwable $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+```
+
+### Getting Air Raid Alert Status by Coordinates (Bulk Method)
+
+This method is more efficient when checking status for many coordinates as it retrieves all statuses in a single request and matches the location locally.
+
+```php
+<?php
+
+use Fyennyi\AlertsInUa\Client\AlertsClient;
+
+$client = new AlertsClient('your_api_token');
+
+try {
+    $status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(
+        46.4825, 
+        30.7233
+    )->wait(); // Odesa
+
+    echo "Location: {$status->getLocationTitle()}\n";
+    echo "Status: {$status->getStatus()->value}\n";
 } catch (\Throwable $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }
@@ -58,18 +85,18 @@ try {
 
 ## How it Works
 
-1. **Nominatim API**: Free OpenStreetMap API for reverse geocoding (no key required) with Ukrainian language preference.
+1. **Nominatim API**: Uses the `fyennyi/nominatim-async` client to query OpenStreetMap (Nominatim) for reverse geocoding with Ukrainian language preference.
 2. **Hierarchical Resolution**: The library performs hierarchical reverse geocoding requests to determine the location:
    - **Zoom 10**: Checks if the coordinates belong to a specific city or municipality (hromada) by its OSM Relation ID.
-   - **Zoom 8**: If no hromada is found, it falls back to checking the district (raion) level.
+   - **Zoom 8**: If no hromada is found, it falls back to checking the district level.
    - **Zoom 5**: If no district is found, it falls back to the oblast (state) level.
-3. **OSM ID Matching**: Nominatim's `osm_id` is matched against a local database, ensuring 100% accuracy for supported administrative units.
-4. **Caching**: Geocoding results are cached using the client's PSR-16 cache for 24 hours to stay within Nominatim's rate limits.
+3. **OSM ID Matching**: Nominatim's `osm_id` is matched against a local database (`locations.json`), ensuring 100% accuracy for supported administrative units.
+4. **Caching**: Geocoding results are cached using the client's PSR-16 cache for 24 hours to stay within Nominatim's rate limits and provide instant results for repeated queries.
 
 ## Nominatim Limits
 
-- **1 request/second** (the library uses caching to minimize API calls)
-- Add `User-Agent` with your project name via `AIU_USER_AGENT` environment variable if needed
+- **1 request/second** (the library uses caching and internal rate limiting to stay within safe bounds)
+- Ensure you provide a descriptive `User-Agent` if you are using a custom Guzzle client.
 
 ## Caching
 
@@ -95,4 +122,14 @@ Returns air raid alert status for a location by coordinates.
 - `$lat` – The latitude of the location.
 - `$lon` – The longitude of the location.
 - `$oblast_level_only` – Only oblast-level alerts (default `false`).
+- `$use_cache` – Whether to use cached data (default `false`).
+
+---
+
+### `getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
+
+Returns air raid alert status for a location by coordinates using the bulk status endpoint.
+
+- `$lat` – The latitude of the location.
+- `$lon` – The longitude of the location.
 - `$use_cache` – Whether to use cached data (default `false`).

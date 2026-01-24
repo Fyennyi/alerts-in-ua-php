@@ -26,6 +26,7 @@ namespace Fyennyi\AlertsInUa\Model;
 
 use ArrayAccess;
 use Countable;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
@@ -60,12 +61,13 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
     /**
      * Filter statuses by a specific status value
      *
-     * @param  string  $status  Status to filter by ('no_alert', 'active', 'partly')
+     * @param  AlertStatus|string  $status  Status to filter by
      * @return array<int, AirRaidAlertStatus> Filtered list of status objects
      */
-    public function filterByStatus(string $status) : array
+    public function filterByStatus(AlertStatus|string $status) : array
     {
-        return array_filter($this->statuses, fn (AirRaidAlertStatus $s) => $s->getStatus() === $status);
+        $statusValue = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
+        return array_filter($this->statuses, fn (AirRaidAlertStatus $s) => $s->getStatus() === $statusValue);
     }
 
     /**
@@ -75,7 +77,7 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
      */
     public function getActiveAlertStatuses() : array
     {
-        return $this->filterByStatus('active');
+        return $this->filterByStatus(AlertStatus::ACTIVE);
     }
 
     /**
@@ -85,7 +87,7 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
      */
     public function getPartlyActiveAlertStatuses() : array
     {
-        return $this->filterByStatus('partly');
+        return $this->filterByStatus(AlertStatus::PARTLY);
     }
 
     /**
@@ -95,7 +97,7 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
      */
     public function getNoAlertStatuses() : array
     {
-        return $this->filterByStatus('no_alert');
+        return $this->filterByStatus(AlertStatus::NO_ALERT);
     }
 
     /**
@@ -147,5 +149,20 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
     public function jsonSerialize() : array
     {
         return $this->statuses;
+    }
+
+    /**
+     * Get string representation of the alert statuses
+     *
+     * @return string JSON representation
+     */
+    public function __toString() : string
+    {
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertStatuses to string: ' . $e->getMessage());
+            return '';
+        }
     }
 }

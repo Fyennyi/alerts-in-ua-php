@@ -27,6 +27,8 @@ namespace Fyennyi\AlertsInUa\Model;
 use ArrayIterator;
 use Countable;
 use DateTime;
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
 use IteratorAggregate;
 use JsonSerializable;
@@ -97,7 +99,19 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
                 continue;
             }
 
-            $filtered_alerts = array_filter($filtered_alerts, fn ($alert) => $alert->getProperty($field) == $value);
+            $filtered_alerts = array_filter($filtered_alerts, function ($alert) use ($field, $value) {
+                $property_value = $alert->getProperty($field);
+                
+                // Handle Enum comparison
+                if ($property_value instanceof \BackedEnum) {
+                    if ($value instanceof \BackedEnum) {
+                        return $property_value === $value;
+                    }
+                    return $property_value->value === $value;
+                }
+                
+                return $property_value == $value;
+            });
         }
 
         return array_values($filtered_alerts);
@@ -110,7 +124,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getOblastAlerts() : array
     {
-        return $this->getAlertsByLocationType('oblast');
+        return $this->getAlertsByLocationType(LocationType::OBLAST);
     }
 
     /**
@@ -120,7 +134,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getRaionAlerts() : array
     {
-        return $this->getAlertsByLocationType('raion');
+        return $this->getAlertsByLocationType(LocationType::RAION);
     }
 
     /**
@@ -130,7 +144,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getHromadaAlerts() : array
     {
-        return $this->getAlertsByLocationType('hromada');
+        return $this->getAlertsByLocationType(LocationType::HROMADA);
     }
 
     /**
@@ -140,16 +154,16 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getCityAlerts() : array
     {
-        return $this->getAlertsByLocationType('city');
+        return $this->getAlertsByLocationType(LocationType::CITY);
     }
 
     /**
      * Get alerts by alert type
      *
-     * @param  string  $alert_type  Type of alert to filter by
+     * @param  AlertType|string  $alert_type  Type of alert to filter by
      * @return list<Alert> Filtered alerts
      */
-    public function getAlertsByAlertType(string $alert_type) : array
+    public function getAlertsByAlertType(AlertType|string $alert_type) : array
     {
         return $this->filter('alert_type', $alert_type);
     }
@@ -168,10 +182,10 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
     /**
      * Get alerts by location type
      *
-     * @param  string  $location_type  Location type to filter by
+     * @param  LocationType|string  $location_type  Location type to filter by
      * @return list<Alert> Filtered alerts
      */
-    public function getAlertsByLocationType(string $location_type) : array
+    public function getAlertsByLocationType(LocationType|string $location_type) : array
     {
         return $this->filter('location_type', $location_type);
     }
@@ -212,11 +226,11 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
     /**
      * Get air raid alerts
      *
-     * @return list<Alert> Air raid alerts (alert_type = 'air_raid')
+     * @return list<Alert> Air raid alerts
      */
     public function getAirRaidAlerts() : array
     {
-        return $this->getAlertsByAlertType('air_raid');
+        return $this->getAlertsByAlertType(AlertType::AIR_RAID);
     }
 
     /**
@@ -226,7 +240,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getArtilleryShellingAlerts() : array
     {
-        return $this->getAlertsByAlertType('artillery_shelling');
+        return $this->getAlertsByAlertType(AlertType::ARTILLERY_SHELLING);
     }
 
     /**
@@ -236,7 +250,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getUrbanFightsAlerts() : array
     {
-        return $this->getAlertsByAlertType('urban_fights');
+        return $this->getAlertsByAlertType(AlertType::URBAN_FIGHTS);
     }
 
     /**
@@ -246,7 +260,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getNuclearAlerts() : array
     {
-        return $this->getAlertsByAlertType('nuclear');
+        return $this->getAlertsByAlertType(AlertType::NUCLEAR);
     }
 
     /**
@@ -256,7 +270,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
      */
     public function getChemicalAlerts() : array
     {
-        return $this->getAlertsByAlertType('chemical');
+        return $this->getAlertsByAlertType(AlertType::CHEMICAL);
     }
 
     /**

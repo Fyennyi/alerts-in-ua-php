@@ -24,18 +24,19 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use JsonSerializable;
 
 class AirRaidAlertOblastStatus implements JsonSerializable
 {
     private string $oblast;
 
-    private string $status;
+    private AlertStatus $status;
 
     private const STATUS_MAP = [
-        'A' => 'active',
-        'P' => 'partly',
-        'N' => 'no_alert',
+        'A' => AlertStatus::ACTIVE,
+        'P' => AlertStatus::PARTLY,
+        'N' => AlertStatus::NO_ALERT,
     ];
 
     /**
@@ -48,10 +49,10 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     public function __construct(string $oblast, string $status, bool $oblast_level_only = false)
     {
         $this->oblast = $oblast;
-        $resolved_status = self::STATUS_MAP[$status] ?? 'no_alert';
+        $resolved_status = self::STATUS_MAP[$status] ?? AlertStatus::NO_ALERT;
 
-        if ($resolved_status === 'partly' && $oblast_level_only) {
-            $resolved_status = 'no_alert';
+        if ($resolved_status === AlertStatus::PARTLY && $oblast_level_only) {
+            $resolved_status = AlertStatus::NO_ALERT;
         }
 
         $this->status = $resolved_status;
@@ -70,9 +71,9 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Get alert status
      *
-     * @return string Alert status code
+     * @return AlertStatus Alert status enum
      */
-    public function getStatus() : string
+    public function getStatus() : AlertStatus
     {
         return $this->status;
     }
@@ -80,46 +81,56 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Check if the oblast has an active alert
      *
-     * @return bool
+     * @return bool True if active
      */
     public function isActive() : bool
     {
-        return $this->status === 'active';
+        return $this->status === AlertStatus::ACTIVE;
     }
 
     /**
      * Check if the oblast has a partly active alert
      *
-     * @return bool
+     * @return bool True if partly active
      */
     public function isPartlyActive() : bool
     {
-        return $this->status === 'partly';
+        return $this->status === AlertStatus::PARTLY;
     }
 
     /**
      * Check if the oblast has no alert
      *
-     * @return bool
+     * @return bool True if no alert
      */
     public function isNoAlert() : bool
     {
-        return $this->status === 'no_alert';
-    }
-
-    public function __toString() : string
-    {
-        return sprintf("%s:%s", $this->status, $this->oblast);
+        return $this->status === AlertStatus::NO_ALERT;
     }
 
     /**
-     * @return array<string, string>
+     * Get string representation of the oblast status
+     *
+     * @return string JSON representation
+     */
+    public function __toString() : string
+    {
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertOblastStatus to string: ' . $e->getMessage());
+            return '';
+        }
+    }
+
+    /**
+     * @return array<string, mixed> Data for JSON serialization
      */
     public function jsonSerialize() : array
     {
         return [
             'oblast' => $this->oblast,
-            'status' => $this->status,
+            'status' => $this->status->value,
         ];
     }
 }

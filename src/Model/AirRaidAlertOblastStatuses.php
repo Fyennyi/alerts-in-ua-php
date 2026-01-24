@@ -25,6 +25,7 @@
 namespace Fyennyi\AlertsInUa\Model;
 
 use Countable;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use IteratorAggregate;
 use JsonSerializable;
 
@@ -80,12 +81,13 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     /**
      * Filter statuses by a specific status value
      *
-     * @param  string  $status  Status to filter by ('no_alert', 'active', 'partly')
+     * @param  AlertStatus|string  $status  Status to filter by
      * @return array<int, AirRaidAlertOblastStatus> Filtered list of status objects
      */
-    public function filterByStatus(string $status) : array
+    public function filterByStatus(AlertStatus|string $status) : array
     {
-        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $status);
+        $statusValue = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
+        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $statusValue);
     }
 
     /**
@@ -95,7 +97,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function getActiveAlertOblasts() : array
     {
-        return $this->filterByStatus('active');
+        return $this->filterByStatus(AlertStatus::ACTIVE);
     }
 
     /**
@@ -105,7 +107,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function getPartlyActiveAlertOblasts() : array
     {
-        return $this->filterByStatus('partly');
+        return $this->filterByStatus(AlertStatus::PARTLY);
     }
 
     /**
@@ -115,11 +117,11 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function getNoAlertOblasts() : array
     {
-        return $this->filterByStatus('no_alert');
+        return $this->filterByStatus(AlertStatus::NO_ALERT);
     }
 
     /**
-     * @return \Traversable<int, AirRaidAlertOblastStatus>
+     * @return \Traversable<int, AirRaidAlertOblastStatus> Iterator for oblast statuses
      */
     public function getIterator() : \Traversable
     {
@@ -132,19 +134,25 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     }
 
     /**
-     * @return list<AirRaidAlertOblastStatus>
+     * @return list<AirRaidAlertOblastStatus> Data for JSON serialization
      */
     public function jsonSerialize(): array
     {
         return $this->statuses;
     }
 
+    /**
+     * Get string representation of the oblast statuses
+     *
+     * @return string JSON representation
+     */
     public function __toString() : string
     {
-        $json = json_encode($this->statuses);
-        if (false === $json) {
-            return ''; // Or throw an exception
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertOblastStatuses to string: ' . $e->getMessage());
+            return '';
         }
-        return $json;
     }
 }

@@ -24,13 +24,14 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use JsonSerializable;
 
 class AirRaidAlertStatus implements JsonSerializable
 {
     private string $location_title;
 
-    private string $status;
+    private AlertStatus $status;
 
     private ?int $uid;
 
@@ -38,13 +39,13 @@ class AirRaidAlertStatus implements JsonSerializable
      * AirRaidAlertStatus constructor
      *
      * @param  string  $location_title  The title/name of the location
-     * @param  string  $status  The alert status ('no_alert', 'active', 'partly')
+     * @param  AlertStatus|string  $status  The alert status
      * @param  int|null  $uid  The UID of the location
      */
-    public function __construct(string $location_title, string $status, ?int $uid = null)
+    public function __construct(string $location_title, AlertStatus|string $status, ?int $uid = null)
     {
         $this->location_title = $location_title;
-        $this->status = $status;
+        $this->status = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
         $this->uid = $uid;
     }
 
@@ -61,9 +62,9 @@ class AirRaidAlertStatus implements JsonSerializable
     /**
      * Get the alert status
      *
-     * @return string The alert status
+     * @return AlertStatus The alert status enum
      */
-    public function getStatus() : string
+    public function getStatus() : AlertStatus
     {
         return $this->status;
     }
@@ -79,14 +80,59 @@ class AirRaidAlertStatus implements JsonSerializable
     }
 
     /**
-     * @return array<string, mixed>
+     * Check if the location has an active alert
+     *
+     * @return bool True if active
+     */
+    public function isActive() : bool
+    {
+        return $this->status === AlertStatus::ACTIVE;
+    }
+
+    /**
+     * Check if the location has a partly active alert
+     *
+     * @return bool True if partly active
+     */
+    public function isPartlyActive() : bool
+    {
+        return $this->status === AlertStatus::PARTLY;
+    }
+
+    /**
+     * Check if the location has no alert
+     *
+     * @return bool True if no alert
+     */
+    public function isNoAlert() : bool
+    {
+        return $this->status === AlertStatus::NO_ALERT;
+    }
+
+    /**
+     * @return array<string, mixed> Data for JSON serialization
      */
     public function jsonSerialize() : array
     {
         return [
             'location_title' => $this->location_title,
-            'status' => $this->status,
+            'status' => $this->status->value,
             'uid' => $this->uid,
         ];
+    }
+
+    /**
+     * Get string representation of the alert status
+     *
+     * @return string JSON representation
+     */
+    public function __toString() : string
+    {
+        try {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('Failed to serialize AirRaidAlertStatus to string: ' . $e->getMessage());
+            return '';
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use PHPUnit\Framework\TestCase;
 
 class AirRaidAlertOblastStatusesTest extends TestCase
@@ -17,7 +18,14 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         // All 6 statuses should be included, but their resolved status will be 'active' or 'no_alert'.
         $this->assertCount(6, $statuses->getStatuses());
 
-        $expectedStatuses = ['active', 'no_alert', 'no_alert', 'no_alert', 'active', 'no_alert'];
+        $expectedStatuses = [
+            AlertStatus::ACTIVE,
+            AlertStatus::NO_ALERT,
+            AlertStatus::NO_ALERT,
+            AlertStatus::NO_ALERT,
+            AlertStatus::ACTIVE,
+            AlertStatus::NO_ALERT
+        ];
         foreach ($statuses->getStatuses() as $index => $status) {
             $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $status);
             $this->assertEquals($expectedStatuses[$index], $status->getStatus());
@@ -89,7 +97,7 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $noAlerts = array_values($statuses->getNoAlertOblasts());
         $this->assertCount(22, $noAlerts); // 22 'N's in the data
         $this->assertEquals('Волинська область', $noAlerts[0]->getOblast());
-        $this->assertEquals('no_alert', $noAlerts[0]->getStatus());
+        $this->assertEquals(AlertStatus::NO_ALERT, $noAlerts[0]->getStatus());
     }
 
     public function testGetPartlyActiveAlertOblasts()
@@ -99,7 +107,7 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $partlyAlerts = array_values($statuses->getPartlyActiveAlertOblasts());
         $this->assertCount(1, $partlyAlerts); // 1 'P' in the data
         $this->assertEquals('Харківська область', $partlyAlerts[0]->getOblast());
-        $this->assertEquals('partly', $partlyAlerts[0]->getStatus());
+        $this->assertEquals(AlertStatus::PARTLY, $partlyAlerts[0]->getStatus());
     }
 
     public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
@@ -114,7 +122,16 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $statusesProperty->setAccessible(true);
         $statusesProperty->setValue($statuses, [$realStatus, fopen('php://memory', 'r')]); // Add a resource to the array
 
-        // Assert that __toString() returns an empty string
-        $this->assertEquals('', (string) $statuses);
+        // Temporarily suppress error log output for this test
+        $originalErrorLog = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            // Assert that __toString() returns an empty string
+            $this->assertEquals('', (string) $statuses);
+        } finally {
+            // Restore the original error log setting
+            ini_set('error_log', $originalErrorLog);
+        }
     }
 }

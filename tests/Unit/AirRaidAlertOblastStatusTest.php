@@ -34,13 +34,13 @@ class AirRaidAlertOblastStatusTest extends TestCase
     public function testToString()
     {
         $status = new AirRaidAlertOblastStatus('Тестова область', 'A');
-        $this->assertEquals('active:Тестова область', (string) $status);
+        $this->assertJsonStringEqualsJsonString('{"oblast":"Тестова область","status":"active"}', (string) $status);
 
         $status = new AirRaidAlertOblastStatus('Інша область', 'P');
-        $this->assertEquals('partly:Інша область', (string) $status);
+        $this->assertJsonStringEqualsJsonString('{"oblast":"Інша область","status":"partly"}', (string) $status);
 
         $status = new AirRaidAlertOblastStatus('Третя область', 'N');
-        $this->assertEquals('no_alert:Третя область', (string) $status);
+        $this->assertJsonStringEqualsJsonString('{"oblast":"Третя область","status":"no_alert"}', (string) $status);
     }
 
     public function testOblastLevelOnlyImpact()
@@ -70,5 +70,25 @@ class AirRaidAlertOblastStatusTest extends TestCase
             'status' => 'no_alert', // 'P' becomes 'no_alert' due to oblast_level_only
         ];
         $this->assertEquals($expected, $status->jsonSerialize());
+    }
+
+    public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
+    {
+        $status = new AirRaidAlertOblastStatus('Test', 'A');
+        
+        $reflection = new \ReflectionClass($status);
+        $property = $reflection->getProperty('oblast');
+        $property->setAccessible(true);
+        // Insert invalid UTF-8
+        $property->setValue($status, "\xB1\x31");
+
+        $originalErrorLog = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            $this->assertEquals('', (string)$status);
+        } finally {
+            ini_set('error_log', $originalErrorLog);
+        }
     }
 }

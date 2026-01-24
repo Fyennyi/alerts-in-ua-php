@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use PHPUnit\Framework\TestCase;
 
 class MockAlertTest extends TestCase
@@ -15,6 +16,6 @@ class MockAlertTest extends TestCase
         $alertStatus = new AirRaidAlertOblastStatus($oblast, $status);
 
         $this->assertEquals($oblast, $alertStatus->getOblast());
-        $this->assertEquals('active', $alertStatus->getStatus());
+        $this->assertEquals(AlertStatus::ACTIVE, $alertStatus->getStatus());
     }
 }

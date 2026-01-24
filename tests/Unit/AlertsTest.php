@@ -6,6 +6,8 @@ use ArrayIterator;
 use DateTime;
 use Fyennyi\AlertsInUa\Model\Alert;
 use Fyennyi\AlertsInUa\Model\Alerts;
+use Fyennyi\AlertsInUa\Model\Enum\AlertType;
+use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use PHPUnit\Framework\TestCase;
 
 class AlertsTest extends TestCase
@@ -135,7 +137,7 @@ class AlertsTest extends TestCase
 
         $chemicalAlerts = $this->alerts->getChemicalAlerts();
         $this->assertCount(1, $chemicalAlerts);
-        $this->assertEquals('chemical', $chemicalAlerts[0]->getAlertType());
+        $this->assertEquals(AlertType::CHEMICAL, $chemicalAlerts[0]->getAlertType());
     }
 
     public function testFilteringByLocationType()
@@ -171,7 +173,7 @@ class AlertsTest extends TestCase
     public function testFilteringByMultipleParameters()
     {
         $alerts = $this->alerts;
-        $filteredAlerts = $alerts->filter('alert_type', 'air_raid', 'location_type', 'city');
+        $filteredAlerts = $alerts->filter('alert_type', AlertType::AIR_RAID, 'location_type', LocationType::CITY);
         $this->assertCount(2, $filteredAlerts);
     }
 
