@@ -15,7 +15,7 @@ Run the following command in your terminal:
 composer require fyennyi/alerts-in-ua-php
 ```
 
-## obtaining an API Token
+## Obtaining an API Token
 
 To use this library, you must have a valid API token from **alerts.in.ua**.
 
