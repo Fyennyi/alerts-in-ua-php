@@ -48,7 +48,7 @@ trait GeoLocationTrait
     public function getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false) : PromiseInterface
     {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver($this->cache_manager ?? null, null);
+            $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
         }
 
         /** @var array{uid: int, name: string, matched_by: string}|null $location */
@@ -78,7 +78,7 @@ trait GeoLocationTrait
     public function getAirRaidAlertStatusByCoordinatesAsync(float $lat,float $lon,bool $oblast_level_only = false,bool $use_cache = false) : PromiseInterface
     {
         if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver($this->cache_manager ?? null, null);
+            $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
         }
 
         /** @var array{uid: int, name: string, matched_by: string}|null $location */
