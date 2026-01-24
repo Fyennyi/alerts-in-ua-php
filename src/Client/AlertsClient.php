@@ -76,6 +76,9 @@ class AlertsClient
     /** @var InMemoryRateLimiter Rate limiter instance */
     private InMemoryRateLimiter $rate_limiter;
 
+    /** @var int Minimum interval between identical requests in seconds */
+    private int $request_interval = 5;
+
     /** @var array<string, int> Time-to-live in seconds per request type */
     private array $ttl_config = [
         'active_alerts' => 30,
@@ -245,8 +248,8 @@ class AlertsClient
         $cache_key = $endpoint . $cache_key_suffix;
         $ttl = $this->ttl_config[$type] ?? 300;
 
-        // Configure rate limit: default to 5 seconds per endpoint (key)
-        $this->rate_limiter->configure($cache_key, 5);
+        // Configure rate limit: default to request_interval seconds per endpoint (key)
+        $this->rate_limiter->configure($cache_key, $this->request_interval);
 
         // Prepare tags if adapter supports them
         $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
@@ -281,21 +284,16 @@ class AlertsClient
                     function (ResponseInterface $response) use ($cache_key, $processor) {
                         if (304 === $response->getStatusCode()) {
                             // If 304 Not Modified, we return the cached data.
-                            // However, we are inside the factory function because AsyncCacheManager deemed it a "miss" (or expired).
-                            // We need to retrieve the STALE data from the cache manually to return it.
-                            // Since AsyncCacheManager doesn't pass the stale data, we assume it's still in the backend.
-                            // Note: AsyncCacheManager's internal check might handle stale data if serve_stale_if_limited is used,
-                            // but here we are in the "refresh" path because of TTL expiry.
+                            // Since we are using AsyncCacheManager, the data is stored in a wrapper array with key 'd'.
                             $cached = $this->cache->get($cache_key);
-                            if ($cached !== null) {
+                            if (is_array($cached) && isset($cached['d'])) {
+                                return $cached['d'];
+                            }
+                            
+                            if ($cached !== null && !is_array($cached)) {
                                 return $cached;
                             }
-                            // If for some reason we got 304 but have no data, we have to fail or return something empty?
-                            // This shouldn't happen if logic is correct, but let's be safe.
-                            // Actually if it's 304, it means we sent If-Modified-Since. 
-                            // We only send If-Modified-Since if we found a timestamp.
-                            // Which implies we had data.
-                            // But maybe the data was evicted but timestamp wasn't? Unlikely but possible.
+
                             throw new ApiError('Received 304 Not Modified but no cached data found.');
                         }
 
@@ -406,5 +404,16 @@ class AlertsClient
         if (method_exists($this->cache, 'invalidateTags')) {
             $this->cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
         }
+    }
+
+    /**
+     * Sets the minimum interval between identical API requests
+     * 
+     * @param int $seconds
+     * @return void
+     */
+    public function setRequestInterval(int $seconds): void
+    {
+        $this->request_interval = $seconds;
     }
 }
