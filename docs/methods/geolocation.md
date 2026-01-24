@@ -72,6 +72,30 @@ if ($status->isActive()) {
 }
 ```
 
+---
+
+### `getAirRaidAlertStatusByCoordinatesFromAllAsync`
+
+Gets the *current* status for the coordinates using the bulk status endpoint. This method is more efficient when checking status for many coordinates as it retrieves all statuses in a single request and matches the location locally.
+
+```php
+public function getAirRaidAlertStatusByCoordinatesFromAllAsync(
+    float $lat, 
+    float $lon, 
+    bool $use_cache = false
+): PromiseInterface
+```
+
+**Returns:** A Promise resolving to an [`AirRaidAlertStatus`](air-raid-alert-status.md).
+
+**Example:**
+```php
+$status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(46.4825, 30.7233) // Odesa
+    ->wait();
+
+echo "Status for {$status->getLocationTitle()}: {$status->getStatus()->value}";
+```
+
 ## Important Considerations
 
 !!! warning "Nominatim Rate Limits"
