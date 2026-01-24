@@ -49,10 +49,15 @@ nav:
     - Caching Strategies: methods/caching.md
 
 markdown_extensions:
-  - codehilite
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.tabbed:
       alternate_style: true
   - toc:
