@@ -136,7 +136,7 @@ class NominatimGeoResolver
      *
      * @param  Place  $place  Place object from Nominatim API
      * @param  int  $zoom  The zoom level used for the request
-     * @return array{uid: int, name: string, matched_by: string}|null Matched location info or null
+     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null Matched location info or null
      */
     private function matchByOsmId(Place $place, int $zoom) : ?array
     {
@@ -150,9 +150,11 @@ class NominatimGeoResolver
         foreach ($this->locations as $uid => $location) {
             if (isset($location['osm_id']) && (int) $location['osm_id'] === $osm_id) {
                 return [
-                    'uid' => (int) $uid,
-                    'name' => $location['name'],
-                    'matched_by' => 'osm_id_zoom_' . $zoom
+                    'uid'         => (int) $uid,
+                    'name'        => $location['name'],
+                    'district_id' => $location['district_id'] ?? null,
+                    'oblast_id'   => $location['oblast_id'] ?? null,
+                    'matched_by'  => 'osm_id_zoom_' . $zoom,
                 ];
             }
         }
