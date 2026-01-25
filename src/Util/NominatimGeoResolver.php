@@ -76,89 +76,86 @@ class NominatimGeoResolver
      */
     public function findByCoordinatesAsync(float $lat, float $lon) : PromiseInterface
     {
-        // Strategy: Hierarchical reverse geocoding by zoom levels
-        // Zoom 10 usually gives municipalities/cities (hromadas)
-        // Zoom 8 usually gives districts
-        // Zoom 5 usually gives states/oblasts
-        $zoom_levels = [10, 8, 5];
-
-        return $this->resolveByZoomLevelsAsync($lat, $lon, $zoom_levels);
-    }
-
-    /**
-     * Recursive helper to try different zoom levels asynchronously
-     * 
-     * @param  float  $lat  Latitude
-     * @param  float  $lon  Longitude
-     * @param  int[]  $zooms  Array of zoom levels to try
-     * @return PromiseInterface Promise resolving to location array or null
-     */
-    private function resolveByZoomLevelsAsync(float $lat, float $lon, array $zooms) : PromiseInterface
-    {
-        if (empty($zooms)) {
-            return Create::promiseFor(null);
-        }
-
-        $zoom = array_shift($zooms);
-
+        // Step 1: High precision reverse lookup to get the exact object
         return $this->nominatim->reverse($lat, $lon, [
-            'zoom' => $zoom,
+            'zoom' => 18,
             'addressdetails' => 1,
             'accept-language' => 'uk'
-        ])->then(function (?Place $place) use ($lat, $lon, $zooms, $zoom) {
-            if ($place) {
-                $result = $this->matchByOsmId($place, $zoom);
-                if ($result) {
-                    return $result;
-                }
+        ])->then(function (?Place $place) {
+            if (! $place || ! $place->getOsmId() || ! $place->getOsmType()) {
+                return null;
             }
 
-            return $this->resolveByZoomLevelsAsync($lat, $lon, $zooms);
+            // Step 2: Get detailed hierarchy for this object to find parent administrative boundaries
+            return $this->nominatim->details([
+                'osmtype' => strtoupper(substr($place->getOsmType(), 0, 1)), // N, W, R (Must be uppercase)
+                'osmid' => $place->getOsmId(),
+                'addressdetails' => 1,
+                'accept-language' => 'uk'
+            ])->then(function (Place $detailsPlace) {
+                return $this->matchByAddressHierarchy($detailsPlace);
+            });
         });
     }
 
     /**
-     * Finds a location UID by geographic coordinates (synchronous wrapper)
+     * Matches a location by checking the address hierarchy from specific to general
      *
-     * @param  float  $lat  Latitude
-     * @param  float  $lon  Longitude
-     * @return array{uid: int, name: string, matched_by: string, similarity?: float}|null The matched location data or null if not found
+     * @param  Place  $place  Detailed place object with address components
+     * @return array|null The matched location
      */
-    public function findByCoordinates(float $lat, float $lon) : ?array
+    private function matchByAddressHierarchy(Place $place) : ?array
     {
-        /** @var array{uid: int, name: string, matched_by: string, similarity?: float}|null $result */
-        $result = $this->findByCoordinatesAsync($lat, $lon)->wait();
-        return $result;
+        // 1. Check direct match
+        $match = $this->matchByOsmId($place->getOsmId());
+        if ($match) {
+            return $match;
+        }
+
+        // 2. Check address components
+        $components = $place->getAddressComponents();
+        
+        // Sort by rank_address descending (highest rank = most specific, e.g. House > City > State)
+        usort($components, fn($a, $b) => $b->getRankAddress() <=> $a->getRankAddress());
+
+        foreach ($components as $component) {
+            $osmId = $component->getOsmId();
+            if (! $osmId) {
+                continue;
+            }
+
+            $match = $this->matchByOsmId($osmId);
+            if ($match) {
+                // Enrich match info with source details
+                $match['matched_by'] = 'hierarchy_rank_' . $component->getRankAddress();
+                return $match;
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Matches Nominatim response data to a local location by OSM ID
-     *
-     * @param  Place  $place  Place object from Nominatim API
-     * @param  int  $zoom  The zoom level used for the request
-     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null Matched location info or null
+     * Matches an OSM ID against the local database
+     * 
+     * @param  int|null  $osmId
+     * @return array|null
      */
-    private function matchByOsmId(Place $place, int $zoom) : ?array
+    private function matchByOsmId(?int $osmId) : ?array
     {
-        $osm_id = $place->getOsmId();
-        if ($osm_id === null) {
-            return null;
-        }
-
-        $osm_id = (int) $osm_id;
+        if (! $osmId) return null;
 
         foreach ($this->locations as $uid => $location) {
-            if (isset($location['osm_id']) && (int) $location['osm_id'] === $osm_id) {
+            if (isset($location['osm_id']) && (int) $location['osm_id'] === $osmId) {
                 return [
                     'uid'         => (int) $uid,
                     'name'        => $location['name'],
                     'district_id' => $location['district_id'] ?? null,
                     'oblast_id'   => $location['oblast_id'] ?? null,
-                    'matched_by'  => 'osm_id_zoom_' . $zoom,
+                    'matched_by'  => 'osm_id',
                 ];
             }
         }
-
         return null;
     }
 
