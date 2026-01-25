@@ -37,6 +37,8 @@ use Traversable;
  */
 class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
+    use XmlSerializableTrait;
+
     /** @var array<int, AirRaidAlertStatus> */
     private array $statuses;
 
