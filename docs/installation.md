@@ -4,8 +4,8 @@ The recommended way to install the library is via [Composer](https://getcomposer
 
 ## Requirements
 
-- PHP 8.1 or higher
-- Composer
+- **PHP**: 8.1 or higher.
+- **Composer**: For dependency management.
 
 ## Installation
 
