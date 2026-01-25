@@ -38,6 +38,8 @@ use JsonSerializable;
  */
 class Alerts implements Countable, IteratorAggregate, JsonSerializable
 {
+    use XmlSerializableTrait;
+
     /** @var list<Alert> */
     private array $alerts;
 
