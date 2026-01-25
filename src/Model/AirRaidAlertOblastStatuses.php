@@ -24,6 +24,7 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use ArrayAccess;
 use Countable;
 use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use IteratorAggregate;
@@ -31,8 +32,9 @@ use JsonSerializable;
 
 /**
  * @implements IteratorAggregate<int, AirRaidAlertOblastStatus>
+ * @implements ArrayAccess<int, AirRaidAlertOblastStatus>
  */
-class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSerializable
+class AirRaidAlertOblastStatuses implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     use XmlSerializableTrait;
 
@@ -128,6 +130,26 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     public function getIterator() : \Traversable
     {
         return new \ArrayIterator($this->statuses);
+    }
+
+    public function offsetExists($offset) : bool
+    {
+        return isset($this->statuses[$offset]);
+    }
+
+    public function offsetGet($offset) : ?AirRaidAlertOblastStatus
+    {
+        return $this->statuses[$offset] ?? null;
+    }
+
+    public function offsetSet($offset, $value) : void
+    {
+        // This is a read-only collection
+    }
+
+    public function offsetUnset($offset) : void
+    {
+        // This is a read-only collection
     }
 
     public function count() : int
