@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use PHPUnit\Framework\TestCase;

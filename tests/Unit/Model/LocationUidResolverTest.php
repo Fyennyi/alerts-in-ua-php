@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Model\LocationUidResolver;
@@ -14,7 +14,7 @@ class LocationUidResolverTest extends TestCase
 
     protected function setUp() : void
     {
-        $this->locationsPath = __DIR__ . '/../../src/Model/locations.json';
+        $this->locationsPath = __DIR__ . '/../../../src/Model/locations.json';
         $this->backupPath = $this->locationsPath . '.bak';
 
         if (file_exists($this->locationsPath)) {
@@ -45,7 +45,7 @@ class LocationUidResolverTest extends TestCase
         chmod($this->locationsPath, 000);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Could not read locations data file from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+        $this->expectExceptionMessage("Could not read locations data file from " . realpath(__DIR__ . '/../../../src/Model/locations.json'));
 
         new LocationUidResolver();
     }
@@ -85,7 +85,7 @@ class LocationUidResolverTest extends TestCase
         unlink($this->locationsPath);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Locations data file not found at " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+        $this->expectExceptionMessage("Locations data file not found at " . realpath(__DIR__ . '/../../../src/Model/locations.json'));
 
         new LocationUidResolver();
     }
@@ -95,7 +95,7 @@ class LocationUidResolverTest extends TestCase
         file_put_contents($this->locationsPath, 'this is not valid json');
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Failed to decode locations JSON from " . realpath(__DIR__ . '/../../src/Model/locations.json'));
+        $this->expectExceptionMessage("Failed to decode locations JSON from " . realpath(__DIR__ . '/../../../src/Model/locations.json'));
 
         new LocationUidResolver();
     }

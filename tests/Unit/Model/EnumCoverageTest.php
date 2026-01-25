@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use Fyennyi\AlertsInUa\Model\Enum\AlertType;

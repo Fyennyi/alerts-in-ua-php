@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
 use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
