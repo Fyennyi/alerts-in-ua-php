@@ -316,7 +316,7 @@ Fetches the alert history for the location at the given coordinates.
 
 ---
 
-#### `getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
+#### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
 
 Returns air raid alert status for the location at the given coordinates using the bulk status endpoint.
 
