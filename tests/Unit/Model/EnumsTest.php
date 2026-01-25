@@ -7,7 +7,7 @@ use Fyennyi\AlertsInUa\Model\Enum\AlertType;
 use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use PHPUnit\Framework\TestCase;
 
-class EnumCoverageTest extends TestCase
+class EnumsTest extends TestCase
 {
     public function testAlertStatusNullHandling()
     {
