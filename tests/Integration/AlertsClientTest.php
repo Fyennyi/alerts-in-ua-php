@@ -441,12 +441,7 @@ class AlertsClientTest extends TestCase
     public function testGetAlertsByCoordinatesAsync()
     {
         \VCR\VCR::insertCassette('nominatim_alerts.yaml');
-        // Ensure geo_resolver is not set
-        $reflectionClass = new ReflectionClass($this->alertsClient);
-        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
-        $geoResolverProperty->setAccessible(true);
-        $geoResolverProperty->setValue($this->alertsClient, null);
-
+        
         // Mock alerts response
         $this->mockHandler->append(new Response(200, [], json_encode([
             'alerts' => [[
@@ -492,12 +487,7 @@ class AlertsClientTest extends TestCase
     public function testGetAirRaidAlertStatusByCoordinatesAsync()
     {
         \VCR\VCR::insertCassette('nominatim_status.yaml');
-        $reflectionClass = new ReflectionClass($this->alertsClient);
-        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
-        $geoResolverProperty->setAccessible(true);
-        $geoResolverProperty->setValue($this->alertsClient, null);
 
-        // Position 31 is Kyiv. 'A' means active alert.
         // Position 31 is Kyiv. 'A' means active alert.
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
         $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
@@ -573,6 +563,7 @@ class AlertsClientTest extends TestCase
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
             ->method('findByCoordinatesAsync')
+            ->with(0.0, 0.0)
             ->willReturn(\GuzzleHttp\Promise\Create::promiseFor(null));
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
@@ -581,6 +572,7 @@ class AlertsClientTest extends TestCase
         $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
 
         $this->expectException(InvalidParameterException::class);
+
         $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
 
         $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
