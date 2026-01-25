@@ -139,6 +139,18 @@ try {
 }
 ```
 
+### Exporting to XML
+
+All models and collections can be exported to XML format:
+
+```php
+// Export a single alert
+echo $alert->toXml('alert');
+
+// Export all active alerts
+echo $alerts->toXml('alerts');
+```
+
 ## Asynchronous Operations
 
 The library supports asynchronous operations for better performance when handling multiple requests. You can run multiple API calls concurrently without blocking execution.
