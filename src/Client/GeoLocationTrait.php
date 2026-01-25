@@ -71,20 +71,19 @@ trait GeoLocationTrait
      *
      * @param  float  $lat  Latitude
      * @param  float  $lon  Longitude
-     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
      * @param  bool  $use_cache  Whether to use cached results if available
      * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatus object
      *
      * @throws InvalidParameterException If location not found for coordinates
      */
-    public function getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
+    public function getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $use_cache = false) : PromiseInterface
     {
         if (! isset($this->geo_resolver)) {
             $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
         }
 
         return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
-            function (?array $location) use ($lat, $lon, $oblast_level_only, $use_cache) {
+            function (?array $location) use ($lat, $lon, $use_cache) {
                 if ($location === null || ! isset($location['uid'])) {
                     throw new InvalidParameterException(
                         sprintf('Location not found for coordinates: %.4f, %.4f', $lat, $lon)
@@ -93,11 +92,8 @@ trait GeoLocationTrait
 
                 /** @var int|string $uid */
                 $uid = $location['uid'];
-                return $this->getAirRaidAlertStatusAsync(
-                    $uid,
-                    $oblast_level_only,
-                    $use_cache
-                );
+
+                return $this->getAirRaidAlertStatusAsync($uid, false, $use_cache);
             }
         );
     }
