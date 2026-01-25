@@ -52,7 +52,7 @@ try {
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}\n";
     }
 } catch (\Throwable $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
@@ -71,7 +71,7 @@ try {
 
     foreach ($history->getAllAlerts() as $alert) {
         $status = $alert->isFinished() ? 'Finished' : 'Active';
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()} - {$status}\n";
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()} - {$status}\n";
     }
 } catch (\Throwable $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
