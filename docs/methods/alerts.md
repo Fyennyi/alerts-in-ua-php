@@ -76,8 +76,16 @@ $myRegion = $alerts->getAlertsByLocationUid('12345');
 
 ## Serialization
 
-The class implements `JsonSerializable` and `__toString()`, both returning a JSON representation of the entire collection.
+The class implements `JsonSerializable` and provides a convenient way to export the entire collection to JSON or XML.
 
-```php
-echo (string) $alerts; // JSON string
-```
+=== "XML"
+
+    ```php
+    echo $alerts->toXml('alerts');
+    ```
+
+=== "JSON"
+
+    ```php
+    echo (string) $alerts; // JSON string
+    ```

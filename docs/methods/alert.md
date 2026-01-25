@@ -101,11 +101,19 @@ if ($alert->isInLocation('Київ')) {
 }
 ```
 
-## JSON Serialization
+## JSON & XML Serialization
 
-The class implements `JsonSerializable`, so you can pass it directly to `json_encode()`. Additionally, converting the object to a string via `(string)` or `echo` will return its JSON representation.
+The class implements `JsonSerializable`, so you can pass it directly to `json_encode()`. Additionally, you can export the data to XML format.
 
-```php
-echo (string) $alert; // Returns JSON string
-echo json_encode($alert);
-```
+=== "XML"
+
+    ```php
+    echo $alert->toXml('alert');
+    ```
+
+=== "JSON"
+
+    ```php
+    echo (string) $alert; // Returns JSON string
+    echo json_encode($alert);
+    ```

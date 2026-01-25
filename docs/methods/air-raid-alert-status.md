@@ -33,8 +33,16 @@ public function isNoAlert(): bool
 
 ## Serialization
 
-The class implements `JsonSerializable` and `__toString()`.
+The class implements `JsonSerializable` and supports XML export.
 
-```php
-echo (string) $status; // Returns JSON: {"location_title":"...","status":"...","uid":...}
-```
+=== "XML"
+
+    ```php
+    echo $status->toXml('status');
+    ```
+
+=== "JSON"
+
+    ```php
+    echo (string) $status; // Returns JSON: {"location_title":"...","status":"...","uid":...}
+    ```
