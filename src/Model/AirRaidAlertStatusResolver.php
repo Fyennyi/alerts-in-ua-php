@@ -63,7 +63,7 @@ class AirRaidAlertStatusResolver
 
             if ($status !== 'undefined') {
                 $location_title = $uid_to_location_mapping[$uid] ?? "Локація #{$uid}";
-                $resolved_statuses[] = [
+                $resolved_statuses[$uid] = [
                     'uid' => $uid,
                     'location_title' => $location_title,
                     'status' => $status,
