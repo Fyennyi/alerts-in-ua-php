@@ -116,9 +116,9 @@ class XmlSerializableTraitTest extends TestCase
 
         $xml = $model->toXml();
 
-        $this->assertStringContainsString('<null_val></null_val>', $xml);
+        $this->assertStringContainsString('<null_val/>', $xml);
         $this->assertStringContainsString('<bool_true>1</bool_true>', $xml);
-        $this->assertStringContainsString('<bool_false></bool_false>', $xml);
+        $this->assertStringContainsString('<bool_false/>', $xml);
         $this->assertStringContainsString('<float>1.5</float>', $xml);
     }
 }
