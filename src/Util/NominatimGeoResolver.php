@@ -87,16 +87,16 @@ class NominatimGeoResolver
             }
 
             // Step 2: Get detailed hierarchy for this object to find parent administrative boundaries
-            /** @var string $osmType */
-            $osmType = $place->getOsmType();
+            /** @var string $osm_type */
+            $osm_type = $place->getOsmType();
 
             return $this->nominatim->details([
-                'osmtype' => strtoupper(substr($osmType, 0, 1)), // N, W, R (Must be uppercase)
+                'osmtype' => strtoupper(substr($osm_type, 0, 1)), // N, W, R (Must be uppercase)
                 'osmid' => $place->getOsmId(),
                 'addressdetails' => 1,
                 'accept-language' => 'uk'
-            ])->then(function (Place $detailsPlace) {
-                return $this->matchByAddressHierarchy($detailsPlace);
+            ])->then(function (Place $details_place) {
+                return $this->matchByAddressHierarchy($details_place);
             });
         });
     }
@@ -122,12 +122,12 @@ class NominatimGeoResolver
         usort($components, fn($a, $b) => $b->getRankAddress() <=> $a->getRankAddress());
 
         foreach ($components as $component) {
-            $osmId = $component->getOsmId();
-            if (! $osmId) {
+            $osm_id = $component->getOsmId();
+            if (! $osm_id) {
                 continue;
             }
 
-            $match = $this->matchByOsmId($osmId);
+            $match = $this->matchByOsmId($osm_id);
             if ($match) {
                 // Enrich match info with source details
                 $match['matched_by'] = 'hierarchy_rank_' . $component->getRankAddress();
@@ -141,15 +141,15 @@ class NominatimGeoResolver
     /**
      * Matches an OSM ID against the local database
      * 
-     * @param  int|null  $osmId
+     * @param  int|null  $osm_id
      * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null
      */
-    private function matchByOsmId(?int $osmId) : ?array
+    private function matchByOsmId(?int $osm_id) : ?array
     {
-        if (! $osmId) return null;
+        if (! $osm_id) return null;
 
         foreach ($this->locations as $uid => $location) {
-            if (isset($location['osm_id']) && (int) $location['osm_id'] === $osmId) {
+            if (isset($location['osm_id']) && (int) $location['osm_id'] === $osm_id) {
                 return [
                     'uid'         => (int) $uid,
                     'name'        => $location['name'],
