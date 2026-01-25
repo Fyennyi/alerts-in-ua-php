@@ -29,6 +29,8 @@ use JsonSerializable;
 
 class AirRaidAlertOblastStatus implements JsonSerializable
 {
+    use XmlSerializableTrait;
+
     private string $oblast;
 
     private AlertStatus $status;
