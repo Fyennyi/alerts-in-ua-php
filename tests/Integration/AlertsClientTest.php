@@ -473,7 +473,7 @@ class AlertsClientTest extends TestCase
         $this->alertsClient->getAlertsByCoordinatesAsync(0.0, 0.0)->wait();
     }
 
-    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsync()
+    public function testGetAirRaidAlertStatusByCoordinatesAsync()
     {
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
@@ -497,7 +497,7 @@ class AlertsClientTest extends TestCase
         $this->assertTrue($result->isActive());
     }
 
-    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncByDistrict()
+    public function testGetAirRaidAlertStatusByCoordinatesAsyncByDistrict()
     {
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
@@ -524,7 +524,7 @@ class AlertsClientTest extends TestCase
         $this->assertTrue($result->isActive());
     }
 
-    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncByOblast()
+    public function testGetAirRaidAlertStatusByCoordinatesAsyncByOblast()
     {
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
@@ -551,7 +551,7 @@ class AlertsClientTest extends TestCase
         $this->assertTrue($result->isActive());
     }
 
-    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncLocationNotFound()
+    public function testGetAirRaidAlertStatusByCoordinatesAsyncLocationNotFound()
     {
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
@@ -569,7 +569,7 @@ class AlertsClientTest extends TestCase
         $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
 
-    public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncStatusNotAvailable()
+    public function testGetAirRaidAlertStatusByCoordinatesAsyncStatusNotAvailable()
     {
         $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
         $mockGeoResolver->expects($this->once())
