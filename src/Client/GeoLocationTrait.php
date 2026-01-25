@@ -31,8 +31,8 @@ use Psr\SimpleCache\CacheInterface;
 
 trait GeoLocationTrait
 {
-    /** @var NominatimGeoResolver|null Instance of the geo resolver */
-    private ?NominatimGeoResolver $geo_resolver = null;
+    /** @var NominatimGeoResolver Instance of the geo resolver */
+    private NominatimGeoResolver $geo_resolver;
 
     /**
      * Retrieves alerts for coordinates asynchronously
@@ -47,10 +47,6 @@ trait GeoLocationTrait
      */
     public function getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false) : PromiseInterface
     {
-        if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
-        }
-
         return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
             function (?array $location) use ($lat, $lon, $period, $use_cache) {
                 if ($location === null || ! isset($location['uid'])) {
@@ -67,7 +63,7 @@ trait GeoLocationTrait
     }
 
     /**
-     * Retrieves air raid alert status for coordinates using the bulk status endpoint asynchronously
+     * Retrieves air raid alert status for coordinates asynchronously
      *
      * @param  float  $lat  Latitude
      * @param  float  $lon  Longitude
@@ -78,10 +74,6 @@ trait GeoLocationTrait
      */
     public function getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $use_cache = false) : PromiseInterface
     {
-        if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
-        }
-
         return $this->geo_resolver->findByCoordinatesAsync($lat, $lon)->then(
             function (?array $location) use ($lat, $lon, $use_cache) {
                 if ($location === null || ! isset($location['uid'])) {
