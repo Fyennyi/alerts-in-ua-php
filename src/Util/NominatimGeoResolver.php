@@ -87,8 +87,11 @@ class NominatimGeoResolver
             }
 
             // Step 2: Get detailed hierarchy for this object to find parent administrative boundaries
+            /** @var string $osmType */
+            $osmType = $place->getOsmType();
+
             return $this->nominatim->details([
-                'osmtype' => strtoupper(substr($place->getOsmType(), 0, 1)), // N, W, R (Must be uppercase)
+                'osmtype' => strtoupper(substr($osmType, 0, 1)), // N, W, R (Must be uppercase)
                 'osmid' => $place->getOsmId(),
                 'addressdetails' => 1,
                 'accept-language' => 'uk'
@@ -102,7 +105,7 @@ class NominatimGeoResolver
      * Matches a location by checking the address hierarchy from specific to general
      *
      * @param  Place  $place  Detailed place object with address components
-     * @return array|null The matched location
+     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null The matched location
      */
     private function matchByAddressHierarchy(Place $place) : ?array
     {
@@ -139,7 +142,7 @@ class NominatimGeoResolver
      * Matches an OSM ID against the local database
      * 
      * @param  int|null  $osmId
-     * @return array|null
+     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null
      */
     private function matchByOsmId(?int $osmId) : ?array
     {
