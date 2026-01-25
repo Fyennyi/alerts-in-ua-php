@@ -213,7 +213,7 @@ class AirRaidAlertStatusesTest extends TestCase
     {
         $status = new AirRaidAlertStatus('Test', AlertStatus::ACTIVE, 1);
         $statuses = new AirRaidAlertStatuses([$status]);
-        
+
         $reflection = new \ReflectionClass($statuses);
         $property = $reflection->getProperty('statuses');
         $property->setAccessible(true);

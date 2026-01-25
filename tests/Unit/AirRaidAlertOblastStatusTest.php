@@ -75,7 +75,7 @@ class AirRaidAlertOblastStatusTest extends TestCase
     public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
     {
         $status = new AirRaidAlertOblastStatus('Test', 'A');
-        
+
         $reflection = new \ReflectionClass($status);
         $property = $reflection->getProperty('oblast');
         $property->setAccessible(true);

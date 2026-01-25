@@ -143,7 +143,7 @@ class AlertTest extends TestCase
         $alert = new Alert($this->activeAlertData);
         $this->assertTrue($alert->isType('air_raid'));
         $this->assertFalse($alert->isType('artillery_shelling'));
-        
+
         // Test with Enum object
         $this->assertTrue($alert->isType(AlertType::AIR_RAID));
         $this->assertFalse($alert->isType(AlertType::ARTILLERY_SHELLING));
@@ -243,7 +243,7 @@ class AlertTest extends TestCase
     public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
     {
         $alert = new Alert($this->activeAlertData);
-        
+
         $reflection = new \ReflectionClass($alert);
         $property = $reflection->getProperty('location_title');
         $property->setAccessible(true);

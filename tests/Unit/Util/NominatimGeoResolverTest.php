@@ -117,7 +117,7 @@ class NominatimGeoResolverTest extends TestCase
         $nominatim->method('reverse')->willReturn(Create::promiseFor($place));
 
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath, $nominatim);
-        
+
         // Call the synchronous method which calls wait() internally
         $result = $resolver->findByCoordinates(48.5325, 29.9233);
 

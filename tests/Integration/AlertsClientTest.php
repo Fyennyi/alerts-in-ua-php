@@ -127,7 +127,7 @@ class AlertsClientTest extends TestCase
 
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
         $statuses = $result->getStatuses();
-    
+
         // Basic structure validation
         $this->assertCount(27, $statuses);
         $this->assertEquals(AlertStatus::ACTIVE, $statuses[0]->getStatus());
@@ -297,9 +297,9 @@ class AlertsClientTest extends TestCase
     public function test304HandlingWithMissingCacheThrowsError()
     {
         $lastModified = 'Sat, 15 Jun 2024 15:16:00 GMT';
-        
+
         $this->cache->set('alerts/active.json.last_modified', $lastModified);
-        
+
         // Simulate 304 response
         $this->mockHandler->append(new Response(304, []));
 
@@ -313,21 +313,21 @@ class AlertsClientTest extends TestCase
     {
         $lastModified = 'Sat, 15 Jun 2024 15:16:00 GMT';
         $rawData = 'some raw string data';
-        
+
         $this->cache->set('alerts/active.json.last_modified', $lastModified);
         $this->cache->set('alerts/active.json', $rawData);
-        
+
         $this->mockHandler->append(new Response(304, []));
 
         $result = $this->alertsClient->getActiveAlertsAsync()->wait();
-        
+
         $this->assertEquals($rawData, $result);
     }
 
     public function testClearCacheCallsInvalidateTags()
     {
         $mockCache = $this->createMock(TagAwarePsr16Cache::class);
-            
+
         $mockCache->expects($this->once())
             ->method('invalidateTags')
             ->with(['test-tag']);
@@ -339,7 +339,7 @@ class AlertsClientTest extends TestCase
     public function testClearCacheCallsInvalidateTagsWithArray()
     {
         $mockCache = $this->createMock(TagAwarePsr16Cache::class);
-            
+
         $mockCache->expects($this->once())
             ->method('invalidateTags')
             ->with(['tag1', 'tag2']);
@@ -365,13 +365,13 @@ class AlertsClientTest extends TestCase
     public function testConfigureAndClearCache()
     {
         $this->alertsClient->configureCacheTtl(['active_alerts' => 100]);
-        
+
         $this->mockHandler->append(new Response(200, [], json_encode(['alerts' => []])));
-        
+
         $this->alertsClient->getActiveAlertsAsync(true)->wait();
-        
+
         $this->alertsClient->clearCache('alerts/active.json');
-        
+
         $this->assertTrue(true);
     }
 

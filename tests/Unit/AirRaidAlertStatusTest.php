@@ -70,7 +70,7 @@ class AirRaidAlertStatusTest extends TestCase
     public function testToStringReturnsEmptyStringOnJsonEncodeFailure()
     {
         $status = new AirRaidAlertStatus('Test', AlertStatus::ACTIVE, 1);
-        
+
         $reflection = new \ReflectionClass($status);
         $property = $reflection->getProperty('location_title');
         $property->setAccessible(true);
