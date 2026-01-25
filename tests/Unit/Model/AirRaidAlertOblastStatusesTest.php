@@ -90,6 +90,29 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $this->assertCount(3, iterator_to_array($statuses));
     }
 
+    public function testArrayAccess() : void
+    {
+        $data = 'ANP';
+        $statuses = new AirRaidAlertOblastStatuses($data, false);
+
+        // offsetExists
+        $this->assertTrue(isset($statuses[0]));
+        $this->assertFalse(isset($statuses[99]));
+
+        // offsetGet
+        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $statuses[0]);
+        $this->assertEquals(AlertStatus::ACTIVE, $statuses[0]->getStatus());
+        $this->assertNull($statuses[99]);
+
+        // offsetSet (should not change anything)
+        $statuses[0] = 'new value';
+        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $statuses[0]);
+
+        // offsetUnset (should not change anything)
+        unset($statuses[0]);
+        $this->assertTrue(isset($statuses[0]));
+    }
+
     public function testGetNoAlertOblasts()
     {
         $data = 'ANNNANNNNNNNANNNNNNNNPNNNNA'; // 27 characters

@@ -213,6 +213,26 @@ class AlertsTest extends TestCase
         $this->assertEquals('Test disclaimer', $data['disclaimer']);
     }
 
+    public function testArrayAccess() : void
+    {
+        // offsetExists
+        $this->assertTrue(isset($this->alerts[0]));
+        $this->assertFalse(isset($this->alerts[99]));
+
+        // offsetGet
+        $this->assertInstanceOf(Alert::class, $this->alerts[0]);
+        $this->assertEquals(1, $this->alerts[0]->getLocationUid());
+        $this->assertNull($this->alerts[99]);
+
+        // offsetSet (should not change anything)
+        $this->alerts[0] = 'new value';
+        $this->assertInstanceOf(Alert::class, $this->alerts[0]);
+
+        // offsetUnset (should not change anything)
+        unset($this->alerts[0]);
+        $this->assertTrue(isset($this->alerts[0]));
+    }
+
     public function testToString()
     {
         $string = (string)$this->alerts;
