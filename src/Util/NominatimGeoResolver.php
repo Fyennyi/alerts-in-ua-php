@@ -70,9 +70,9 @@ class NominatimGeoResolver
     /**
      * Finds a location UID by geographic coordinates asynchronously
      *
-     * @param  float  $lat  Latitude
-     * @param  float  $lon  Longitude
-     * @return PromiseInterface Promise that resolves to array{uid: int, name: string, matched_by: string}|null
+     * @param  float  $lat  Latitude of the coordinates
+     * @param  float  $lon  Longitude of the coordinates
+     * @return PromiseInterface Promise that resolves to array{uid: int, name: string, matched_by: string}|null matched location info or null if not found
      */
     public function findByCoordinatesAsync(float $lat, float $lon) : PromiseInterface
     {
@@ -105,7 +105,7 @@ class NominatimGeoResolver
      * Matches a location by checking the address hierarchy from specific to general
      *
      * @param  Place  $place  Detailed place object with address components
-     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null The matched location
+     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null The matched location data or null if not found
      */
     private function matchByAddressHierarchy(Place $place) : ?array
     {
@@ -141,8 +141,8 @@ class NominatimGeoResolver
     /**
      * Matches an OSM ID against the local database
      * 
-     * @param  int|null  $osm_id
-     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null
+     * @param  int|null  $osm_id  The OpenStreetMap ID to match
+     * @return array{uid: int, name: string, district_id: int|null, oblast_id: int|null, matched_by: string}|null Matched location data or null if not found
      */
     private function matchByOsmId(?int $osm_id) : ?array
     {
