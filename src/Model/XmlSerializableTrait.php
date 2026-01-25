@@ -60,6 +60,10 @@ trait XmlSerializableTrait
         foreach ($data as $key => $value) {
             $node_key = is_numeric($key) ? 'item' : (string) $key;
 
+            if ($value instanceof \JsonSerializable) {
+                $value = $value->jsonSerialize();
+            }
+
             if (is_array($value)) {
                 $subnode = $xml->addChild($node_key);
                 $this->arrayToXml($value, $subnode);
