@@ -59,42 +59,56 @@ class NominatimGeoResolverTest extends TestCase
     {
         $place = $this->createMock(Place::class);
         $place->method('getOsmId')->willReturn(12343496);
+        $place->method('getOsmType')->willReturn('relation');
+
+        // Details place (same ID, direct match)
+        $detailsPlace = $this->createMock(Place::class);
+        $detailsPlace->method('getOsmId')->willReturn(12343496);
 
         $nominatim = $this->createMock(NominatimClient::class);
         $nominatim->expects($this->once())
             ->method('reverse')
             ->willReturn(Create::promiseFor($place));
+        
+        $nominatim->expects($this->once())
+            ->method('details')
+            ->willReturn(Create::promiseFor($detailsPlace));
 
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath, $nominatim);
         $result = $resolver->findByCoordinatesAsync(48.5325, 29.9233)->wait();
 
         $this->assertNotNull($result);
         $this->assertEquals(188, $result['uid']);
-        $this->assertEquals('osm_id_zoom_10', $result['matched_by']);
+        $this->assertEquals('osm_id', $result['matched_by']);
     }
 
-    public function testFindByCoordinatesAsyncFallback() : void
+    public function testFindByCoordinatesAsyncHierarchy() : void
     {
-        $placeUnknown = $this->createMock(Place::class);
-        $placeUnknown->method('getOsmId')->willReturn(999);
+        // 1. Building (Unknown ID)
+        $place = $this->createMock(Place::class);
+        $place->method('getOsmId')->willReturn(999999);
+        $place->method('getOsmType')->willReturn('way');
 
-        $placeKnown = $this->createMock(Place::class);
-        $placeKnown->method('getOsmId')->willReturn(11923012);
+        // 2. Hierarchy containing Known District
+        $detailsPlace = $this->createMock(Place::class);
+        $detailsPlace->method('getOsmId')->willReturn(999999);
+
+        $component = $this->createMock(\Fyennyi\Nominatim\Model\AddressComponent::class);
+        $component->method('getOsmId')->willReturn(11923012); // Sumy District
+        $component->method('getRankAddress')->willReturn(8);
+
+        $detailsPlace->method('getAddressComponents')->willReturn([$component]);
 
         $nominatim = $this->createMock(NominatimClient::class);
-        $nominatim->expects($this->exactly(2))
-            ->method('reverse')
-            ->willReturnOnConsecutiveCalls(
-                Create::promiseFor($placeUnknown),
-                Create::promiseFor($placeKnown)
-            );
+        $nominatim->expects($this->once())->method('reverse')->willReturn(Create::promiseFor($place));
+        $nominatim->expects($this->once())->method('details')->willReturn(Create::promiseFor($detailsPlace));
 
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath, $nominatim);
         $result = $resolver->findByCoordinatesAsync(50.0, 30.0)->wait();
 
         $this->assertNotNull($result);
         $this->assertEquals(114, $result['uid']);
-        $this->assertEquals('osm_id_zoom_8', $result['matched_by']);
+        $this->assertEquals('hierarchy_rank_8', $result['matched_by']);
     }
 
     public function testFindByCoordinatesAsyncNoMatch() : void
@@ -106,23 +120,6 @@ class NominatimGeoResolverTest extends TestCase
         $result = $resolver->findByCoordinatesAsync(0.0, 0.0)->wait();
 
         $this->assertNull($result);
-    }
-
-    public function testFindByCoordinatesSyncWrapper() : void
-    {
-        $place = $this->createMock(Place::class);
-        $place->method('getOsmId')->willReturn(12343496);
-
-        $nominatim = $this->createMock(NominatimClient::class);
-        $nominatim->method('reverse')->willReturn(Create::promiseFor($place));
-
-        $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath, $nominatim);
-
-        // Call the synchronous method which calls wait() internally
-        $result = $resolver->findByCoordinates(48.5325, 29.9233);
-
-        $this->assertNotNull($result);
-        $this->assertEquals(188, $result['uid']);
     }
 
     public function testConstructorWithNonExistentLocationsPath() : void
@@ -148,15 +145,12 @@ class NominatimGeoResolverTest extends TestCase
 
     public function testMatchByOsmIdReturnsNullOnMissingId() : void
     {
-        $place = $this->createMock(Place::class);
-        $place->method('getOsmId')->willReturn(null);
-
         $resolver = new NominatimGeoResolver(null, $this->tempLocationsPath);
         $reflection = new \ReflectionClass($resolver);
         $method = $reflection->getMethod('matchByOsmId');
         $method->setAccessible(true);
 
-        $result = $method->invoke($resolver, $place, 10);
+        $result = $method->invoke($resolver, null);
         $this->assertNull($result);
     }
 
