@@ -24,6 +24,7 @@
 
 namespace Fyennyi\AlertsInUa\Model;
 
+use ArrayAccess;
 use ArrayIterator;
 use Countable;
 use DateTime;
@@ -35,8 +36,9 @@ use JsonSerializable;
 
 /**
  * @implements IteratorAggregate<int, Alert>
+ * @implements ArrayAccess<int, Alert>
  */
-class Alerts implements Countable, IteratorAggregate, JsonSerializable
+class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     use XmlSerializableTrait;
 
@@ -313,6 +315,26 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
     public function getIterator() : ArrayIterator
     {
         return new ArrayIterator($this->alerts);
+    }
+
+    public function offsetExists($offset) : bool
+    {
+        return isset($this->alerts[$offset]);
+    }
+
+    public function offsetGet($offset) : ?Alert
+    {
+        return $this->alerts[$offset] ?? null;
+    }
+
+    public function offsetSet($offset, $value) : void
+    {
+        // This is a read-only collection
+    }
+
+    public function offsetUnset($offset) : void
+    {
+        // This is a read-only collection
     }
 
     /**
