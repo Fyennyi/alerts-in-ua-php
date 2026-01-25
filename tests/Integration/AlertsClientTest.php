@@ -34,6 +34,20 @@ class AlertsClientTest extends TestCase
 
     private \Psr\SimpleCache\CacheInterface $cache;
 
+    public static function setUpBeforeClass(): void
+    {
+        \VCR\VCR::configure()
+            ->setCassettePath('tests/fixtures/vcr')
+            ->setStorage('yaml')
+            ->enableLibraryHooks(['curl']);
+        \VCR\VCR::turnOn();
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        \VCR\VCR::turnOff();
+    }
+
     protected function setUp() : void
     {
         $this->mockHandler = new MockHandler();
@@ -44,6 +58,7 @@ class AlertsClientTest extends TestCase
         $this->cache = new \Symfony\Component\Cache\Psr16Cache(new \Symfony\Component\Cache\Adapter\ArrayAdapter());
         $this->alertsClient = new AlertsClient('test_token', $this->cache);
         $this->alertsClient->setRequestInterval(0);
+        $this->alertsClient->setGeoRateLimitInterval(0);
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
@@ -425,6 +440,7 @@ class AlertsClientTest extends TestCase
 
     public function testGetAlertsByCoordinatesAsync()
     {
+        \VCR\VCR::insertCassette('nominatim_alerts.yaml');
         // Ensure geo_resolver is not set
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
@@ -475,6 +491,7 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusByCoordinatesAsync()
     {
+        \VCR\VCR::insertCassette('nominatim_status.yaml');
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
         $geoResolverProperty->setAccessible(true);
