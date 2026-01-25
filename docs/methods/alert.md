@@ -32,7 +32,7 @@ public function getNotes(): ?string
 Get information about the parent region (Oblast) or district (Raion).
 
 ```php
-public function getLocationOblast(): ?string      // e.g., "Київська область"
+public function getLocationOblast(): ?string
 public function getLocationOblastUid(): ?int
 public function getLocationRaion(): ?string
 public function getLocationUid(): ?int
