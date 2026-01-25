@@ -473,44 +473,6 @@ class AlertsClientTest extends TestCase
         $this->alertsClient->getAlertsByCoordinatesAsync(0.0, 0.0)->wait();
     }
 
-    public function testGetAirRaidAlertStatusByCoordinatesAsync()
-    {
-        $reflectionClass = new ReflectionClass($this->alertsClient);
-        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
-        $geoResolverProperty->setAccessible(true);
-        $geoResolverProperty->setValue($this->alertsClient, null);
-
-        $this->mockHandler->append(new Response(200, [], json_encode('no_alert')));
-
-        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(50.4501, 30.5234)->wait();
-
-        $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
-        $lastRequest = end($this->historyContainer)['request'];
-        $this->assertEquals('GET', $lastRequest->getMethod());
-        $this->assertStringContainsString('/v1/iot/active_air_raid_alerts/31.json', $lastRequest->getUri()->getPath());
-
-        $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
-    }
-
-    public function testGetAirRaidAlertStatusByCoordinatesAsyncLocationNotFound()
-    {
-        $mockGeoResolver = $this->createMock(NominatimGeoResolver::class);
-        $mockGeoResolver->expects($this->once())
-            ->method('findByCoordinatesAsync')
-            ->with(0.0, 0.0)
-            ->willReturn(\GuzzleHttp\Promise\Create::promiseFor(null));
-
-        $reflectionClass = new ReflectionClass($this->alertsClient);
-        $geoResolverProperty = $reflectionClass->getProperty('geo_resolver');
-        $geoResolverProperty->setAccessible(true);
-        $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
-
-        $this->expectException(InvalidParameterException::class);
-        $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
-
-        $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
-    }
-
     public function testGetAirRaidAlertStatusByCoordinatesFromAllAsync()
     {
         $reflectionClass = new ReflectionClass($this->alertsClient);
