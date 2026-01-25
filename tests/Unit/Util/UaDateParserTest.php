@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Util;
 
 use DateTime;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
