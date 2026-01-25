@@ -289,7 +289,7 @@ class AlertsClient
                             if (is_array($cached) && isset($cached['d'])) {
                                 return $cached['d'];
                             }
-                            
+
                             if ($cached !== null && !is_array($cached)) {
                                 return $cached;
                             }

@@ -21,7 +21,7 @@
  *
  *
  */
- 
+
 namespace Fyennyi\AlertsInUa\Client;
 
 use Fyennyi\AlertsInUa\Exception\InvalidParameterException;

@@ -62,7 +62,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
             if (! is_array($alert)) {
                 continue;
             }
-            
+
             /** @var array<string, mixed> $alert */
             $this->alerts[] = new Alert($alert);
         }
@@ -101,7 +101,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
 
             $filtered_alerts = array_filter($filtered_alerts, function ($alert) use ($field, $value) {
                 $property_value = $alert->getProperty($field);
-                
+
                 // Handle Enum comparison
                 if ($property_value instanceof \BackedEnum) {
                     if ($value instanceof \BackedEnum) {
@@ -109,7 +109,7 @@ class Alerts implements Countable, IteratorAggregate, JsonSerializable
                     }
                     return $property_value->value === $value;
                 }
-                
+
                 return $property_value == $value;
             });
         }

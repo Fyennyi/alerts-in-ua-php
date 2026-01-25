@@ -21,7 +21,7 @@
  *
  *
  */
- 
+
 namespace Fyennyi\AlertsInUa\Util;
 
 use Fyennyi\Nominatim\Client as NominatimClient;
@@ -63,7 +63,7 @@ class NominatimGeoResolver
         }
         /** @var array<int, array{name: string, type: string, oblast_id: int, oblast_name: string|null, district_id: int|null, district_name: string|null, osm_id: int|null}> $decoded */
         $this->locations = $decoded;
-        
+
         $this->nominatim = $nominatim ?? new NominatimClient(null, $cache);
     }
 
@@ -81,7 +81,7 @@ class NominatimGeoResolver
         // Zoom 8 usually gives districts
         // Zoom 5 usually gives states/oblasts
         $zoom_levels = [10, 8, 5];
-        
+
         return $this->resolveByZoomLevelsAsync($lat, $lon, $zoom_levels);
     }
 

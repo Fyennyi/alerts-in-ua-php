@@ -99,7 +99,7 @@ class LocationUidResolver
         if (! isset($this->uid_to_location[$uid])) {
             throw new InvalidParameterException("Unknown UID: {$uid}");
         }
-        
+
         return $this->uid_to_location[$uid];
     }
 
