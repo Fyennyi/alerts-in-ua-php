@@ -215,7 +215,13 @@ class AlertsClient
     public function getAirRaidAlertStatusesAsync(bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('iot/active_air_raid_alerts.json', $use_cache, function (ResponseInterface $response): AirRaidAlertStatuses {
-            $data = $response->getBody()->getContents();
+            $raw_data = $response->getBody()->getContents();
+            $data = json_decode($raw_data, true);
+            
+            if (! is_string($data)) {
+                return new AirRaidAlertStatuses([]);
+            }
+
             $resolved_statuses = AirRaidAlertStatusResolver::resolveStatusString($data, (new LocationUidResolver())->getUidToLocationMapping());
 
             $statuses = [];
