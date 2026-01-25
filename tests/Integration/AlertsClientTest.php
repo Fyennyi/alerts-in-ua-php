@@ -519,8 +519,9 @@ class AlertsClientTest extends TestCase
         $geoResolverProperty->setValue($this->alertsClient, null);
 
         // Position 31 is Kyiv. 'A' means active alert.
+        // Position 31 is Kyiv. 'A' means active alert.
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
-        $this->mockHandler->append(new Response(200, [], $statusString));
+        $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
 
         $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
 
@@ -550,8 +551,9 @@ class AlertsClientTest extends TestCase
         $geoResolverProperty->setAccessible(true);
         $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
 
+        // Position 31 is Kyiv. 'A' means active alert.
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
-        $this->mockHandler->append(new Response(200, [], $statusString));
+        $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
 
         $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
 
@@ -576,8 +578,9 @@ class AlertsClientTest extends TestCase
         $geoResolverProperty->setAccessible(true);
         $geoResolverProperty->setValue($this->alertsClient, $mockGeoResolver);
 
+        // Position 31 is Kyiv. 'A' means active alert.
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
-        $this->mockHandler->append(new Response(200, [], $statusString));
+        $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
 
         $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
 
