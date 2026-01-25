@@ -42,9 +42,7 @@ trait XmlSerializableTrait
         $data = $this->jsonSerialize();
         $xml = new SimpleXMLElement("<?xml version=\"1.0\" encoding=\"UTF-8\"?><$root_element/>");
 
-        if (is_array($data)) {
-            $this->arrayToXml($data, $xml);
-        }
+        $this->arrayToXml($data, $xml);
 
         return (string) $xml->asXML();
     }
