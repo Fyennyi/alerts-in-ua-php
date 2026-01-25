@@ -76,7 +76,7 @@ trait GeoLocationTrait
      *
      * @throws InvalidParameterException If location not found for coordinates
      */
-    public function getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false) : PromiseInterface
+    public function getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $use_cache = false) : PromiseInterface
     {
         if (! isset($this->geo_resolver)) {
             $this->geo_resolver = new NominatimGeoResolver($this->cache ?? null, null);
