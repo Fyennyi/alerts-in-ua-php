@@ -6,9 +6,9 @@ This functionality is provided by the `GeoLocationTrait` which is automatically 
 
 ## How It Works
 
-1. **Reverse Geocoding**: The client takes coordinates and queries OpenStreetMap (Nominatim) to find the corresponding administrative area (City, Hromada, Raion, or Oblast).
-2. **Matching**: It attempts to match the Nominatim result with the library's internal database of location UIDs (`locations.json`).
-3. **Status Check**: Once the UID is resolved, it acts just like a standard status request.
+1. **High-Precision Reverse Geocoding**: The client takes coordinates and queries OpenStreetMap (Nominatim) at zoom level 18 to identify the specific object at that point.
+2. **Hierarchy Analysis**: It then performs a `details` lookup to retrieve the full administrative hierarchy (Hromada, Raion, Oblast) for the identified object.
+3. **Status Check**: The library matches the OSM IDs from the hierarchy with its internal database (`locations.json`) and retrieves the current alert status for the most specific matched location.
 
 ## Methods
 
@@ -45,12 +45,12 @@ if (count($alerts) > 0) {
 
 ---
 
-### `getAirRaidAlertStatusByCoordinatesFromAllAsync`
+### `getAirRaidAlertStatusByCoordinatesAsync`
 
 Gets the *current* status for the coordinates. This is the most reliable method for checking safety, as it supports granular status checks (communities, districts) by retrieving the full status map.
 
 ```php
-public function getAirRaidAlertStatusByCoordinatesFromAllAsync(
+public function getAirRaidAlertStatusByCoordinatesAsync(
     float $lat, 
     float $lon, 
     bool $use_cache = false
@@ -61,7 +61,7 @@ public function getAirRaidAlertStatusByCoordinatesFromAllAsync(
 
 **Example:**
 ```php
-$status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(48.9226, 24.7111) // Ivano-Frankivsk
+$status = $client->getAirRaidAlertStatusByCoordinatesAsync(48.9226, 24.7111) // Ivano-Frankivsk
     ->wait();
 
 if ($status->isActive()) {
