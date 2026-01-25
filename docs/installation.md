@@ -40,8 +40,8 @@ The recommended way to install the library is via [Composer](https://getcomposer
 To use this library, you must have a valid API token from **alerts.in.ua**.
 
 1. Go to [devs.alerts.in.ua](https://devs.alerts.in.ua/).
-2. Register or log in.
-3. Generate a new API token.
+2. Fill out the application form.
+3. Your personal token will be sent to you via email.
 
 !!! warning "Security"
     Keep your API token secret. Do not commit it to public repositories. Use environment variables (e.g., `.env` files) to store sensitive credentials.
