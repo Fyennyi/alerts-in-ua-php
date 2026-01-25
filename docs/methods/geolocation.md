@@ -45,38 +45,9 @@ if (count($alerts) > 0) {
 
 ---
 
-### `getAirRaidAlertStatusByCoordinatesAsync`
-
-Gets the *current* status for the coordinates. This is ideal for "Is it safe here?" checks.
-
-```php
-public function getAirRaidAlertStatusByCoordinatesAsync(
-    float $lat, 
-    float $lon, 
-    bool $oblast_level_only = false, 
-    bool $use_cache = false
-): PromiseInterface
-```
-
-**Returns:** A Promise resolving to an [`AirRaidAlertOblastStatus`](air-raid-alert-oblast-status.md).
-
-**Example:**
-```php
-$status = $client->getAirRaidAlertStatusByCoordinatesAsync(48.9226, 24.7111) // Ivano-Frankivsk
-    ->wait();
-
-if ($status->isActive()) {
-    echo "⚠️ AIR RAID ALERT IN YOUR AREA!";
-} else {
-    echo "✅ All clear.";
-}
-```
-
----
-
 ### `getAirRaidAlertStatusByCoordinatesFromAllAsync`
 
-Gets the *current* status for the coordinates using the bulk status endpoint. This method is more efficient when checking status for many coordinates as it retrieves all statuses in a single request and matches the location locally.
+Gets the *current* status for the coordinates. This is the most reliable method for checking safety, as it supports granular status checks (communities, districts) by retrieving the full status map.
 
 ```php
 public function getAirRaidAlertStatusByCoordinatesFromAllAsync(
@@ -90,10 +61,14 @@ public function getAirRaidAlertStatusByCoordinatesFromAllAsync(
 
 **Example:**
 ```php
-$status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(46.4825, 30.7233) // Odesa
+$status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(48.9226, 24.7111) // Ivano-Frankivsk
     ->wait();
 
-echo "Status for {$status->getLocationTitle()}: {$status->getStatus()->value}";
+if ($status->isActive()) {
+    echo "⚠️ AIR RAID ALERT IN YOUR AREA: " . $status->getLocationTitle();
+} else {
+    echo "✅ All clear in " . $status->getLocationTitle();
+}
 ```
 
 ## Important Considerations
@@ -101,7 +76,7 @@ echo "Status for {$status->getLocationTitle()}: {$status->getStatus()->value}";
 !!! warning "Nominatim Rate Limits"
     The geocoding relies on the public Nominatim API. While the library caches resolutions for **24 hours**, heavy usage without caching might hit Nominatim's rate limits.
     
-    The resolver automatically attempts different zoom levels (10 -> 8 -> 5) to find a matching administrative unit if the exact point isn't matched.
+    The resolver uses a high-precision `reverse` lookup followed by a `details` query to accurately identify the administrative hierarchy (Community > District > Oblast).
 
 !!! info "Caching"
     Geocoding results are cached aggressively (default: 24h) because administrative boundaries rarely change. This makes subsequent requests for the same (or very close) coordinates extremely fast and network-free.
