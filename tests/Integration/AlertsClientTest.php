@@ -485,7 +485,7 @@ class AlertsClientTest extends TestCase
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
         $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(50.4501, 30.5234)->wait();
 
         $this->assertGreaterThanOrEqual(1, count($this->historyContainer));
         $lastRequest = end($this->historyContainer)['request'];
@@ -517,7 +517,7 @@ class AlertsClientTest extends TestCase
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
         $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(50.4501, 30.5234)->wait();
 
         $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
         $this->assertEquals('м. Київ', $result->getLocationTitle());
@@ -544,7 +544,7 @@ class AlertsClientTest extends TestCase
         $statusString = str_repeat('N', 31) . 'A' . str_repeat('N', 100);
         $this->mockHandler->append(new Response(200, [], json_encode($statusString)));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(50.4501, 30.5234)->wait();
+        $result = $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(50.4501, 30.5234)->wait();
 
         $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatus::class, $result);
         $this->assertEquals('м. Київ', $result->getLocationTitle());
@@ -566,7 +566,7 @@ class AlertsClientTest extends TestCase
         $this->expectException(InvalidParameterException::class);
         $this->expectExceptionMessage('Location not found for coordinates: 0.0000, 0.0000');
 
-        $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(0.0, 0.0)->wait();
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
 
     public function testGetAirRaidAlertStatusByCoordinatesFromAllAsyncStatusNotAvailable()
@@ -590,7 +590,7 @@ class AlertsClientTest extends TestCase
         $this->expectException(InvalidParameterException::class);
         $this->expectExceptionMessage('Status not available for location: Unknown Location (UID: 999)');
 
-        $this->alertsClient->getAirRaidAlertStatusByCoordinatesFromAllAsync(0.0, 0.0)->wait();
+        $this->alertsClient->getAirRaidAlertStatusByCoordinatesAsync(0.0, 0.0)->wait();
     }
 }
 
