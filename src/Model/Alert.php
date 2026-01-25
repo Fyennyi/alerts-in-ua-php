@@ -33,6 +33,8 @@ use JsonSerializable;
 
 class Alert implements JsonSerializable
 {
+    use XmlSerializableTrait;
+
     private int $id;
 
     private string $location_title;
