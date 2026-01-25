@@ -41,7 +41,7 @@ use Fyennyi\AlertsInUa\Client\AlertsClient;
 $client = new AlertsClient('your_api_token');
 
 try {
-    $status = $client->getAirRaidAlertStatusByCoordinatesFromAllAsync(
+    $status = $client->getAirRaidAlertStatusByCoordinatesAsync(
         46.4825, 
         30.7233
     )->wait(); // Odesa
@@ -88,7 +88,7 @@ Fetches the alert history for a location by coordinates.
 
 ---
 
-### `getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
+### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
 
 Returns air raid alert status for a location by coordinates using the bulk status endpoint.
 
