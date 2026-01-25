@@ -39,11 +39,12 @@ trait XmlSerializableTrait
      */
     public function toXml(string $root_element = 'data') : string
     {
-        /** @var array<string, mixed> $data */
         $data = $this->jsonSerialize();
         $xml = new SimpleXMLElement("<?xml version=\"1.0\" encoding=\"UTF-8\"?><$root_element/>");
 
-        $this->arrayToXml($data, $xml);
+        if (is_array($data)) {
+            $this->arrayToXml($data, $xml);
+        }
 
         return (string) $xml->asXML();
     }
@@ -66,9 +67,12 @@ trait XmlSerializableTrait
 
             if (is_array($value)) {
                 $subnode = $xml->addChild($node_key);
-                $this->arrayToXml($value, $subnode);
+                if ($subnode instanceof SimpleXMLElement) {
+                    $this->arrayToXml($value, $subnode);
+                }
             } else {
-                $xml->addChild($node_key, htmlspecialchars((string) ($value ?? '')));
+                $text_value = is_scalar($value) || $value === null ? (string) $value : '';
+                $xml->addChild($node_key, htmlspecialchars($text_value));
             }
         }
     }
