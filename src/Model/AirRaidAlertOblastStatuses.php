@@ -34,7 +34,9 @@ use JsonSerializable;
  */
 class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSerializable
 {
-    /** @var list<AirRaidAlertOblastStatus> */
+    use XmlSerializableTrait;
+
+    /** @var list<AirRaidAlertOblastStatus> Array of status objects */
     private array $statuses;
 
     /**
