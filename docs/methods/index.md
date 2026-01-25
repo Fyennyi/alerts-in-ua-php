@@ -17,15 +17,31 @@ Data is returned as rich objects rather than raw arrays:
 
 1. **Initialize** the client with your token.
 2. **Request** data using one of the `Async` methods.
-3. **Wait** for the results or handle the promise.
-4. **Filter** or process the resulting models.
+3. **Handle the Result**: You can either block execution or use a non-blocking callback.
 
-```php
-$client = new AlertsClient($token);
+=== "Wait Style (Simple)"
 
-// Get all active alerts
-$alerts = $client->getActiveAlertsAsync()->wait();
+    The most common way to use the library. Use `wait()` to block until the request is finished.
 
-// Filter for only air raids in a specific oblast
-$kyivRaids = $alerts->getAlertsByOblast('Київська область');
-```
+    ```php
+    $client = new AlertsClient($token);
+
+    // Blocks execution until results are ready
+    $alerts = $client->getActiveAlertsAsync()->wait();
+
+    // Filter for only air raids in a specific oblast
+    $kyivRaids = $alerts->getAlertsByOblast('Київська область');
+    ```
+
+=== "Async Style (Promises)"
+
+    For performance-critical code or when running multiple requests in parallel.
+
+    ```php
+    $client = new AlertsClient($token);
+
+    $client->getActiveAlertsAsync()->then(function($alerts) {
+        $kyivRaids = $alerts->getAlertsByOblast('Київська область');
+        echo count($kyivRaids) . " alerts in Kyiv.";
+    });
+    ```
