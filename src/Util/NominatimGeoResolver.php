@@ -171,4 +171,15 @@ class NominatimGeoResolver
     {
         return $this->locations;
     }
+
+    /**
+     * Sets the minimum interval between requests for the rate limiter
+     *
+     * @param  int  $seconds  Minimum interval in seconds
+     * @return void
+     */
+    public function setRateLimitInterval(int $seconds) : void
+    {
+        $this->nominatim->setRateLimitInterval($seconds);
+    }
 }

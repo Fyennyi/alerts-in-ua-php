@@ -422,4 +422,18 @@ class AlertsClient
     {
         $this->request_interval = $seconds;
     }
+
+    /**
+     * Sets the minimum interval between Nominatim API requests
+     *
+     * @param  int  $seconds  Minimum interval in seconds
+     * @return void
+     */
+    public function setGeoRateLimitInterval(int $seconds) : void
+    {
+        if (! isset($this->geo_resolver)) {
+            $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver($this->cache);
+        }
+        $this->geo_resolver->setRateLimitInterval($seconds);
+    }
 }
