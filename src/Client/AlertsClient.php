@@ -103,6 +103,7 @@ class AlertsClient
         $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
         $this->rate_limiter = new InMemoryRateLimiter();
         $this->async_cache = new AsyncCacheManager($this->cache, $this->rate_limiter);
+        $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver($this->cache);
     }
 
     /**
@@ -431,9 +432,6 @@ class AlertsClient
      */
     public function setGeoRateLimitInterval(int $seconds) : void
     {
-        if (! isset($this->geo_resolver)) {
-            $this->geo_resolver = new \Fyennyi\AlertsInUa\Util\NominatimGeoResolver($this->cache);
-        }
         $this->geo_resolver->setRateLimitInterval($seconds);
     }
 }
