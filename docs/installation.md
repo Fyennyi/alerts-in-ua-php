@@ -7,13 +7,33 @@ The recommended way to install the library is via [Composer](https://getcomposer
 - PHP 8.1 or higher
 - Composer
 
-## Install via Composer
+## Installation
 
-Run the following command in your terminal:
+=== "Composer (Recommended)"
 
-```bash
-composer require fyennyi/alerts-in-ua-php
-```
+    Run the following command in your terminal:
+
+    ```bash
+    composer require fyennyi/alerts-in-ua-php
+    ```
+
+=== "Git / Manual"
+
+    1. Clone the repository:
+       ```bash
+       git clone https://github.com/Fyennyi/alerts-in-ua-php.git
+       cd alerts-in-ua-php
+       ```
+
+    2. Install dependencies:
+       ```bash
+       composer install
+       ```
+
+    3. Include the autoloader in your project:
+       ```php
+       require_once 'alerts-in-ua-php/vendor/autoload.php';
+       ```
 
 ## Obtaining an API Token
 
