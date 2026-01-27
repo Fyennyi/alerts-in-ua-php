@@ -44,8 +44,8 @@ class AirRaidAlertOblastStatuses implements ArrayAccess, Countable, IteratorAggr
     /**
      * Constructor for AirRaidAlertOblastStatuses
      *
-     * @param  string  $data  Raw status data string
-     * @param  bool  $oblast_level_only  Filter for only oblast level alerts
+     * @param  string  $data               Raw status data string
+     * @param  bool    $oblast_level_only  Filter for only oblast level alerts
      */
     public function __construct(string $data, bool $oblast_level_only)
     {

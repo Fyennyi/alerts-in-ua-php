@@ -33,8 +33,8 @@ class UaDateParser
      * Parse date string to DateTime object with Kyiv timezone
      *
      * @param  string|null  $date_string  Date string to parse
-     * @param  string  $time_format  Expected format of the date string
-     * @return DateTime|null DateTime object in Kyiv timezone or null if parsing fails
+     * @param  string       $time_format  Expected format of the date string
+     * @return DateTime|null              DateTime object in Kyiv timezone or null if parsing fails
      */
     public static function parseDate(?string $date_string, string $time_format = 'Y-m-d\TH:i:s.u\Z') : ?DateTime
     {

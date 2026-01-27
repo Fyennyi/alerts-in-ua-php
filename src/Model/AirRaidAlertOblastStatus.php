@@ -44,9 +44,9 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Constructor for AirRaidAlertOblastStatus
      *
-     * @param  string  $oblast  Oblast name
-     * @param  string  $status  Alert status code
-     * @param  bool  $oblast_level_only  Whether to apply oblast-level filtering
+     * @param  string  $oblast             Oblast name
+     * @param  string  $status             Alert status code
+     * @param  bool    $oblast_level_only  Whether to apply oblast-level filtering
      */
     public function __construct(string $oblast, string $status, bool $oblast_level_only = false)
     {

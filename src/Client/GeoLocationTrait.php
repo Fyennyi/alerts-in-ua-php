@@ -27,7 +27,6 @@ namespace Fyennyi\AlertsInUa\Client;
 use Fyennyi\AlertsInUa\Exception\InvalidParameterException;
 use Fyennyi\AlertsInUa\Util\NominatimGeoResolver;
 use GuzzleHttp\Promise\PromiseInterface;
-use Psr\SimpleCache\CacheInterface;
 
 trait GeoLocationTrait
 {
@@ -37,11 +36,11 @@ trait GeoLocationTrait
     /**
      * Retrieves alerts for coordinates asynchronously
      *
-     * @param  float  $lat  Latitude
-     * @param  float  $lon  Longitude
-     * @param  string  $period  Time period for history (default: 'week_ago')
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
+     * @param  float   $lat        Latitude
+     * @param  float   $lon        Longitude
+     * @param  string  $period     Time period for history (default: 'week_ago')
+     * @param  bool    $use_cache  Whether to use cached results if available
+     * @return PromiseInterface    Promise that resolves to an Alerts object
      *
      * @throws InvalidParameterException If location not found for coordinates
      */
@@ -65,10 +64,10 @@ trait GeoLocationTrait
     /**
      * Retrieves air raid alert status for coordinates asynchronously
      *
-     * @param  float  $lat  Latitude
-     * @param  float  $lon  Longitude
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertStatus object
+     * @param  float  $lat        Latitude
+     * @param  float  $lon        Longitude
+     * @param  bool   $use_cache  Whether to use cached results if available
+     * @return PromiseInterface   Promise that resolves to an AirRaidAlertStatus object
      *
      * @throws InvalidParameterException If location not found for coordinates
      */

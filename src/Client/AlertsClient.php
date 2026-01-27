@@ -1,24 +1,24 @@
 <?php
 
 /*
- * 
+ *
  *     _    _           _       ___       _   _ 
  *    / \  | | ___ _ __| |_ ___|_ _|_ __ | | | | __ _
  *   / _ \ | |/ _ \ '__| __/ __|| || '_ \| | | |/ _` |
  *  / ___ \| |  __/ |  | |_\__ \| || | | | |_| | (_| |
  * /_/   \_\_|\___|_|   \__|___/___|_| |_|\___/ \__,_|
- * 
+ *
  * This program is free software: you can redistribute and/or modify
  * it under the terms of the CSSM Unlimited License v2.0.
- * 
+ *
  * This license permits unlimited use, modification, and distribution
  * for any purpose while maintaining authorship attribution.
- * 
+ *
  * The software is provided "as is" without warranty of any kind.
- * 
+ *
  * @author Serhii Cherneha
  * @link https://chernega.eu.org/
- * 
+ *
  *
  */
 
@@ -52,7 +52,6 @@ use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Psr16Cache;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlertsClient
 {
@@ -91,8 +90,8 @@ class AlertsClient
     /**
      * Constructor for alerts.in.ua API client
      *
-     * @param  string  $token  API token
-     * @param  CacheInterface|null  $cache  Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
+     * @param  string                $token   API token
+     * @param  CacheInterface|null   $cache   Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
      * @param  ClientInterface|null  $client  Optional Guzzle client instance
      */
     public function __construct(string $token, ?CacheInterface $cache = null, ?ClientInterface $client = null)
@@ -110,7 +109,7 @@ class AlertsClient
      * Retrieves active alerts asynchronously
      *
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
+     * @return PromiseInterface  Promise that resolves to an Alerts object
      */
     public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
@@ -129,9 +128,9 @@ class AlertsClient
      * Retrieves alert history for a specific region asynchronously
      *
      * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
-     * @param  string  $period  Time period for history (default: 'week_ago')
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
+     * @param  string      $period                        Time period for history (default: 'week_ago')
+     * @param  bool        $use_cache                     Whether to use cached results if available
+     * @return PromiseInterface                           Promise that resolves to an Alerts object
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
@@ -155,9 +154,9 @@ class AlertsClient
      * Retrieves air raid alert status for a specific region asynchronously
      *
      * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
-     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatus object
+     * @param  bool        $oblast_level_only             Whether to return only oblast-level alerts
+     * @param  bool        $use_cache                     Whether to use cached results if available
+     * @return PromiseInterface                           Promise that resolves to an AirRaidAlertOblastStatus object
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
@@ -184,8 +183,8 @@ class AlertsClient
      * Retrieves air raid alert statuses for all regions asynchronously
      *
      * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatuses object
+     * @param  bool  $use_cache          Whether to use cached results if available
+     * @return PromiseInterface          Promise that resolves to an AirRaidAlertOblastStatuses object
      */
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
@@ -211,7 +210,7 @@ class AlertsClient
      * Retrieves air raid alert statuses for all regions asynchronously
      *
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertStatuses object
+     * @return PromiseInterface  Promise that resolves to an AirRaidAlertStatuses object
      */
     public function getAirRaidAlertStatusesAsync(bool $use_cache = false) : PromiseInterface
     {
@@ -243,12 +242,12 @@ class AlertsClient
      *
      * @template T
      *
-     * @param  string  $endpoint  API endpoint
-     * @param  bool  $use_cache  Whether to use cached results
-     * @param  callable(ResponseInterface): T  $processor  Function to process the response data
-     * @param  string  $type  Cache type identifier
-     * @param  string  $cache_key_suffix  Optional suffix for the cache key
-     * @return PromiseInterface Promise that resolves to the processed result
+     * @param  string                          $endpoint          API endpoint
+     * @param  bool                            $use_cache         Whether to use cached results
+     * @param  callable(ResponseInterface): T  $processor         Function to process the response data
+     * @param  string                          $type              Cache type identifier
+     * @param  string                          $cache_key_suffix  Optional suffix for the cache key
+     * @return PromiseInterface                                   Promise that resolves to the processed result
      */
     private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default', string $cache_key_suffix = '') : PromiseInterface
     {
@@ -297,7 +296,7 @@ class AlertsClient
                                 return $cached['d'];
                             }
 
-                            if ($cached !== null && !is_array($cached)) {
+                            if ($cached !== null && ! is_array($cached)) {
                                 return $cached;
                             }
 
@@ -328,7 +327,7 @@ class AlertsClient
      * Resolves a location identifier to a UID
      *
      * @param  string|int  $identifier  Location identifier (name or UID)
-     * @return int Resolved location UID
+     * @return int                      Resolved location UID
      *
      * @throws InvalidParameterException If the location name cannot be resolved
      */

@@ -217,7 +217,7 @@ class Alert implements JsonSerializable
      * Get property value by name (for backward compatibility)
      *
      * @param  string  $property  Property name
-     * @return mixed Property value
+     * @return mixed              Property value
      */
     public function getProperty(string $property) : mixed
     {
@@ -295,7 +295,7 @@ class Alert implements JsonSerializable
      * Check if alert is of specific type
      *
      * @param  AlertType|string  $type  Alert type to check
-     * @return bool True if alert matches the type
+     * @return bool                     True if alert matches the type
      */
     public function isType(AlertType|string $type) : bool
     {
@@ -310,7 +310,7 @@ class Alert implements JsonSerializable
      * Check if alert is in specific location
      *
      * @param  string  $location  Location name to check
-     * @return bool True if alert is in the specified location
+     * @return bool               True if alert is in the specified location
      */
     public function isInLocation(string $location) : bool
     {

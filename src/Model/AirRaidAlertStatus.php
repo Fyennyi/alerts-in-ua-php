@@ -40,9 +40,9 @@ class AirRaidAlertStatus implements JsonSerializable
     /**
      * AirRaidAlertStatus constructor
      *
-     * @param  string  $location_title  The title/name of the location
-     * @param  AlertStatus|string  $status  The alert status
-     * @param  int|null  $uid  The UID of the location
+     * @param  string              $location_title  The title/name of the location
+     * @param  AlertStatus|string  $status          The alert status
+     * @param  int|null            $uid             The UID of the location
      */
     public function __construct(string $location_title, AlertStatus|string $status, ?int $uid = null)
     {

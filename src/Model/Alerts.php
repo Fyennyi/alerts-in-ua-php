@@ -87,7 +87,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Filter alerts by specified criteria
      *
      * @param  mixed  ...$args  Alternating field names and values to filter by
-     * @return list<Alert> Filtered alerts array
+     * @return list<Alert>      Filtered alerts array
      */
     public function filter(mixed ...$args) : array
     {
@@ -165,7 +165,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Get alerts by alert type
      *
      * @param  AlertType|string  $alert_type  Type of alert to filter by
-     * @return list<Alert> Filtered alerts
+     * @return list<Alert>                    Filtered alerts
      */
     public function getAlertsByAlertType(AlertType|string $alert_type) : array
     {
@@ -176,7 +176,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Get alerts by location title
      *
      * @param  string  $location_title  Location title to filter by
-     * @return list<Alert> Filtered alerts
+     * @return list<Alert>              Filtered alerts
      */
     public function getAlertsByLocationTitle(string $location_title) : array
     {
@@ -187,7 +187,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Get alerts by location type
      *
      * @param  LocationType|string  $location_type  Location type to filter by
-     * @return list<Alert> Filtered alerts
+     * @return list<Alert>                          Filtered alerts
      */
     public function getAlertsByLocationType(LocationType|string $location_type) : array
     {
@@ -198,7 +198,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Get alerts by oblast
      *
      * @param  string  $oblast_title  Oblast title to filter by
-     * @return list<Alert> Filtered alerts
+     * @return list<Alert>            Filtered alerts
      */
     public function getAlertsByOblast(string $oblast_title) : array
     {
@@ -209,7 +209,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Get alerts by oblast UID
      *
      * @param  string  $oblast_uid  Oblast UID to filter by
-     * @return list<Alert> Filtered alerts
+     * @return list<Alert>          Filtered alerts
      */
     public function getAlertsByOblastUid(string $oblast_uid) : array
     {
@@ -220,7 +220,7 @@ class Alerts implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Get alerts by location UID
      *
      * @param  string  $location_uid  Location UID to filter by
-     * @return list<Alert> Filtered alerts
+     * @return list<Alert>            Filtered alerts
      */
     public function getAlertsByLocationUid(string $location_uid) : array
     {

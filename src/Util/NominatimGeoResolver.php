@@ -26,7 +26,6 @@ namespace Fyennyi\AlertsInUa\Util;
 
 use Fyennyi\Nominatim\Client as NominatimClient;
 use Fyennyi\Nominatim\Model\Place;
-use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\SimpleCache\CacheInterface;
 
@@ -41,9 +40,9 @@ class NominatimGeoResolver
     /**
      * Constructor for NominatimGeoResolver
      *
-     * @param  CacheInterface|null  $cache  Optional cache for caching API responses
-     * @param  string|null  $locations_path  Optional path to the locations.json file
-     * @param  NominatimClient|null $nominatim Optional Nominatim client instance
+     * @param  CacheInterface|null  $cache           Optional cache for caching API responses
+     * @param  string|null          $locations_path  Optional path to the locations.json file
+     * @param  NominatimClient|null $nominatim       Optional Nominatim client instance
      *
      * @throws \RuntimeException If the locations file cannot be read or decoded
      */
@@ -117,7 +116,7 @@ class NominatimGeoResolver
 
         // 2. Check address components
         $components = $place->getAddressComponents();
-        
+
         // Sort by rank_address descending (highest rank = most specific, e.g. House > City > State)
         usort($components, fn($a, $b) => $b->getRankAddress() <=> $a->getRankAddress());
 

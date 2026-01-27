@@ -35,7 +35,7 @@ trait XmlSerializableTrait
      * Converts the object to an XML string
      *
      * @param  string  $root_element  The name of the root XML element
-     * @return string XML representation
+     * @return string                 XML representation
      */
     public function toXml(string $root_element = 'data') : string
     {
@@ -51,7 +51,7 @@ trait XmlSerializableTrait
      * Recursively adds array data to a SimpleXMLElement
      *
      * @param  array<string|int, mixed>  $data  The data array
-     * @param  SimpleXMLElement  $xml  The XML element to add to
+     * @param  SimpleXMLElement          $xml   The XML element to add to
      * @return void
      */
     private function arrayToXml(array $data, SimpleXMLElement &$xml) : void
