@@ -6,3 +6,4 @@ phpstan.neon
 clover.xml
 reports/
 coverage-report/
+.php-cs-fixer.cache
