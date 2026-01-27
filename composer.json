@@ -16,7 +16,8 @@
         "mikey179/vfsstream": "^1.6",
         "phpstan/phpstan": "^2.1",
         "php-vcr/php-vcr": "^1.8",
-        "php-vcr/phpunit-testlistener-vcr": "^3.3"
+        "php-vcr/phpunit-testlistener-vcr": "^3.3",
+        "friendsofphp/php-cs-fixer": "^3.93"
     },
     "autoload": {
         "psr-4": {
