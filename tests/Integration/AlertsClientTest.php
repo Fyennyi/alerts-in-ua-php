@@ -43,7 +43,6 @@ class AlertsClientTest extends TestCase
 
         $this->cache = new \Symfony\Component\Cache\Psr16Cache(new \Symfony\Component\Cache\Adapter\ArrayAdapter());
         $this->alertsClient = new AlertsClient('test_token', $this->cache);
-        $this->alertsClient->setRequestInterval(0);
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');

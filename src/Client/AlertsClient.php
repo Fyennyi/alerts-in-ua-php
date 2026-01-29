@@ -42,7 +42,8 @@ use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 use Fyennyi\AsyncCache\AsyncCacheManager;
 use Fyennyi\AsyncCache\CacheOptions;
-use Fyennyi\AsyncCache\RateLimiter\InMemoryRateLimiter;
+use Fyennyi\AsyncCache\Config\AsyncCacheConfig;
+use Fyennyi\AsyncCache\Enum\CacheStrategy;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
@@ -73,12 +74,6 @@ class AlertsClient
     /** @var CacheInterface Underlying PSR-16 cache for direct access */
     private CacheInterface $cache;
 
-    /** @var InMemoryRateLimiter Rate limiter instance */
-    private InMemoryRateLimiter $rate_limiter;
-
-    /** @var int Minimum interval between identical requests in seconds */
-    private int $request_interval = 5;
-
     /** @var array<string, int> Time-to-live in seconds per request type */
     private array $ttl_config = [
         'active_alerts' => 30,
@@ -101,8 +96,8 @@ class AlertsClient
         $this->token = $token;
 
         $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
-        $this->rate_limiter = new InMemoryRateLimiter();
-        $this->async_cache = new AsyncCacheManager($this->cache, $this->rate_limiter);
+        $config = AsyncCacheConfig::builder($this->cache)->build();
+        $this->async_cache = new AsyncCacheManager($config);
     }
 
     /**
@@ -254,18 +249,15 @@ class AlertsClient
         $cache_key = $endpoint . $cache_key_suffix;
         $ttl = $this->ttl_config[$type] ?? 300;
 
-        // Configure rate limit: default to request_interval seconds per endpoint (key)
-        $this->rate_limiter->configure($cache_key, $this->request_interval);
-
         // Prepare tags if adapter supports them
         $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
         $tags = [$sanitized_tag];
 
         $options = new CacheOptions(
             ttl: $ttl,
-            rate_limit_key: $cache_key,
             serve_stale_if_limited: true,
-            force_refresh: !$use_cache,
+            strategy: $use_cache ? CacheStrategy::Strict : CacheStrategy::ForceRefresh,
+            rate_limit_key: $cache_key,
             tags: $tags
         );
 
@@ -410,16 +402,5 @@ class AlertsClient
         if (method_exists($this->cache, 'invalidateTags')) {
             $this->cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
         }
-    }
-
-    /**
-     * Sets the minimum interval between identical API requests
-     * 
-     * @param  int  $seconds  Minimum interval in seconds
-     * @return void
-     */
-    public function setRequestInterval(int $seconds): void
-    {
-        $this->request_interval = $seconds;
     }
 }
