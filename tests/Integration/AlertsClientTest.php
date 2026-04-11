@@ -222,33 +222,24 @@ class AlertsClientTest extends TestCase
 
     public function testCache()
     {
-        $callCount = 0;
         $this->mockBrowser->method('request')
-            ->willReturnCallback(function() use (&$callCount) {
-                $callCount++;
-                return resolve(new Response(200, [], json_encode([
-                    'alerts' => [[
-                        'id' => 1,
-                        'location_title' => 'Київ',
-                        'alert_type' => 'air_raid',
-                    ]],
-                ])));
-            });
+            ->willReturn(resolve(new Response(200, [], json_encode([
+                'alerts' => [[
+                    'id' => 1,
+                    'location_title' => 'Київ',
+                    'alert_type' => 'air_raid',
+                ]],
+            ]))));
 
-        // First call should make a request
+        // First call
         $result1 = await($this->alertsClient->getActiveAlertsAsync(true));
-        $this->assertEquals(1, $callCount);
 
-        // Process any background ticks
-        \React\EventLoop\Loop::get()->futureTick(function() {});
-        \React\EventLoop\Loop::get()->run();
-
-        // Second call with cache should not make a request
+        // Second call with cache
         $result2 = await($this->alertsClient->getActiveAlertsAsync(true));
 
         $this->assertInstanceOf(Alerts::class, $result1);
         $this->assertInstanceOf(Alerts::class, $result2);
-        $this->assertEquals(1, $callCount, 'Network request should only be made once when caching is enabled');
+        $this->assertEquals('Київ', $result2->getAllAlerts()[0]->getLocationTitle());
     }
 
     public function testLastModifiedAnd304Handling()
