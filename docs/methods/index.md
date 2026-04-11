@@ -5,7 +5,7 @@ The **Alerts in UA PHP** library is designed to be intuitive and developer-frien
 ## Core Components
 
 ### [AlertsClient](alerts-client.md)
-The main entry point. Use it to perform all API requests. It supports both synchronous-style usage (via `.wait()`) and true asynchronous flows.
+The main entry point. Use it to perform all API requests. It supports both synchronous-style usage (via `await()`) and true asynchronous flows.
 
 ### [Models](alert.md)
 Data is returned as rich objects rather than raw arrays:
@@ -19,15 +19,17 @@ Data is returned as rich objects rather than raw arrays:
 2. **Request** data using one of the `Async` methods.
 3. **Handle the Result**: You can either block execution or use a non-blocking callback.
 
-=== "Wait Style (Simple)"
+=== "Synchronous Style (Simple)"
 
-    The most common way to use the library. Use `wait()` to block until the request is finished.
+    The most common way to use the library in scripts. Use `await()` to block until the request is finished.
 
     ```php
+    use function React\Async\await;
+
     $client = new AlertsClient($token);
 
     // Blocks execution until results are ready
-    $alerts = $client->getActiveAlertsAsync()->wait();
+    $alerts = await($client->getActiveAlertsAsync());
 
     // Filter for only air raids in a specific oblast
     $kyivRaids = $alerts->getAlertsByOblast('Київська область');

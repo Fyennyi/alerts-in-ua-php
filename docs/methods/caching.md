@@ -20,7 +20,6 @@ The library comes with sensible defaults for Time-To-Live (TTL) values, tailored
 | `air_raid_status` | **15s** | Status checks need to be near real-time. |
 | `air_raid_statuses` | **15s** | Status checks need to be near real-time. |
 | `alerts_history` | **5m (300s)** | History data is relatively static. |
-| `location_resolver` | **24h** | Geo-coordinates to city mappings almost never change. |
 
 ## Customizing TTL
 
@@ -48,5 +47,5 @@ You can manually invalidate cache entries using tags, provided your underlying c
 $client->clearCache('active_alerts');
 
 // Clear everything
-$client->clearCache(['active_alerts', 'alerts_history', 'location_resolver']);
+$client->clearCache(['active_alerts', 'alerts_history', 'air_raid_status']);
 ```
