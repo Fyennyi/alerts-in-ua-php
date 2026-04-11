@@ -440,6 +440,67 @@ class AlertsClientTest extends TestCase
         await($this->alertsClient->getActiveAlertsAsync());
     }
 
-}
+    public function testGetAirRaidAlertStatusesAsync()
+    {
+        $statusString = 'A' . str_repeat('N', 26);
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], json_encode($statusString))));
 
-interface TagAwarePsr16Cache extends \Psr\SimpleCache\CacheInterface { public function invalidateTags(array $tags): void; }
+        $result = await($this->alertsClient->getAirRaidAlertStatusesAsync());
+
+        $this->assertInstanceOf(\Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses::class, $result);
+        $this->assertEquals('active', $result->getStatus(0)->getStatus()->value);
+    }
+
+    public function testLegacyCacheFormat()
+    {
+        // Simulate legacy cache format with 'd' key
+        $legacyData = ['d' => ['alerts' => []]];
+        $this->cache->set('alerts/active.json', $legacyData);
+
+        // Simulate 304 response
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
+
+        $result = await($this->alertsClient->getActiveAlertsAsync());
+        $this->assertInstanceOf(Alerts::class, $result);
+    }
+
+    public function testImmediateResponseProcessing()
+    {
+        // Force the mock to return a Response object that wrap() will pass to the then() block
+        // In this case, wrap() might return the Response if the cache is bypassed or force-refreshed
+        $response = new Response(200, [], json_encode(['alerts' => []]));
+        
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve($response));
+
+        // Use force_refresh to ensure we go through the fetch logic
+        $result = await($this->alertsClient->getActiveAlertsAsync(false));
+        $this->assertInstanceOf(Alerts::class, $result);
+    }
+
+    public function testGetAirRaidAlertStatusesWithInvalidData()
+    {
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], json_encode(123)))); // Not a string
+
+        $result = await($this->alertsClient->getAirRaidAlertStatusesAsync());
+        $this->assertCount(0, $result);
+    }
+
+    public function testGetAirRaidAlertStatusesByOblastWithInvalidData()
+    {
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], json_encode(123)))); // Not a string
+
+        $result = await($this->alertsClient->getAirRaidAlertStatusesByOblastAsync());
+        $this->assertCount(0, $result->getStatuses());
+    }
+
+}
