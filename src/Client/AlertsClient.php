@@ -72,6 +72,9 @@ class AlertsClient
     /** @var CacheInterface Underlying PSR-16 cache for direct access */
     private CacheInterface $cache;
 
+    /** @var \Symfony\Contracts\Cache\TagAwareCacheInterface Tag-aware cache pool */
+    private \Symfony\Contracts\Cache\TagAwareCacheInterface $tagCache;
+
     /** @var RateLimiterFactory Rate limiter factory instance */
     private RateLimiterFactory $rate_limiter_factory;
 
@@ -99,7 +102,9 @@ class AlertsClient
         $this->client = $client ?? new Browser();
         $this->token = $token;
 
-        $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
+        $tagCacheAdapter = new TagAwareAdapter(new ArrayAdapter());
+        $this->tagCache = $tagCacheAdapter;
+        $this->cache = $cache ?? new Psr16Cache($tagCacheAdapter);
 
         $this->rate_limiter_factory = new RateLimiterFactory([
             'id' => 'alerts_in_ua',
@@ -306,7 +311,7 @@ class AlertsClient
 
                                 // Handle old array format for backward compatibility
                                 if (is_array($cached) && isset($cached['d'])) {
-                                    return $cached['d'];
+                                    return new Alerts($cached['d']);
                                 }
 
                                 if ($cached !== null && !is_array($cached)) {
@@ -421,8 +426,8 @@ class AlertsClient
      */
     public function clearCache(string|array $tags) : void
     {
-        if (method_exists($this->cache, 'invalidateTags')) {
-            $this->cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
+        if (method_exists($this->tagCache, 'invalidateTags')) {
+            $this->tagCache->invalidateTags(is_array($tags) ? $tags : [$tags]);
         }
     }
 

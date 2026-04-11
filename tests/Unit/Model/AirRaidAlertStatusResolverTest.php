@@ -12,7 +12,7 @@ class AirRaidAlertStatusResolverTest extends TestCase
         $this->assertEquals('active', AirRaidAlertStatusResolver::resolveStatusChar('A'));
         $this->assertEquals('no_alert', AirRaidAlertStatusResolver::resolveStatusChar('N'));
         $this->assertEquals('partly', AirRaidAlertStatusResolver::resolveStatusChar('P'));
-        $this->assertEquals('undefined', AirRaidAlertStatusResolver::resolveStatusChar('U'));
+        $this->assertEquals('undefined', AirRaidAlertStatusResolver::resolveStatusChar(' '));
         $this->assertEquals('no_alert', AirRaidAlertStatusResolver::resolveStatusChar('X')); // Unknown char
     }
 
@@ -37,7 +37,7 @@ class AirRaidAlertStatusResolverTest extends TestCase
 
     public function testResolveStatusStringWithUndefined()
     {
-        $statusString = 'AU'; // Active, Undefined
+        $statusString = 'A '; // Active, Undefined (space)
         $mapping = [0 => 'Loc 0', 1 => 'Loc 1'];
 
         $result = AirRaidAlertStatusResolver::resolveStatusString($statusString, $mapping);

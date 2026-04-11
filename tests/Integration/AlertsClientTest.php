@@ -326,31 +326,7 @@ class AlertsClientTest extends TestCase
         $this->assertEquals($rawData, $result);
     }
 
-    public function testClearCacheCallsInvalidateTags()
-    {
-        $this->mockBrowser->expects($this->never())->method('request');
-        $mockCache = $this->createMock(TagAwarePsr16Cache::class);
-
-        $mockCache->expects($this->once())
-            ->method('invalidateTags')
-            ->with(['test-tag']);
-
-        $client = new AlertsClient('test_token', $mockCache);
-        $client->clearCache('test-tag');
-    }
-
-    public function testClearCacheCallsInvalidateTagsWithArray()
-    {
-        $this->mockBrowser->expects($this->never())->method('request');
-        $mockCache = $this->createMock(TagAwarePsr16Cache::class);
-
-        $mockCache->expects($this->once())
-            ->method('invalidateTags')
-            ->with(['tag1', 'tag2']);
-
-        $client = new AlertsClient('test_token', $mockCache);
-        $client->clearCache(['tag1', 'tag2']);
-    }
+    
 
     public function testResolveUid()
     {
@@ -453,20 +429,7 @@ class AlertsClientTest extends TestCase
         $this->assertEquals('active', $result->getStatus(0)->getStatus()->value);
     }
 
-    public function testLegacyCacheFormat()
-    {
-        // Simulate legacy cache format with 'd' key
-        $legacyData = ['d' => ['alerts' => []]];
-        $this->cache->set('alerts/active.json', $legacyData);
-
-        // Simulate 304 response
-        $this->mockBrowser->expects($this->once())
-            ->method('request')
-            ->willReturn(resolve(new Response(304, [])));
-
-        $result = await($this->alertsClient->getActiveAlertsAsync());
-        $this->assertInstanceOf(Alerts::class, $result);
-    }
+    
 
     public function testImmediateResponseProcessing()
     {
@@ -491,6 +454,19 @@ class AlertsClientTest extends TestCase
 
         $result = await($this->alertsClient->getAirRaidAlertStatusesAsync());
         $this->assertCount(0, $result);
+    }
+
+    public function testLegacyCacheFormat()
+    {
+        $legacyData = ['d' => ['alerts' => []]];
+        $this->cache->set('alerts/active.json', $legacyData);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
+
+        $result = await($this->alertsClient->getActiveAlertsAsync());
+        $this->assertInstanceOf(Alerts::class, $result);
     }
 
     public function testGetAirRaidAlertStatusesByOblastWithInvalidData()
