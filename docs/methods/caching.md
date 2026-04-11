@@ -40,12 +40,17 @@ The internal rate limiter enforces a minimum interval of **5 seconds** between i
 
 ## Clearing Cache
 
-You can manually invalidate cache entries using tags, provided your underlying cache implementation supports `invalidateTags` (e.g., Symfony's `TagAwareAdapter`).
+Since the client relies on the provided PSR-16 cache implementation, you should manage cache invalidation directly through your cache pool. 
+
+If your underlying cache implementation supports tagging (e.g., Symfony's `TagAwareAdapter`), you can invalidate specific entries using tags corresponding to the request types:
 
 ```php
-// Clear only active alerts cache
-$client->clearCache('active_alerts');
+// Example using Symfony's TagAwareAdapter
+$cachePool->invalidateTags(['active_alerts']);
 
-// Clear everything
-$client->clearCache(['active_alerts', 'alerts_history', 'air_raid_status']);
+// Clear multiple tags
+$cachePool->invalidateTags(['active_alerts', 'alerts_history', 'air_raid_status']);
 ```
+
+> [!NOTE]
+> If you are using a simple PSR-16 cache without tag support, you may need to clear the entire cache pool using `$cachePool->clear();` depending on your setup.
