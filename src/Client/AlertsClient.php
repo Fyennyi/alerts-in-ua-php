@@ -42,7 +42,8 @@ use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 use Fyennyi\AsyncCache\AsyncCacheManager;
 use Fyennyi\AsyncCache\CacheOptions;
-use Fyennyi\AsyncCache\RateLimiter\InMemoryRateLimiter;
+use Fyennyi\AsyncCache\Config\AsyncCacheConfig;
+use Fyennyi\AsyncCache\Enum\CacheStrategy;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
@@ -52,6 +53,8 @@ use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlertsClient
