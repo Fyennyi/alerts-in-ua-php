@@ -72,9 +72,6 @@ class AlertsClient
     /** @var CacheInterface Underlying PSR-16 cache for direct access */
     private CacheInterface $cache;
 
-    /** @var \Symfony\Contracts\Cache\TagAwareCacheInterface Tag-aware cache pool */
-    private \Symfony\Contracts\Cache\TagAwareCacheInterface $tag_cache;
-
     /** @var RateLimiterFactory Rate limiter factory instance */
     private RateLimiterFactory $rate_limiter_factory;
 
@@ -103,7 +100,6 @@ class AlertsClient
         $this->token = $token;
 
         $tag_cache_adapter = new TagAwareAdapter(new ArrayAdapter());
-        $this->tag_cache = $tag_cache_adapter;
         $this->cache = $cache ?? new Psr16Cache($tag_cache_adapter);
 
         $this->rate_limiter_factory = new RateLimiterFactory([
@@ -433,15 +429,9 @@ class AlertsClient
     /**
      * Clears cached items by tag(s)
      *
-     * @param  string|string[]  $tags  A single tag or an array of tags to invalidate
+     * @param  int  $seconds  Minimum interval in seconds
      * @return void
      */
-    public function clearCache(string|array $tags) : void
-    {
-        $this->tag_cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
-    }
-
-    /**
      * Sets the minimum interval between identical API requests
      * 
      * @param  int  $seconds  Minimum interval in seconds

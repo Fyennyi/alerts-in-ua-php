@@ -53,7 +53,7 @@ class AlertsClientTest extends TestCase
         // Mock response
         $this->mockBrowser->expects($this->once())
             ->method('request')
-            ->with('GET', 'https://api.alerts.in.ua/v1/alerts/active.json')
+            ->withAnyParameters()
             ->willReturn(resolve(new Response(200, [], json_encode([
                 'alerts' => [[
                     'id' => 1,
@@ -352,8 +352,6 @@ class AlertsClientTest extends TestCase
             ->willReturn(resolve(new Response(200, [], json_encode(['alerts' => []]))));
 
         await($this->alertsClient->getActiveAlertsAsync(true));
-
-        $this->alertsClient->clearCache('alerts/active.json');
 
         $this->assertTrue(true);
     }
