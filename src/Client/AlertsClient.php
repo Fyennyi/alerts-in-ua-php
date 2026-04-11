@@ -310,7 +310,7 @@ class AlertsClient
                                 }
 
                                 // Handle old array format for backward compatibility
-                                if (is_array($cached) && isset($cached['d'])) {
+                                if (is_array($cached) && isset($cached['d']) && is_array($cached['d'])) {
                                     return new Alerts($cached['d']);
                                 }
 
