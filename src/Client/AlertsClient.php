@@ -92,11 +92,11 @@ class AlertsClient
      *
      * @param  string  $token  API token
      * @param  CacheInterface|null  $cache  Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
-     * @param  ClientInterface|null  $client  Optional Guzzle client instance
+     * @param  Browser|null  $client  Optional ReactPHP Browser instance
      */
-    public function __construct(string $token, ?CacheInterface $cache = null, ?ClientInterface $client = null)
+    public function __construct(string $token, ?CacheInterface $cache = null, ?Browser $client = null)
     {
-        $this->client = $client ?? new Client();
+        $this->client = $client ?? new Browser();
         $this->token = $token;
 
         $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
