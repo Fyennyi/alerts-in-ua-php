@@ -427,13 +427,8 @@ class AlertsClient
     }
 
     /**
-     * Clears cached items by tag(s)
-     *
-     * @param  int  $seconds  Minimum interval in seconds
-     * @return void
-     */
      * Sets the minimum interval between identical API requests
-     * 
+     *
      * @param  int  $seconds  Minimum interval in seconds
      * @return void
      */
