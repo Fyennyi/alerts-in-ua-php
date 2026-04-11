@@ -222,25 +222,29 @@ class AlertsClientTest extends TestCase
 
     public function testCache()
     {
-        // Mock response
-        $this->mockBrowser->expects($this->once())
-            ->method('request')
-            ->willReturn(resolve(new Response(200, [], json_encode([
-                'alerts' => [[
-                    'id' => 1,
-                    'location_title' => 'Київ',
-                    'alert_type' => 'air_raid',
-                ]],
-            ]))));
+        $callCount = 0;
+        $this->mockBrowser->method('request')
+            ->willReturnCallback(function() use (&$callCount) {
+                $callCount++;
+                return resolve(new Response(200, [], json_encode([
+                    'alerts' => [[
+                        'id' => 1,
+                        'location_title' => 'Київ',
+                        'alert_type' => 'air_raid',
+                    ]],
+                ])));
+            });
 
         // First call should make a request
         $result1 = await($this->alertsClient->getActiveAlertsAsync(true));
+        $this->assertEquals(1, $callCount);
 
         // Second call with cache should not make a request
         $result2 = await($this->alertsClient->getActiveAlertsAsync(true));
 
         $this->assertInstanceOf(Alerts::class, $result1);
         $this->assertInstanceOf(Alerts::class, $result2);
+        $this->assertEquals(1, $callCount, 'Network request should only be made once when caching is enabled');
     }
 
     public function testLastModifiedAnd304Handling()
