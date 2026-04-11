@@ -276,7 +276,7 @@ class AlertsClient
             tags: $tags
         );
 
-        return $this->async_cache->wrap(
+        $react_promise = $this->async_cache->wrap(
             $cache_key,
             function () use ($endpoint, $processor, $cache_key) {
                 $headers = [
@@ -334,6 +334,13 @@ class AlertsClient
             },
             $options
         );
+
+        return $react_promise->then(function ($result) use ($processor) {
+            if ($result instanceof ResponseInterface) {
+                return $processor($result);
+            }
+            return $result;
+        });
     }
 
     /**
