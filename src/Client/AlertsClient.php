@@ -76,8 +76,8 @@ class AlertsClient
     /** @var CacheInterface Underlying PSR-16 cache for direct access */
     private CacheInterface $cache;
 
-    /** @var InMemoryRateLimiter Rate limiter instance */
-    private InMemoryRateLimiter $rate_limiter;
+    /** @var RateLimiterFactory Rate limiter factory instance */
+    private RateLimiterFactory $rate_limiter_factory;
 
     /** @var int Minimum interval between identical requests in seconds */
     private int $request_interval = 5;
