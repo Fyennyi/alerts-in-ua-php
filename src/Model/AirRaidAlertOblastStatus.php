@@ -44,16 +44,16 @@ class AirRaidAlertOblastStatus implements JsonSerializable
     /**
      * Constructor for AirRaidAlertOblastStatus
      *
-     * @param  string  $oblast  Oblast name
-     * @param  string  $status  Alert status code
-     * @param  bool  $oblast_level_only  Whether to apply oblast-level filtering
+     * @param string $oblast            Oblast name
+     * @param string $status            Alert status code
+     * @param bool   $oblast_level_only Whether to apply oblast-level filtering
      */
     public function __construct(string $oblast, string $status, bool $oblast_level_only = false)
     {
         $this->oblast = $oblast;
         $resolved_status = self::STATUS_MAP[$status] ?? AlertStatus::NO_ALERT;
 
-        if ($resolved_status === AlertStatus::PARTLY && $oblast_level_only) {
+        if (AlertStatus::PARTLY === $resolved_status && $oblast_level_only) {
             $resolved_status = AlertStatus::NO_ALERT;
         }
 
@@ -87,7 +87,7 @@ class AirRaidAlertOblastStatus implements JsonSerializable
      */
     public function isActive() : bool
     {
-        return $this->status === AlertStatus::ACTIVE;
+        return AlertStatus::ACTIVE === $this->status;
     }
 
     /**
@@ -97,7 +97,7 @@ class AirRaidAlertOblastStatus implements JsonSerializable
      */
     public function isPartlyActive() : bool
     {
-        return $this->status === AlertStatus::PARTLY;
+        return AlertStatus::PARTLY === $this->status;
     }
 
     /**
@@ -107,7 +107,7 @@ class AirRaidAlertOblastStatus implements JsonSerializable
      */
     public function isNoAlert() : bool
     {
-        return $this->status === AlertStatus::NO_ALERT;
+        return AlertStatus::NO_ALERT === $this->status;
     }
 
     /**

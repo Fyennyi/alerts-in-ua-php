@@ -41,7 +41,7 @@ class AirRaidAlertStatusResolverTest extends TestCase
         $mapping = [0 => 'Loc 0', 1 => 'Loc 1'];
 
         $result = AirRaidAlertStatusResolver::resolveStatusString($statusString, $mapping);
-        
+
         $this->assertCount(1, $result);
         $this->assertEquals('active', $result[0]['status']);
         $this->assertArrayNotHasKey(1, $result);
@@ -51,7 +51,7 @@ class AirRaidAlertStatusResolverTest extends TestCase
     {
         $statusString = 'A';
         $result = AirRaidAlertStatusResolver::resolveStatusString($statusString, []);
-        
+
         $this->assertEquals('Локація #0', $result[0]['location_title']);
     }
 }

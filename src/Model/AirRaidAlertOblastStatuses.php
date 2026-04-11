@@ -42,8 +42,8 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     /**
      * Constructor for AirRaidAlertOblastStatuses
      *
-     * @param  string  $data  Raw status data string
-     * @param  bool  $oblast_level_only  Filter for only oblast level alerts
+     * @param string $data              Raw status data string
+     * @param bool   $oblast_level_only Filter for only oblast level alerts
      */
     public function __construct(string $data, bool $oblast_level_only)
     {
@@ -83,7 +83,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     /**
      * Filter statuses by a specific status value
      *
-     * @param  AlertStatus|string  $status  Status to filter by
+     * @param  AlertStatus|string                   $status Status to filter by
      * @return array<int, AirRaidAlertOblastStatus> Filtered list of status objects
      */
     public function filterByStatus(AlertStatus|string $status) : array
@@ -138,7 +138,7 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
     /**
      * @return list<AirRaidAlertOblastStatus> Data for JSON serialization
      */
-    public function jsonSerialize(): array
+    public function jsonSerialize() : array
     {
         return $this->statuses;
     }

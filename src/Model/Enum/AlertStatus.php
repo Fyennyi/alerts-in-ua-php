@@ -29,7 +29,7 @@ use JsonSerializable;
 /**
  * Enumeration of alert statuses
  */
-enum AlertStatus: string implements JsonSerializable
+enum AlertStatus : string implements JsonSerializable
 {
     case ACTIVE = 'active';
     case PARTLY = 'partly';
@@ -37,13 +37,13 @@ enum AlertStatus: string implements JsonSerializable
 
     /**
      * Create from string with fallback to NO_ALERT
-     * 
-     * @param  string|null  $value  Raw string value
+     *
+     * @param  string|null $value Raw string value
      * @return self
      */
     public static function fromString(?string $value) : self
     {
-        if ($value === null) {
+        if (null === $value) {
             return self::NO_ALERT;
         }
 

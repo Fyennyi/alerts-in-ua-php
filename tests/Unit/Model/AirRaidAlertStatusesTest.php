@@ -3,14 +3,13 @@
 namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
-use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
-use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;
-use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use PHPUnit\Framework\TestCase;
 use React\Http\Browser;
 use React\Http\Message\Response;
-
 use function React\Async\await;
 use function React\Promise\resolve;
 
@@ -35,7 +34,7 @@ class AirRaidAlertStatusesTest extends TestCase
     {
         /** @var Browser|\PHPUnit\Framework\MockObject\MockObject $mockBrowser */
         $mockBrowser = $this->createMock(Browser::class);
-        
+
         $response = new Response(200, [], json_encode("A"));
 
         $mockBrowser->expects($this->once())
@@ -43,7 +42,7 @@ class AirRaidAlertStatusesTest extends TestCase
             ->willReturn(resolve($response));
 
         $alertsClient = new AlertsClient('test_token');
-        
+
         $reflectionClass = new \ReflectionClass($alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
         $clientProperty->setAccessible(true);

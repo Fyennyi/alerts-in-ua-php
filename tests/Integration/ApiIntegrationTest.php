@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 use React\Http\Browser;
 use React\Http\Message\Response;
 use ReflectionClass;
-
 use function React\Async\await;
 use function React\Promise\reject;
 use function React\Promise\resolve;
@@ -33,10 +32,10 @@ class ApiIntegrationTest extends TestCase
         // Step 1: Get active alerts
         $alertsResponseJson = file_get_contents(__DIR__ . '/../fixtures/active_alerts.json');
         $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
-        
+
         $this->mockBrowser->expects($this->atLeastOnce())
             ->method('request')
-            ->willReturnCallback(function($method, $url, $headers = []) use ($alertsResponseJson, $historyResponseJson) {
+            ->willReturnCallback(function ($method, $url, $headers = []) use ($alertsResponseJson, $historyResponseJson) {
                 if (str_contains($url, 'alerts/active.json')) {
                     return resolve(new Response(200, [], $alertsResponseJson));
                 }

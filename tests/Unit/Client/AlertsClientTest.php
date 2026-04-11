@@ -8,10 +8,8 @@ use Fyennyi\AlertsInUa\Model\Alerts;
 use PHPUnit\Framework\TestCase;
 use React\Http\Browser;
 use React\Http\Message\Response;
-use React\Promise\Promise;
 use ReflectionClass;
 use ReflectionMethod;
-
 use function React\Async\await;
 use function React\Promise\resolve;
 
@@ -49,9 +47,9 @@ class AlertsClientTest extends TestCase
                 }
             ]
         }';
-        
+
         $response = new Response(200, ['Last-Modified' => date('D, d M Y H:i:s T')], $jsonPayload);
-        
+
         $this->mockBrowser->expects($this->once())
             ->method('request')
             ->willReturn(resolve($response));
@@ -85,7 +83,7 @@ class AlertsClientTest extends TestCase
         // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"alerts": [{"id": 1]}}'; // Malformed JSON
         $response = new Response(200, [], $invalidJsonPayload);
-        
+
         $this->mockBrowser->expects($this->once())
             ->method('request')
             ->willReturn(resolve($response));
@@ -103,7 +101,7 @@ class AlertsClientTest extends TestCase
         // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"history": [{"id": 1]}}'; // Malformed JSON
         $response = new Response(200, [], $invalidJsonPayload);
-        
+
         $this->mockBrowser->expects($this->once())
             ->method('request')
             ->willReturn(resolve($response));
@@ -121,7 +119,7 @@ class AlertsClientTest extends TestCase
         // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"status": [{"id": 1]}}'; // Malformed JSON
         $response = new Response(200, [], $invalidJsonPayload);
-        
+
         $this->mockBrowser->expects($this->once())
             ->method('request')
             ->willReturn(resolve($response));

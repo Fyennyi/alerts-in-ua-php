@@ -36,7 +36,7 @@ class AirRaidAlertStatusResolver
     /**
      * Resolves a single status character to its corresponding status value
      *
-     * @param  string  $status_char  The character from the API response
+     * @param  string $status_char The character from the API response
      * @return string The resolved status value ('no_alert', 'active', or 'partly')
      */
     public static function resolveStatusChar(string $status_char) : string
@@ -48,8 +48,8 @@ class AirRaidAlertStatusResolver
      * Resolves a complete status string to a list of status dictionaries
      * Filters out statuses with 'undefined' status
      *
-     * @param  string  $status_string  The complete status string from the API
-     * @param  array<int, string>  $uid_to_location_mapping  Mapping of UID to location title
+     * @param  string                                                              $status_string           The complete status string from the API
+     * @param  array<int, string>                                                  $uid_to_location_mapping Mapping of UID to location title
      * @return array<int, array{uid: int, location_title: string, status: string}> List of resolved statuses
      */
     public static function resolveStatusString(string $status_string, array $uid_to_location_mapping) : array
@@ -61,7 +61,7 @@ class AirRaidAlertStatusResolver
             $status_char = $status_string[$uid];
             $status = self::resolveStatusChar($status_char);
 
-            if ($status !== 'undefined') {
+            if ('undefined' !== $status) {
                 $location_title = $uid_to_location_mapping[$uid] ?? "Локація #{$uid}";
                 $resolved_statuses[$uid] = [
                     'uid' => $uid,

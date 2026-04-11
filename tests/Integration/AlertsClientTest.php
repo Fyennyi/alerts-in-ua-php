@@ -14,9 +14,7 @@ use PHPUnit\Framework\TestCase;
 use React\Http\Browser;
 use React\Http\Message\Response;
 use React\Http\Message\ResponseException;
-use React\Promise\PromiseInterface;
 use ReflectionClass;
-
 use function React\Async\await;
 use function React\Promise\reject;
 use function React\Promise\resolve;
@@ -182,7 +180,7 @@ class AlertsClientTest extends TestCase
     public function testErrorHandling()
     {
         $response = new Response(401, [], json_encode(['error' => 'Invalid token']));
-        
+
         $this->mockBrowser->expects($this->once())
             ->method('request')
             ->willReturn(reject(new ResponseException($response)));
@@ -269,12 +267,12 @@ class AlertsClientTest extends TestCase
 
         $this->mockBrowser->expects($this->exactly(2))
             ->method('request')
-            ->willReturnCallback(function($method, $url, $headers) use ($lastModified, $responseBody) {
-                if ($url === 'https://api.alerts.in.ua/v1/alerts/active.json') {
+            ->willReturnCallback(function ($method, $url, $headers) use ($lastModified, $responseBody) {
+                if ('https://api.alerts.in.ua/v1/alerts/active.json' === $url) {
                     if (!isset($headers['If-Modified-Since'])) {
                         return resolve(new Response(200, ['Last-Modified' => $lastModified], json_encode($responseBody)));
                     }
-                    
+
                     $this->assertEquals($lastModified, $headers['If-Modified-Since']);
                     return resolve(new Response(304, []));
                 }
@@ -326,7 +324,7 @@ class AlertsClientTest extends TestCase
         $this->assertEquals($rawData, $result);
     }
 
-    
+
 
     public function testResolveUid()
     {
@@ -427,14 +425,14 @@ class AlertsClientTest extends TestCase
         $this->assertEquals('active', $result->getStatus(0)->getStatus()->value);
     }
 
-    
+
 
     public function testImmediateResponseProcessing()
     {
         // Force the mock to return a Response object that wrap() will pass to the then() block
         // In this case, wrap() might return the Response if the cache is bypassed or force-refreshed
         $response = new Response(200, [], json_encode(['alerts' => []]));
-        
+
         $this->mockBrowser->expects($this->once())
             ->method('request')
             ->willReturn(resolve($response));
