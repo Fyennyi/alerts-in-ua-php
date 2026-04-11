@@ -159,7 +159,7 @@ The library natively supports asynchronous operations for better performance. Yo
 
 ### Fetching Multiple Alerts Concurrently
 
-You can use `React\Promise\all()` to handle multiple requests together:
+You can use `React\Promise\all()` combined with `React\Async\await()` to handle multiple requests together efficiently without manually managing the event loop:
 
 ```php
 use function React\Async\await;
@@ -170,7 +170,10 @@ $promises = [
     'history' => $client->getAlertsHistoryAsync('Харківська область', 'month_ago'),
 ];
 
-all($promises)->then(function ($results) {
+try {
+    // Wait for both promises to resolve concurrently
+    $results = await(all($promises));
+
     $alerts = $results['active'];
     $history = $results['history'];
 
@@ -184,7 +187,9 @@ all($promises)->then(function ($results) {
         $status = $alert->isFinished() ? 'Finished' : 'Active';
         echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()} - {$status}\n";
     }
-});
+} catch (\Throwable $e) {
+    echo "Error fetching concurrent alerts: " . $e->getMessage() . "\n";
+}
 ```
 
 ### Filtering Alerts After Asynchronous Retrieval
