@@ -124,7 +124,7 @@ class AlertsClient
     public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('alerts/active.json', $use_cache, function (ResponseInterface $response) {
-            $raw_response_body = $response->getBody()->getContents();
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
@@ -150,7 +150,7 @@ class AlertsClient
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
         return $this->createAsync($url, $use_cache, function (ResponseInterface $response) {
-            $raw_response_body = $response->getBody()->getContents();
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
@@ -177,7 +177,7 @@ class AlertsClient
         $cache_key_suffix = ':oblast_level_only=' . ($oblast_level_only ? 'true' : 'false');
 
         return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid, $oblast_level_only): AirRaidAlertOblastStatus {
-            $raw_response_body = $response->getBody()->getContents();
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_string($data)) {
                 throw new ApiError('Invalid response received');
@@ -201,7 +201,7 @@ class AlertsClient
         $cache_key_suffix = ':oblast_level_only=' . ($oblast_level_only ? 'true' : 'false');
 
         return $this->createAsync('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (ResponseInterface $response) use ($oblast_level_only): AirRaidAlertOblastStatuses {
-            $raw_response_body = $response->getBody()->getContents();
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_string($data)) {
                 return new AirRaidAlertOblastStatuses('', $oblast_level_only);
@@ -225,7 +225,7 @@ class AlertsClient
     public function getAirRaidAlertStatusesAsync(bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('iot/active_air_raid_alerts.json', $use_cache, function (ResponseInterface $response): AirRaidAlertStatuses {
-            $raw_data = $response->getBody()->getContents();
+            $raw_data = (string) $response->getBody();
             $data = json_decode($raw_data, true);
 
             if (! is_string($data)) {
