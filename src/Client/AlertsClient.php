@@ -104,8 +104,19 @@ class AlertsClient
         $this->token = $token;
 
         $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
-        $this->rate_limiter = new InMemoryRateLimiter();
-        $this->async_cache = new AsyncCacheManager($this->cache, $this->rate_limiter);
+
+        $this->rate_limiter_factory = new RateLimiterFactory([
+            'id' => 'alerts_in_ua',
+            'policy' => 'fixed_window',
+            'limit' => 1,
+            'interval' => $this->request_interval . ' seconds',
+        ], new InMemoryStorage());
+
+        $config = AsyncCacheConfig::builder($this->cache)
+            ->withRateLimiter($this->rate_limiter_factory)
+            ->build();
+
+        $this->async_cache = new AsyncCacheManager($config);
     }
 
     /**
