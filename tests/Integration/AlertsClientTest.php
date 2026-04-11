@@ -458,7 +458,7 @@ class AlertsClientTest extends TestCase
 
     public function testLegacyCacheFormat()
     {
-        $legacyData = ['d' => ['alerts' => []]];
+        $legacyData = json_encode(['alerts' => []]);
         $this->cache->set('alerts/active.json', $legacyData);
 
         $this->mockBrowser->expects($this->once())

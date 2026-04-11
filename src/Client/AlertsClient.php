@@ -309,9 +309,24 @@ class AlertsClient
                                     return $cached->data;
                                 }
 
-                                // Handle old array format for backward compatibility
-                                if (is_array($cached) && isset($cached['d']) && is_array($cached['d'])) {
-                                    return new Alerts($cached['d']);
+                                // Handle old string format for backward compatibility
+                                if (is_string($cached)) {
+                                    // Try to parse as JSON, if fails return raw data
+                                    $decoded = json_decode($cached, true);
+                                    if (json_last_error() === JSON_ERROR_NONE) {
+                                        return $processor(new \React\Http\Message\Response(200, ['Content-Type' => 'application/json'], $cached));
+                                    }
+                                    // Non-JSON cached data - return raw
+                                    return $cached;
+                                }
+
+                                // Handle legacy array format for backward compatibility
+                                if (is_array($cached) && isset($cached['d'])) {
+                                    $cached_body = json_encode($cached['d']);
+                                    if (false === $cached_body) {
+                                        throw new ApiError('Failed to restore cached response body from legacy cache format.');
+                                    }
+                                    return $processor(new \React\Http\Message\Response(200, ['Content-Type' => 'application/json'], $cached_body));
                                 }
 
                                 if ($cached !== null && !is_array($cached)) {
