@@ -239,6 +239,10 @@ class AlertsClientTest extends TestCase
         $result1 = await($this->alertsClient->getActiveAlertsAsync(true));
         $this->assertEquals(1, $callCount);
 
+        // Process any background ticks
+        \React\EventLoop\Loop::get()->futureTick(function() {});
+        \React\EventLoop\Loop::get()->run();
+
         // Second call with cache should not make a request
         $result2 = await($this->alertsClient->getActiveAlertsAsync(true));
 
