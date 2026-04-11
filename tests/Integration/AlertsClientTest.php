@@ -13,10 +13,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use React\Http\Browser;
 use React\Http\Message\Response;
+use React\Http\Message\ResponseException;
 use React\Promise\PromiseInterface;
 use ReflectionClass;
 
 use function React\Async\await;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 
 class AlertsClientTest extends TestCase
@@ -32,7 +34,11 @@ class AlertsClientTest extends TestCase
     {
         $this->mockBrowser = $this->createMock(Browser::class);
 
-        $this->cache = new \Symfony\Component\Cache\Psr16Cache(new \Symfony\Component\Cache\Adapter\ArrayAdapter());
+        $this->cache = new \Symfony\Component\Cache\Psr16Cache(
+            new \Symfony\Component\Cache\Adapter\TagAwareAdapter(
+                new \Symfony\Component\Cache\Adapter\ArrayAdapter()
+            )
+        );
         $this->alertsClient = new AlertsClient('test_token', $this->cache);
         $this->alertsClient->setRequestInterval(0);
 
@@ -45,25 +51,22 @@ class AlertsClientTest extends TestCase
     public function testGetActiveAlerts()
     {
         // Mock response
-        $this->mockHandler->append(new Response(200, [], json_encode([
-            'alerts' => [[
-                'id' => 1,
-                'location_title' => 'Київ',
-                'location_type' => 'city',
-                'started_at' => '2023-01-02T10:15:30.000Z',
-                'alert_type' => 'air_raid',
-            ]],
-            'meta' => ['last_updated_at' => '2023-01-02T11:30:00.000Z'],
-        ])));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/alerts/active.json')
+            ->willReturn(resolve(new Response(200, [], json_encode([
+                'alerts' => [[
+                    'id' => 1,
+                    'location_title' => 'Київ',
+                    'location_type' => 'city',
+                    'started_at' => '2023-01-02T10:15:30.000Z',
+                    'alert_type' => 'air_raid',
+                ]],
+                'meta' => ['last_updated_at' => '2023-01-02T11:30:00.000Z'],
+            ]))));
 
         // Call method
-        $result = $this->alertsClient->getActiveAlertsAsync()->wait();
-
-        // Assert request was made correctly
-        $this->assertCount(1, $this->historyContainer);
-        $request = $this->historyContainer[0]['request'];
-        $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals('/v1/alerts/active.json', $request->getUri()->getPath());
+        $result = await($this->alertsClient->getActiveAlertsAsync());
 
         // Assert response was parsed correctly
         $this->assertInstanceOf(Alerts::class, $result);
@@ -73,26 +76,23 @@ class AlertsClientTest extends TestCase
     public function testGetAlertsHistory()
     {
         // Mock response
-        $this->mockHandler->append(new Response(200, [], json_encode([
-            'alerts' => [[
-                'id' => 1,
-                'location_title' => 'Харківська область',
-                'location_type' => 'oblast',
-                'started_at' => '2023-01-01T10:00:00.000Z',
-                'finished_at' => '2023-01-01T11:00:00.000Z',
-                'alert_type' => 'air_raid',
-            ]],
-            'meta' => ['last_updated_at' => '2023-01-02T11:30:00.000Z'],
-        ])));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/regions/22/alerts/week_ago.json')
+            ->willReturn(resolve(new Response(200, [], json_encode([
+                'alerts' => [[
+                    'id' => 1,
+                    'location_title' => 'Харківська область',
+                    'location_type' => 'oblast',
+                    'started_at' => '2023-01-01T10:00:00.000Z',
+                    'finished_at' => '2023-01-01T11:00:00.000Z',
+                    'alert_type' => 'air_raid',
+                ]],
+                'meta' => ['last_updated_at' => '2023-01-02T11:30:00.000Z'],
+            ]))));
 
         // Call method with location title
-        $result = $this->alertsClient->getAlertsHistoryAsync('Харківська область')->wait();
-
-        // Assert request was made correctly
-        $this->assertCount(1, $this->historyContainer);
-        $request = $this->historyContainer[0]['request'];
-        $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals('/v1/regions/22/alerts/week_ago.json', $request->getUri()->getPath());
+        $result = await($this->alertsClient->getAlertsHistoryAsync('Харківська область'));
 
         // Assert response was parsed correctly
         $this->assertInstanceOf(Alerts::class, $result);
@@ -101,9 +101,12 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatus()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode("A")));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/iot/active_air_raid_alerts/22.json')
+            ->willReturn(resolve(new Response(200, [], json_encode("A"))));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
+        $result = await($this->alertsClient->getAirRaidAlertStatusAsync(22));
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
         $this->assertEquals("Харківська область", $result->getOblast());
@@ -112,9 +115,12 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusesByOblast()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode("ANPNAPNNNNNNNNNNNNNNNNNNNNN")));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/iot/active_air_raid_alerts_by_oblast.json')
+            ->willReturn(resolve(new Response(200, [], json_encode("ANPNAPNNNNNNNNNNNNNNNNNNNNN"))));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
+        $result = await($this->alertsClient->getAirRaidAlertStatusesByOblastAsync());
 
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
         $statuses = $result->getStatuses();
@@ -127,9 +133,12 @@ class AlertsClientTest extends TestCase
 
     public function testOblastLevelFilter()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode("ANPNAPNNNNNNNNNNNNNNNNNNNNN")));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/iot/active_air_raid_alerts_by_oblast.json')
+            ->willReturn(resolve(new Response(200, [], json_encode("ANPNAPNNNNNNNNNNNNNNNNNNNNN"))));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true)->wait();
+        $result = await($this->alertsClient->getAirRaidAlertStatusesByOblastAsync(true));
         $statuses = array_values($result->getActiveAlertOblasts());
 
         // Should only contain 'active' statuses (2 in test data)
@@ -146,9 +155,12 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusWithEmptyResponse()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode("")));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/iot/active_air_raid_alerts/22.json')
+            ->willReturn(resolve(new Response(200, [], json_encode(""))));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusAsync(22)->wait();
+        $result = await($this->alertsClient->getAirRaidAlertStatusAsync(22));
 
         $this->assertInstanceOf(AirRaidAlertOblastStatus::class, $result);
         $this->assertEquals(AlertStatus::NO_ALERT, $result->getStatus());
@@ -156,9 +168,12 @@ class AlertsClientTest extends TestCase
 
     public function testGetAirRaidAlertStatusesByOblastWithEmptyResponse()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([])));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://api.alerts.in.ua/v1/iot/active_air_raid_alerts_by_oblast.json')
+            ->willReturn(resolve(new Response(200, [], json_encode([]))));
 
-        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
+        $result = await($this->alertsClient->getAirRaidAlertStatusesByOblastAsync());
 
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
         $this->assertCount(0, $result->getStatuses());
@@ -166,36 +181,31 @@ class AlertsClientTest extends TestCase
 
     public function testErrorHandling()
     {
-        // Mock unauthorized response
-        $this->mockHandler->append(
-            new RequestException(
-                'Unauthorized',
-                new Request('GET', 'test'),
-                new Response(401, [], json_encode(['error' => 'Invalid token']))
-            )
-        );
+        $response = new Response(401, [], json_encode(['error' => 'Invalid token']));
+        
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(reject(new ResponseException($response)));
 
         // Expect exception
         $this->expectException(\Fyennyi\AlertsInUa\Exception\UnauthorizedError::class);
 
         // Call method
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     #[DataProvider('apiErrorProvider')]
     public function testApiErrorHandling(int $statusCode, string $expectedExceptionClass)
     {
-        $this->mockHandler->append(
-            new RequestException(
-                'API Error',
-                new Request('GET', 'test'),
-                new Response($statusCode, [], json_encode(['error' => 'An error occurred']))
-            )
-        );
+        $response = new Response($statusCode, [], json_encode(['error' => 'An error occurred']));
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(reject(new ResponseException($response)));
 
         $this->expectException($expectedExceptionClass);
 
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     public static function apiErrorProvider() : array
@@ -213,25 +223,24 @@ class AlertsClientTest extends TestCase
     public function testCache()
     {
         // Mock response
-        $this->mockHandler->append(new Response(200, [], json_encode([
-            'alerts' => [[
-                'id' => 1,
-                'location_title' => 'Київ',
-                'alert_type' => 'air_raid',
-            ]],
-        ])));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], json_encode([
+                'alerts' => [[
+                    'id' => 1,
+                    'location_title' => 'Київ',
+                    'alert_type' => 'air_raid',
+                ]],
+            ]))));
 
         // First call should make a request
-        $result1 = $this->alertsClient->getActiveAlertsAsync(true)->wait();
+        $result1 = await($this->alertsClient->getActiveAlertsAsync(true));
 
         // Second call with cache should not make a request
-        $result2 = $this->alertsClient->getActiveAlertsAsync(true)->wait();
+        $result2 = await($this->alertsClient->getActiveAlertsAsync(true));
 
         $this->assertInstanceOf(Alerts::class, $result1);
         $this->assertInstanceOf(Alerts::class, $result2);
-
-        // Assert only one request was made
-        $this->assertCount(1, $this->historyContainer);
     }
 
     public function testLastModifiedAnd304Handling()
@@ -257,32 +266,29 @@ class AlertsClientTest extends TestCase
             'meta' => ['last_updated_at' => '2024-06-15T15:16:00.000Z'],
         ];
 
-        // Append first response with Last-Modified header
-        $this->mockHandler->append(new Response(200, ['Last-Modified' => $lastModified], json_encode($responseBody)));
+        $this->mockBrowser->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnCallback(function($method, $url, $headers) use ($lastModified, $responseBody) {
+                if ($url === 'https://api.alerts.in.ua/v1/alerts/active.json') {
+                    if (!isset($headers['If-Modified-Since'])) {
+                        return resolve(new Response(200, ['Last-Modified' => $lastModified], json_encode($responseBody)));
+                    }
+                    
+                    $this->assertEquals($lastModified, $headers['If-Modified-Since']);
+                    return resolve(new Response(304, []));
+                }
+                return reject(new \Exception('Unexpected URL: ' . $url));
+            });
 
         // First call — caches everything (including processed data)
-        $first = $this->alertsClient->getActiveAlertsAsync()->wait();
+        $first = await($this->alertsClient->getActiveAlertsAsync());
         $this->assertInstanceOf(Alerts::class, $first);
         $this->assertEquals('Одеська область', $first->getAllAlerts()[0]->getLocationTitle());
 
-        // Clear the request history to isolate next request
-        $this->historyContainer = [];
-
-        // Append 304 Not Modified response to simulate unchanged data
-        $this->mockHandler->append(new Response(304, []));
-
         // Second call — should use cached processed data, no new full data fetched
-        $second = $this->alertsClient->getActiveAlertsAsync()->wait();
+        $second = await($this->alertsClient->getActiveAlertsAsync());
         $this->assertInstanceOf(Alerts::class, $second);
         $this->assertEquals('Одеська область', $second->getAllAlerts()[0]->getLocationTitle());
-
-        // Assert exactly one new HTTP request was sent for the second call
-        $this->assertCount(1, $this->historyContainer);
-        $sentRequest = $this->historyContainer[0]['request'];
-
-        // Check that If-Modified-Since header was set to previously received Last-Modified
-        $this->assertTrue($sentRequest->hasHeader('If-Modified-Since'));
-        $this->assertEquals($lastModified, $sentRequest->getHeaderLine('If-Modified-Since'));
     }
 
     public function test304HandlingWithMissingCacheThrowsError()
@@ -292,12 +298,14 @@ class AlertsClientTest extends TestCase
         $this->cache->set('alerts/active.json.last_modified', $lastModified);
 
         // Simulate 304 response
-        $this->mockHandler->append(new Response(304, []));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
 
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Received 304 Not Modified but no cached data found.');
 
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     public function test304HandlingWithRawCacheData()
@@ -308,9 +316,11 @@ class AlertsClientTest extends TestCase
         $this->cache->set('alerts/active.json.last_modified', $lastModified);
         $this->cache->set('alerts/active.json', $rawData);
 
-        $this->mockHandler->append(new Response(304, []));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
 
-        $result = $this->alertsClient->getActiveAlertsAsync()->wait();
+        $result = await($this->alertsClient->getActiveAlertsAsync());
 
         $this->assertEquals($rawData, $result);
     }
@@ -357,9 +367,11 @@ class AlertsClientTest extends TestCase
     {
         $this->alertsClient->configureCacheTtl(['active_alerts' => 100]);
 
-        $this->mockHandler->append(new Response(200, [], json_encode(['alerts' => []])));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], json_encode(['alerts' => []]))));
 
-        $this->alertsClient->getActiveAlertsAsync(true)->wait();
+        await($this->alertsClient->getActiveAlertsAsync(true));
 
         $this->alertsClient->clearCache('alerts/active.json');
 
@@ -368,50 +380,60 @@ class AlertsClientTest extends TestCase
 
     public function testInvalidJsonResponse()
     {
-        $this->mockHandler->append(new Response(200, [], 'not a valid json'));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], 'not a valid json')));
 
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Invalid JSON response received');
 
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     public function testNonRequestExceptionHandling()
     {
-        $this->mockHandler->append(new \Exception('Generic error'));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(reject(new \Exception('Generic error')));
 
         $this->expectException(ApiError::class);
-        $this->expectExceptionMessage('Unknown error: Generic error');
+        $this->expectExceptionMessage('Request failed: Generic error');
 
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     public function testProcessErrorWithNoResponse()
     {
-        $this->mockHandler->append(new RequestException('Connection error', new Request('GET', 'test')));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(reject(new \Exception('Connection error')));
 
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Request failed: Connection error');
 
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     public function testAirRaidStatusesWithLongString()
     {
-        $this->mockHandler->append(new Response(200, [], json_encode(str_repeat('A', 30))));
-        $result = $this->alertsClient->getAirRaidAlertStatusesByOblastAsync()->wait();
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(200, [], json_encode(str_repeat('A', 30)))));
+        $result = await($this->alertsClient->getAirRaidAlertStatusesByOblastAsync());
         $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $result);
         $this->assertCount(27, $result->getStatuses());
     }
 
     public function testThrowableErrorHandling()
     {
-        $this->mockHandler->append(new \TypeError('A throwable error'));
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(reject(new \TypeError('A throwable error')));
 
         $this->expectException(ApiError::class);
-        $this->expectExceptionMessage('Fatal error: A throwable error');
+        $this->expectExceptionMessage('Request failed: A throwable error');
 
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
 }
