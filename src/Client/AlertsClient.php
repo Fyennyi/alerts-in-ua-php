@@ -276,7 +276,7 @@ class AlertsClient
             tags: $tags
         );
 
-        $react_promise = $this->async_cache->wrap(
+        return $this->async_cache->wrap(
             $cache_key,
             function () use ($endpoint, $processor, $cache_key) {
                 $headers = [
@@ -291,78 +291,42 @@ class AlertsClient
                     $headers['If-Modified-Since'] = $last_modified;
                 }
 
-                return $this->client->requestAsync('GET', $this->base_url . $endpoint, [
-                    'headers' => $headers,
-                ])->then(
-                    function (ResponseInterface $response) use ($cache_key, $processor) {
-                        if (304 === $response->getStatusCode()) {
-                            // If 304 Not Modified, we return the cached data.
-                            // Since we are using AsyncCacheManager, the data is stored in a wrapper array with key 'd'.
-                            $cached = $this->cache->get($cache_key);
-                            if (is_array($cached) && isset($cached['d'])) {
-                                return $cached['d'];
+                return $this->client->request('GET', $this->base_url . $endpoint, $headers)
+                    ->then(
+                        function (ResponseInterface $response) use ($cache_key, $processor) {
+                            if (304 === $response->getStatusCode()) {
+                                // If 304 Not Modified, we return the cached data.
+                                // Since we are using AsyncCacheManager, the data is stored in a wrapper array with key 'd'.
+                                $cached = $this->cache->get($cache_key);
+                                if (is_array($cached) && isset($cached['d'])) {
+                                    return $cached['d'];
+                                }
+
+                                if ($cached !== null && !is_array($cached)) {
+                                    return $cached;
+                                }
+
+                                throw new ApiError('Received 304 Not Modified but no cached data found.');
                             }
 
-                            if ($cached !== null && !is_array($cached)) {
-                                return $cached;
+                            $last_modified = $response->getHeaderLine('Last-Modified');
+                            if ($last_modified) {
+                                $this->cache->set($cache_key . '.last_modified', $last_modified, 86400); // Keep timestamp for 24h
                             }
 
-                            throw new ApiError('Received 304 Not Modified but no cached data found.');
+                            return $processor($response);
+                        },
+                        function (\Throwable $e) {
+                            if ($e instanceof \React\Http\Message\ResponseException) {
+                                $this->processError($e);
+                            } else {
+                                throw new ApiError('Request failed: ' . $e->getMessage(), $e->getCode(), $e);
+                            }
                         }
-
-                        $last_modified = $response->getHeaderLine('Last-Modified');
-                        if ($last_modified) {
-                            $this->cache->set($cache_key . '.last_modified', $last_modified, 86400); // Keep timestamp for 24h
-                        }
-
-                        return $processor($response);
-                    },
-                    function (\Throwable $e) {
-                        if ($e instanceof \Exception) {
-                            $this->processError($e);
-                        } else {
-                            throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
-                        }
-                    }
-                );
+                    );
             },
             $options
         );
-
-        /** @var Promise $guzzle_promise */
-        $guzzle_promise = new Promise(function () use (&$guzzle_promise, $react_promise) {
-            $resolved = false;
-            $result = null;
-            $error = null;
-
-            $react_promise->then(
-                function ($v) use (&$resolved, &$result) {
-                    $resolved = true;
-                    $result = $v;
-                },
-                function ($e) use (&$resolved, &$error) {
-                    $resolved = true;
-                    $error = $e;
-                }
-            );
-
-            if ($resolved) {
-                if ($error) {
-                    $guzzle_promise->reject($error);
-                } else {
-                    $guzzle_promise->resolve($result);
-                }
-                return;
-            }
-
-            try {
-                $guzzle_promise->resolve(\React\Async\await($react_promise));
-            } catch (\Throwable $e) {
-                $guzzle_promise->reject($e);
-            }
-        });
-
-        return $guzzle_promise;
     }
 
     /**
@@ -389,7 +353,7 @@ class AlertsClient
     /**
      * Processes API errors and throws appropriate exceptions
      *
-     * @param  \Exception  $error  The caught exception
+     * @param  \React\Http\Message\ResponseException  $error  The caught exception
      * @return void
      *
      * @throws UnauthorizedError For 401 responses
@@ -400,33 +364,25 @@ class AlertsClient
      * @throws InternalServerError For 500 responses
      * @throws ApiError For other API errors
      */
-    private function processError(\Exception $error) : void
+    private function processError(\React\Http\Message\ResponseException $error) : void
     {
-        if ($error instanceof RequestException) {
-            $response = $error->getResponse();
-            if ($response) {
-                $code = $response->getStatusCode();
-                switch ($code) {
-                    case 401:
-                        throw new UnauthorizedError('Unauthorized access. Check your API token.');
-                    case 403:
-                        throw new ForbiddenError('Access forbidden.');
-                    case 404:
-                        throw new NotFoundError('Resource not found.');
-                    case 429:
-                        throw new RateLimitError('Rate limit exceeded.');
-                    case 400:
-                        throw new BadRequestError('Bad request parameters.');
-                    case 500:
-                        throw new InternalServerError('Internal server error.');
-                    default:
-                        throw new ApiError('API error: ' . $error->getMessage());
-                }
-            } else {
-                throw new ApiError('Request failed: ' . $error->getMessage());
-            }
-        } else {
-            throw new ApiError('Unknown error: ' . $error->getMessage());
+        $response = $error->getResponse();
+        $code = $response->getStatusCode();
+        switch ($code) {
+            case 401:
+                throw new UnauthorizedError('Unauthorized access. Check your API token.');
+            case 403:
+                throw new ForbiddenError('Access forbidden.');
+            case 404:
+                throw new NotFoundError('Resource not found.');
+            case 429:
+                throw new RateLimitError('Rate limit exceeded.');
+            case 400:
+                throw new BadRequestError('Bad request parameters.');
+            case 500:
+                throw new InternalServerError('Internal server error.');
+            default:
+                throw new ApiError('API error: ' . $error->getMessage());
         }
     }
 
