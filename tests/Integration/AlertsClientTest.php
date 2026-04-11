@@ -9,25 +9,20 @@ use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatus;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
 use Fyennyi\AlertsInUa\Model\Alerts;
 use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use React\Http\Browser;
+use React\Http\Message\Response;
+use React\Promise\PromiseInterface;
 use ReflectionClass;
-use stdClass;
+
+use function React\Async\await;
+use function React\Promise\resolve;
 
 class AlertsClientTest extends TestCase
 {
-    private MockHandler $mockHandler;
-
-    private array $historyContainer = [];
-
-    private GuzzleClient $client;
+    /** @var Browser|\PHPUnit\Framework\MockObject\MockObject */
+    private $mockBrowser;
 
     private AlertsClient $alertsClient;
 
@@ -35,10 +30,7 @@ class AlertsClientTest extends TestCase
 
     protected function setUp() : void
     {
-        $this->mockHandler = new MockHandler();
-        $handlerStack = HandlerStack::create($this->mockHandler);
-        $handlerStack->push(Middleware::history($this->historyContainer));
-        $this->client = new GuzzleClient(['handler' => $handlerStack]);
+        $this->mockBrowser = $this->createMock(Browser::class);
 
         $this->cache = new \Symfony\Component\Cache\Psr16Cache(new \Symfony\Component\Cache\Adapter\ArrayAdapter());
         $this->alertsClient = new AlertsClient('test_token', $this->cache);
@@ -47,7 +39,7 @@ class AlertsClientTest extends TestCase
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
         $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->alertsClient, $this->client);
+        $clientProperty->setValue($this->alertsClient, $this->mockBrowser);
     }
 
     public function testGetActiveAlerts()
