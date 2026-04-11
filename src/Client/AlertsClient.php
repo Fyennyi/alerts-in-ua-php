@@ -119,7 +119,7 @@ class AlertsClient
      * Retrieves active alerts asynchronously
      *
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
+     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
      */
     public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
@@ -140,7 +140,7 @@ class AlertsClient
      * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
      * @param  string  $period  Time period for history (default: 'week_ago')
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
+     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
@@ -164,13 +164,13 @@ class AlertsClient
      * Retrieves air raid alert status for a specific region asynchronously
      *
      * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
-     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
+     * @param  bool  $oblast_level_only  Whether to return only oblast-level status
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatus object
+     * @return PromiseInterface<AirRaidAlertOblastStatus> Promise that resolves to an AirRaidAlertOblastStatus object
      *
      * @throws InvalidParameterException If the location cannot be resolved
      */
-    public function getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
+     public function getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
         $oblast_uid = $this->resolveUid($oblast_uid_or_location_title);
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
@@ -190,11 +190,11 @@ class AlertsClient
     }
 
     /**
-     * Retrieves air raid alert statuses for all regions asynchronously
+     * Retrieves air raid alert statuses for all oblasts asynchronously
      *
-     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
+     * @param  bool  $oblast_level_only  Whether to return only oblast-level statuses
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatuses object
+     * @return PromiseInterface<AirRaidAlertOblastStatuses> Promise that resolves to an AirRaidAlertOblastStatuses object
      */
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
@@ -217,10 +217,10 @@ class AlertsClient
     }
 
     /**
-     * Retrieves air raid alert statuses for all regions asynchronously
+     * Retrieves all active air raid alert statuses asynchronously
      *
      * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertStatuses object
+     * @return PromiseInterface<AirRaidAlertStatuses> Promise that resolves to an AirRaidAlertStatuses object
      */
     public function getAirRaidAlertStatusesAsync(bool $use_cache = false) : PromiseInterface
     {
@@ -257,7 +257,7 @@ class AlertsClient
      * @param  callable(ResponseInterface): T  $processor  Function to process the response data
      * @param  string  $type  Cache type identifier
      * @param  string  $cache_key_suffix  Optional suffix for the cache key
-     * @return PromiseInterface Promise that resolves to the processed result
+     * @return PromiseInterface<T> Promise that resolves to the processed result
      */
     private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default', string $cache_key_suffix = '') : PromiseInterface
     {
@@ -327,7 +327,7 @@ class AlertsClient
                             if ($e instanceof \React\Http\Message\ResponseException) {
                                 $this->processError($e);
                             } else {
-                                throw new ApiError('Request failed: ' . $e->getMessage(), $e->getCode(), $e);
+                                throw new ApiError('Request failed: ' . $e->getMessage(), (int) $e->getCode(), $e);
                             }
                         }
                     );
@@ -335,10 +335,12 @@ class AlertsClient
             $options
         );
 
+        /** @var PromiseInterface<T> */
         return $react_promise->then(function ($result) use ($processor) {
             if ($result instanceof ResponseInterface) {
                 return $processor($result);
             }
+            /** @var T $result */
             return $result;
         });
     }
