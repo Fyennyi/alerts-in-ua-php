@@ -44,13 +44,10 @@ use Fyennyi\AsyncCache\AsyncCacheManager;
 use Fyennyi\AsyncCache\CacheOptions;
 use Fyennyi\AsyncCache\Config\AsyncCacheConfig;
 use Fyennyi\AsyncCache\Enum\CacheStrategy;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
+use React\Http\Browser;
+use React\Promise\PromiseInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Psr16Cache;
@@ -60,8 +57,8 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlertsClient
 {
-    /** @var ClientInterface HTTP client for making requests */
-    private ClientInterface $client;
+    /** @var Browser HTTP client for making requests */
+    private Browser $client;
 
     /** @var string API authentication token */
     private string $token;
