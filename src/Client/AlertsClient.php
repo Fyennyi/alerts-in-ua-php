@@ -73,7 +73,7 @@ class AlertsClient
     private CacheInterface $cache;
 
     /** @var \Symfony\Contracts\Cache\TagAwareCacheInterface Tag-aware cache pool */
-    private \Symfony\Contracts\Cache\TagAwareCacheInterface $tagCache;
+    private \Symfony\Contracts\Cache\TagAwareCacheInterface $tag_cache;
 
     /** @var RateLimiterFactory Rate limiter factory instance */
     private RateLimiterFactory $rate_limiter_factory;
@@ -102,9 +102,9 @@ class AlertsClient
         $this->client = $client ?? new Browser();
         $this->token = $token;
 
-        $tagCacheAdapter = new TagAwareAdapter(new ArrayAdapter());
-        $this->tagCache = $tagCacheAdapter;
-        $this->cache = $cache ?? new Psr16Cache($tagCacheAdapter);
+        $tag_cache_adapter = new TagAwareAdapter(new ArrayAdapter());
+        $this->tag_cache = $tag_cache_adapter;
+        $this->cache = $cache ?? new Psr16Cache($tag_cache_adapter);
 
         $this->rate_limiter_factory = new RateLimiterFactory([
             'id' => 'alerts_in_ua',
@@ -426,7 +426,7 @@ class AlertsClient
      */
     public function clearCache(string|array $tags) : void
     {
-        $this->tagCache->invalidateTags(is_array($tags) ? $tags : [$tags]);
+        $this->tag_cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
     }
 
     /**
