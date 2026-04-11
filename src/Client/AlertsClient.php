@@ -276,7 +276,7 @@ class AlertsClient
             ttl: $ttl,
             rate_limit_key: $cache_key,
             serve_stale_if_limited: true,
-            force_refresh: !$use_cache,
+            strategy: $use_cache ? CacheStrategy::Strict : CacheStrategy::ForceRefresh,
             tags: $tags
         );
 
