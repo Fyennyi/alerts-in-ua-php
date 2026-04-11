@@ -426,9 +426,7 @@ class AlertsClient
      */
     public function clearCache(string|array $tags) : void
     {
-        if (method_exists($this->tagCache, 'invalidateTags')) {
-            $this->tagCache->invalidateTags(is_array($tags) ? $tags : [$tags]);
-        }
+        $this->tagCache->invalidateTags(is_array($tags) ? $tags : [$tags]);
     }
 
     /**
