@@ -36,7 +36,7 @@ class ApiIntegrationTest extends TestCase
         
         $this->mockBrowser->expects($this->atLeastOnce())
             ->method('request')
-            ->willReturnCallback(function($method, $url) use ($alertsResponseJson, $historyResponseJson) {
+            ->willReturnCallback(function($method, $url, $headers = []) use ($alertsResponseJson, $historyResponseJson) {
                 if (str_contains($url, 'alerts/active.json')) {
                     return resolve(new Response(200, [], $alertsResponseJson));
                 }
