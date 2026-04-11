@@ -296,8 +296,15 @@ class AlertsClient
                         function (ResponseInterface $response) use ($cache_key, $processor) {
                             if (304 === $response->getStatusCode()) {
                                 // If 304 Not Modified, we return the cached data.
-                                // Since we are using AsyncCacheManager, the data is stored in a wrapper array with key 'd'.
+                                // Since we are using AsyncCacheManager, the data is stored in a wrapper.
                                 $cached = $this->cache->get($cache_key);
+                                
+                                // Handle new CachedItem object format
+                                if ($cached instanceof \Fyennyi\AsyncCache\Model\CachedItem) {
+                                    return $cached->data;
+                                }
+
+                                // Handle old array format for backward compatibility
                                 if (is_array($cached) && isset($cached['d'])) {
                                     return $cached['d'];
                                 }
@@ -419,5 +426,18 @@ class AlertsClient
     public function setRequestInterval(int $seconds): void
     {
         $this->request_interval = $seconds;
+
+        $this->rate_limiter_factory = new RateLimiterFactory([
+            'id' => 'alerts_in_ua',
+            'policy' => 'fixed_window',
+            'limit' => $this->request_interval > 0 ? 1 : 1000,
+            'interval' => ($this->request_interval > 0 ? $this->request_interval : 1) . ' seconds',
+        ], new InMemoryStorage());
+
+        $config = AsyncCacheConfig::builder($this->cache)
+            ->withRateLimiter($this->rate_limiter_factory)
+            ->build();
+
+        $this->async_cache = new AsyncCacheManager($config);
     }
 }
