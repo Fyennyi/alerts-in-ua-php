@@ -57,7 +57,6 @@ nav:
       - AirRaidAlertStatuses: methods/air-raid-alert-statuses.md
       - AirRaidAlertOblastStatus: methods/air-raid-alert-oblast-status.md
       - AirRaidAlertOblastStatuses: methods/air-raid-alert-oblast-statuses.md
-    - Geolocation: methods/geolocation.md
     - Error Handling: methods/errors.md
     - Caching Strategies: methods/caching.md
 

@@ -72,9 +72,8 @@ class LocationUidResolver
     /**
      * Resolve location title to UID
      *
-     * @param  string  $location_title  Location title to resolve
-     * @return int UID for the location
-     *
+     * @param  string                    $location_title Location title to resolve
+     * @return int                       UID for the location
      * @throws InvalidParameterException If location is not found
      */
     public function resolveUid(string $location_title) : int
@@ -89,9 +88,8 @@ class LocationUidResolver
     /**
      * Resolve UID to location title
      *
-     * @param  int  $uid  UID to resolve
-     * @return string Location title
-     *
+     * @param  int                       $uid UID to resolve
+     * @return string                    Location title
      * @throws InvalidParameterException If UID is not found
      */
     public function resolveLocationTitle(int $uid) : string

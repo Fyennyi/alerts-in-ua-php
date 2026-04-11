@@ -64,7 +64,7 @@ class Alert implements JsonSerializable
     /**
      * Constructor for Alert
      *
-     * @param  array<string, mixed>  $data  Raw alert data from API
+     * @param array<string, mixed> $data Raw alert data from API
      */
     public function __construct(array $data)
     {
@@ -216,8 +216,8 @@ class Alert implements JsonSerializable
     /**
      * Get property value by name (for backward compatibility)
      *
-     * @param  string  $property  Property name
-     * @return mixed Property value
+     * @param  string $property Property name
+     * @return mixed  Property value
      */
     public function getProperty(string $property) : mixed
     {
@@ -294,8 +294,8 @@ class Alert implements JsonSerializable
     /**
      * Check if alert is of specific type
      *
-     * @param  AlertType|string  $type  Alert type to check
-     * @return bool True if alert matches the type
+     * @param  AlertType|string $type Alert type to check
+     * @return bool             True if alert matches the type
      */
     public function isType(AlertType|string $type) : bool
     {
@@ -309,8 +309,8 @@ class Alert implements JsonSerializable
     /**
      * Check if alert is in specific location
      *
-     * @param  string  $location  Location name to check
-     * @return bool True if alert is in the specified location
+     * @param  string $location Location name to check
+     * @return bool   True if alert is in the specified location
      */
     public function isInLocation(string $location) : bool
     {
@@ -348,8 +348,7 @@ class Alert implements JsonSerializable
     /**
      * Get alert as JSON representation
      *
-     * @return string JSON representation of the alert
-     *
+     * @return string            JSON representation of the alert
      * @throws \RuntimeException If JSON encoding fails
      */
     public function toJson() : string

@@ -3,14 +3,15 @@
 namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
-use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
-use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertOblastStatuses;
 use Fyennyi\AlertsInUa\Model\AirRaidAlertStatus;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
+use Fyennyi\AlertsInUa\Model\AirRaidAlertStatuses;
+use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
 use PHPUnit\Framework\TestCase;
+use React\Http\Browser;
+use React\Http\Message\Response;
+use function React\Async\await;
+use function React\Promise\resolve;
 
 class AirRaidAlertStatusesTest extends TestCase
 {
@@ -31,18 +32,25 @@ class AirRaidAlertStatusesTest extends TestCase
 
     public function testGetAirRaidAlertStatusesAsync()
     {
-        // Create a mock and queue two responses.
-        $mock = new MockHandler([
-            new Response(200, [], 'NNNPNNNNNPNANANNNNNNNNNNANNNNNNNNNNNNNANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNANNNNNNNNNAAAANNNNNNNNNNNNNAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNAAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNAAAAAAAAAAAAAAAAAAAAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNAAAAAAAAAAAAA'),
-        ]);
+        /** @var Browser|\PHPUnit\Framework\MockObject\MockObject $mockBrowser */
+        $mockBrowser = $this->createMock(Browser::class);
 
-        $handlerStack = HandlerStack::create($mock);
-        $client = new GuzzleClient(['handler' => $handlerStack]);
+        $response = new Response(200, [], json_encode("A"));
 
-        $alertsClient = new AlertsClient('test_token', null, $client);
-        $statuses = $alertsClient->getAirRaidAlertStatusesAsync()->wait();
+        $mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve($response));
 
-        $this->assertInstanceOf(AirRaidAlertStatuses::class, $statuses);
+        $alertsClient = new AlertsClient('test_token');
+
+        $reflectionClass = new \ReflectionClass($alertsClient);
+        $clientProperty = $reflectionClass->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($alertsClient, $mockBrowser);
+
+        $statuses = await($alertsClient->getAirRaidAlertStatusesByOblastAsync());
+
+        $this->assertInstanceOf(AirRaidAlertOblastStatuses::class, $statuses);
     }
 
     public function testFilterByStatus()

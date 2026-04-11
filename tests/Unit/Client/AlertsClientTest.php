@@ -5,35 +5,34 @@ namespace Tests\Unit\Client;
 use Fyennyi\AlertsInUa\Client\AlertsClient;
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Model\Alerts;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use React\Http\Browser;
+use React\Http\Message\Response;
 use ReflectionClass;
 use ReflectionMethod;
+use function React\Async\await;
+use function React\Promise\resolve;
 
 class AlertsClientTest extends TestCase
 {
-    private MockHandler $mockHandler;
+    /** @var Browser|\PHPUnit\Framework\MockObject\MockObject */
+    private $mockBrowser;
 
     private AlertsClient $alertsClient;
 
     protected function setUp() : void
     {
-        // 1. Create the mock handler
-        $this->mockHandler = new MockHandler();
-        $handlerStack = HandlerStack::create($this->mockHandler);
-        $guzzleClient = new GuzzleClient(['handler' => $handlerStack]);
+        // 1. Create the mock browser
+        $this->mockBrowser = $this->createMock(Browser::class);
 
         // 2. Create the real AlertsClient
         $this->alertsClient = new AlertsClient('test-token');
 
-        // 3. Use reflection to inject the mocked Guzzle client
+        // 3. Use reflection to inject the mocked Browser client
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
         $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->alertsClient, $guzzleClient);
+        $clientProperty->setValue($this->alertsClient, $this->mockBrowser);
     }
 
     public function testGetActiveAlertsAsyncSuccessfully()
@@ -48,10 +47,15 @@ class AlertsClientTest extends TestCase
                 }
             ]
         }';
-        $this->mockHandler->append(new Response(200, ['Last-Modified' => date('D, d M Y H:i:s T')], $jsonPayload));
+
+        $response = new Response(200, ['Last-Modified' => date('D, d M Y H:i:s T')], $jsonPayload);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve($response));
 
         // Call the method and wait for the result
-        $alerts = $this->alertsClient->getActiveAlertsAsync()->wait();
+        $alerts = await($this->alertsClient->getActiveAlertsAsync());
 
         // Assert the results
         $this->assertInstanceOf(Alerts::class, $alerts);
@@ -61,6 +65,8 @@ class AlertsClientTest extends TestCase
 
     public function testResolveUidWithStringDigit()
     {
+        $this->mockBrowser->expects($this->never())->method('request');
+
         // Use reflection to make the private method accessible
         $method = new ReflectionMethod(AlertsClient::class, 'resolveUid');
         $method->setAccessible(true);
@@ -76,41 +82,53 @@ class AlertsClientTest extends TestCase
     {
         // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"alerts": [{"id": 1]}}'; // Malformed JSON
-        $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
+        $response = new Response(200, [], $invalidJsonPayload);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve($response));
 
         // Expect an ApiError exception
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Invalid JSON response received');
 
         // Call the method
-        $this->alertsClient->getActiveAlertsAsync()->wait();
+        await($this->alertsClient->getActiveAlertsAsync());
     }
 
     public function testAlertsHistoryAsyncThrowsExceptionOnInvalidJson()
     {
         // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"history": [{"id": 1]}}'; // Malformed JSON
-        $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
+        $response = new Response(200, [], $invalidJsonPayload);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve($response));
 
         // Expect an ApiError exception
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Invalid JSON response received');
 
         // Call the method
-        $this->alertsClient->getAlertsHistoryAsync('м. Київ')->wait();
+        await($this->alertsClient->getAlertsHistoryAsync('м. Київ'));
     }
 
     public function testAirRaidAlertStatusAsyncThrowsExceptionOnInvalidJson()
     {
         // Prepare mock response with invalid JSON
         $invalidJsonPayload = '{"status": [{"id": 1]}}'; // Malformed JSON
-        $this->mockHandler->append(new Response(200, [], $invalidJsonPayload));
+        $response = new Response(200, [], $invalidJsonPayload);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve($response));
 
         // Expect an ApiError exception
         $this->expectException(ApiError::class);
         $this->expectExceptionMessage('Invalid response received');
 
         // Call the method
-        $this->alertsClient->getAirRaidAlertStatusAsync('м. Київ')->wait();
+        await($this->alertsClient->getAirRaidAlertStatusAsync('м. Київ'));
     }
 }

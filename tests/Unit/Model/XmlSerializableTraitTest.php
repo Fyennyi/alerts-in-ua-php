@@ -3,8 +3,8 @@
 namespace Tests\Unit\Model;
 
 use Fyennyi\AlertsInUa\Model\XmlSerializableTrait;
-use PHPUnit\Framework\TestCase;
 use JsonSerializable;
+use PHPUnit\Framework\TestCase;
 
 class DummyXmlModel implements JsonSerializable
 {

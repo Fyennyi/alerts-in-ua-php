@@ -29,7 +29,7 @@ use JsonSerializable;
 /**
  * Enumeration of alert types in Ukraine
  */
-enum AlertType: string implements JsonSerializable
+enum AlertType : string implements JsonSerializable
 {
     case AIR_RAID = 'air_raid';
     case ARTILLERY_SHELLING = 'artillery_shelling';
@@ -40,13 +40,13 @@ enum AlertType: string implements JsonSerializable
 
     /**
      * Create from string with fallback to UNKNOWN
-     * 
-     * @param  string|null  $value  Raw string value
+     *
+     * @param  string|null $value Raw string value
      * @return self
      */
     public static function fromString(?string $value) : self
     {
-        if ($value === null) {
+        if (null === $value) {
             return self::UNKNOWN;
         }
 

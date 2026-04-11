@@ -3,7 +3,6 @@
 namespace Tests\Unit\Model;
 
 use DateInterval;
-use DateTime;
 use Fyennyi\AlertsInUa\Model\Alert;
 use Fyennyi\AlertsInUa\Model\Enum\AlertType;
 use Fyennyi\AlertsInUa\Model\Enum\LocationType;

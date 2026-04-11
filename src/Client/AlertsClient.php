@@ -1,24 +1,24 @@
 <?php
 
 /*
- * 
- *     _    _           _       ___       _   _ 
+ *
+ *     _    _           _       ___       _   _
  *    / \  | | ___ _ __| |_ ___|_ _|_ __ | | | | __ _
  *   / _ \ | |/ _ \ '__| __/ __|| || '_ \| | | |/ _` |
  *  / ___ \| |  __/ |  | |_\__ \| || | | | |_| | (_| |
  * /_/   \_\_|\___|_|   \__|___/___|_| |_|\___/ \__,_|
- * 
+ *
  * This program is free software: you can redistribute and/or modify
  * it under the terms of the CSSM Unlimited License v2.0.
- * 
+ *
  * This license permits unlimited use, modification, and distribution
  * for any purpose while maintaining authorship attribution.
- * 
+ *
  * The software is provided "as is" without warranty of any kind.
- * 
+ *
  * @author Serhii Cherneha
  * @link https://chernega.eu.org/
- * 
+ *
  *
  */
 
@@ -42,24 +42,22 @@ use Fyennyi\AlertsInUa\Model\LocationUidResolver;
 use Fyennyi\AlertsInUa\Util\UserAgent;
 use Fyennyi\AsyncCache\AsyncCacheManager;
 use Fyennyi\AsyncCache\CacheOptions;
-use Fyennyi\AsyncCache\RateLimiter\InMemoryRateLimiter;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise\PromiseInterface;
+use Fyennyi\AsyncCache\Config\AsyncCacheConfig;
+use Fyennyi\AsyncCache\Enum\CacheStrategy;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
+use React\Http\Browser;
+use React\Promise\PromiseInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Psr16Cache;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
 class AlertsClient
 {
-    use GeoLocationTrait;
-
-    /** @var ClientInterface HTTP client for making requests */
-    private ClientInterface $client;
+    /** @var Browser HTTP client for making requests */
+    private Browser $client;
 
     /** @var string API authentication token */
     private string $token;
@@ -73,8 +71,8 @@ class AlertsClient
     /** @var CacheInterface Underlying PSR-16 cache for direct access */
     private CacheInterface $cache;
 
-    /** @var InMemoryRateLimiter Rate limiter instance */
-    private InMemoryRateLimiter $rate_limiter;
+    /** @var RateLimiterFactory Rate limiter factory instance */
+    private RateLimiterFactory $rate_limiter_factory;
 
     /** @var int Minimum interval between identical requests in seconds */
     private int $request_interval = 5;
@@ -91,30 +89,42 @@ class AlertsClient
     /**
      * Constructor for alerts.in.ua API client
      *
-     * @param  string  $token  API token
-     * @param  CacheInterface|null  $cache  Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
-     * @param  ClientInterface|null  $client  Optional Guzzle client instance
+     * @param string              $token  API token
+     * @param CacheInterface|null $cache  Optional PSR-16 compliant cache implementation. If null, a no-op cache is used
+     * @param Browser|null        $client Optional ReactPHP Browser instance
      */
-    public function __construct(string $token, ?CacheInterface $cache = null, ?ClientInterface $client = null)
+    public function __construct(string $token, ?CacheInterface $cache = null, ?Browser $client = null)
     {
-        $this->client = $client ?? new Client();
+        $this->client = $client ?? new Browser();
         $this->token = $token;
 
-        $this->cache = $cache ?? new Psr16Cache(new TagAwareAdapter(new ArrayAdapter()));
-        $this->rate_limiter = new InMemoryRateLimiter();
-        $this->async_cache = new AsyncCacheManager($this->cache, $this->rate_limiter);
+        $tag_cache_adapter = new TagAwareAdapter(new ArrayAdapter());
+        $this->cache = $cache ?? new Psr16Cache($tag_cache_adapter);
+
+        $this->rate_limiter_factory = new RateLimiterFactory([
+            'id' => 'alerts_in_ua',
+            'policy' => 'fixed_window',
+            'limit' => 1,
+            'interval' => $this->request_interval . ' seconds',
+        ], new InMemoryStorage());
+
+        $config = AsyncCacheConfig::builder($this->cache)
+            ->withRateLimiter($this->rate_limiter_factory)
+            ->build();
+
+        $this->async_cache = new AsyncCacheManager($config);
     }
 
     /**
      * Retrieves active alerts asynchronously
      *
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
+     * @param  bool                     $use_cache Whether to use cached results if available
+     * @return PromiseInterface<Alerts> Promise that resolves to an Alerts object
      */
     public function getActiveAlertsAsync(bool $use_cache = false) : PromiseInterface
     {
         return $this->createAsync('alerts/active.json', $use_cache, function (ResponseInterface $response) {
-            $raw_response_body = $response->getBody()->getContents();
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
@@ -127,11 +137,10 @@ class AlertsClient
     /**
      * Retrieves alert history for a specific region asynchronously
      *
-     * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
-     * @param  string  $period  Time period for history (default: 'week_ago')
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an Alerts object
-     *
+     * @param  string|int                $oblast_uid_or_location_title Region identifier (UID or name)
+     * @param  string                    $period                       Time period for history (default: 'week_ago')
+     * @param  bool                      $use_cache                    Whether to use cached results if available
+     * @return PromiseInterface<Alerts>  Promise that resolves to an Alerts object
      * @throws InvalidParameterException If the location cannot be resolved
      */
     public function getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = false) : PromiseInterface
@@ -140,7 +149,7 @@ class AlertsClient
         $url = "regions/{$oblast_uid}/alerts/{$period}.json";
 
         return $this->createAsync($url, $use_cache, function (ResponseInterface $response) {
-            $raw_response_body = $response->getBody()->getContents();
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_array($data)) {
                 throw new ApiError('Invalid JSON response received');
@@ -153,12 +162,11 @@ class AlertsClient
     /**
      * Retrieves air raid alert status for a specific region asynchronously
      *
-     * @param  string|int  $oblast_uid_or_location_title  Region identifier (UID or name)
-     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatus object
-     *
-     * @throws InvalidParameterException If the location cannot be resolved
+     * @param  string|int                                 $oblast_uid_or_location_title Region identifier (UID or name)
+     * @param  bool                                       $oblast_level_only            Whether to return only oblast-level status
+     * @param  bool                                       $use_cache                    Whether to use cached results if available
+     * @return PromiseInterface<AirRaidAlertOblastStatus> Promise that resolves to an AirRaidAlertOblastStatus object
+     * @throws InvalidParameterException                  If the location cannot be resolved
      */
     public function getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
@@ -166,8 +174,8 @@ class AlertsClient
         $url = "iot/active_air_raid_alerts/{$oblast_uid}.json";
         $cache_key_suffix = ':oblast_level_only=' . ($oblast_level_only ? 'true' : 'false');
 
-        return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid, $oblast_level_only): AirRaidAlertOblastStatus {
-            $raw_response_body = $response->getBody()->getContents();
+        return $this->createAsync($url, $use_cache, function (ResponseInterface $response) use ($oblast_uid, $oblast_level_only) : AirRaidAlertOblastStatus {
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_string($data)) {
                 throw new ApiError('Invalid response received');
@@ -180,18 +188,18 @@ class AlertsClient
     }
 
     /**
-     * Retrieves air raid alert statuses for all regions asynchronously
+     * Retrieves air raid alert statuses for all oblasts asynchronously
      *
-     * @param  bool  $oblast_level_only  Whether to return only oblast-level alerts
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertOblastStatuses object
+     * @param  bool                                         $oblast_level_only Whether to return only oblast-level statuses
+     * @param  bool                                         $use_cache         Whether to use cached results if available
+     * @return PromiseInterface<AirRaidAlertOblastStatuses> Promise that resolves to an AirRaidAlertOblastStatuses object
      */
     public function getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false) : PromiseInterface
     {
         $cache_key_suffix = ':oblast_level_only=' . ($oblast_level_only ? 'true' : 'false');
 
-        return $this->createAsync('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (ResponseInterface $response) use ($oblast_level_only): AirRaidAlertOblastStatuses {
-            $raw_response_body = $response->getBody()->getContents();
+        return $this->createAsync('iot/active_air_raid_alerts_by_oblast.json', $use_cache, function (ResponseInterface $response) use ($oblast_level_only) : AirRaidAlertOblastStatuses {
+            $raw_response_body = (string) $response->getBody();
             $data = json_decode($raw_response_body, true);
             if (! is_string($data)) {
                 return new AirRaidAlertOblastStatuses('', $oblast_level_only);
@@ -207,15 +215,15 @@ class AlertsClient
     }
 
     /**
-     * Retrieves air raid alert statuses for all regions asynchronously
+     * Retrieves all active air raid alert statuses asynchronously
      *
-     * @param  bool  $use_cache  Whether to use cached results if available
-     * @return PromiseInterface Promise that resolves to an AirRaidAlertStatuses object
+     * @param  bool                                   $use_cache Whether to use cached results if available
+     * @return PromiseInterface<AirRaidAlertStatuses> Promise that resolves to an AirRaidAlertStatuses object
      */
     public function getAirRaidAlertStatusesAsync(bool $use_cache = false) : PromiseInterface
     {
-        return $this->createAsync('iot/active_air_raid_alerts.json', $use_cache, function (ResponseInterface $response): AirRaidAlertStatuses {
-            $raw_data = $response->getBody()->getContents();
+        return $this->createAsync('iot/active_air_raid_alerts.json', $use_cache, function (ResponseInterface $response) : AirRaidAlertStatuses {
+            $raw_data = (string) $response->getBody();
             $data = json_decode($raw_data, true);
 
             if (! is_string($data)) {
@@ -242,20 +250,17 @@ class AlertsClient
      *
      * @template T
      *
-     * @param  string  $endpoint  API endpoint
-     * @param  bool  $use_cache  Whether to use cached results
-     * @param  callable(ResponseInterface): T  $processor  Function to process the response data
-     * @param  string  $type  Cache type identifier
-     * @param  string  $cache_key_suffix  Optional suffix for the cache key
-     * @return PromiseInterface Promise that resolves to the processed result
+     * @param  string                         $endpoint         API endpoint
+     * @param  bool                           $use_cache        Whether to use cached results
+     * @param  callable(ResponseInterface): T $processor        Function to process the response data
+     * @param  string                         $type             Cache type identifier
+     * @param  string                         $cache_key_suffix Optional suffix for the cache key
+     * @return PromiseInterface<T>            Promise that resolves to the processed result
      */
     private function createAsync(string $endpoint, bool $use_cache, callable $processor, string $type = 'default', string $cache_key_suffix = '') : PromiseInterface
     {
         $cache_key = $endpoint . $cache_key_suffix;
         $ttl = $this->ttl_config[$type] ?? 300;
-
-        // Configure rate limit: default to request_interval seconds per endpoint (key)
-        $this->rate_limiter->configure($cache_key, $this->request_interval);
 
         // Prepare tags if adapter supports them
         $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
@@ -265,11 +270,11 @@ class AlertsClient
             ttl: $ttl,
             rate_limit_key: $cache_key,
             serve_stale_if_limited: true,
-            force_refresh: !$use_cache,
+            strategy: $use_cache ? CacheStrategy::Strict : CacheStrategy::ForceRefresh,
             tags: $tags
         );
 
-        return $this->async_cache->wrap(
+        $react_promise = $this->async_cache->wrap(
             $cache_key,
             function () use ($endpoint, $processor, $cache_key) {
                 $headers = [
@@ -284,51 +289,77 @@ class AlertsClient
                     $headers['If-Modified-Since'] = $last_modified;
                 }
 
-                return $this->client->requestAsync('GET', $this->base_url . $endpoint, [
-                    'headers' => $headers,
-                ])->then(
-                    function (ResponseInterface $response) use ($cache_key, $processor) {
-                        if (304 === $response->getStatusCode()) {
-                            // If 304 Not Modified, we return the cached data.
-                            // Since we are using AsyncCacheManager, the data is stored in a wrapper array with key 'd'.
-                            $cached = $this->cache->get($cache_key);
-                            if (is_array($cached) && isset($cached['d'])) {
-                                return $cached['d'];
+                return $this->client->request('GET', $this->base_url . $endpoint, $headers)
+                    ->then(
+                        function (ResponseInterface $response) use ($cache_key, $processor) {
+                            if (304 === $response->getStatusCode()) {
+                                // If 304 Not Modified, we return the cached data.
+                                // Since we are using AsyncCacheManager, the data is stored in a wrapper.
+                                $cached = $this->cache->get($cache_key);
+
+                                // Handle new CachedItem object format
+                                if ($cached instanceof \Fyennyi\AsyncCache\Model\CachedItem) {
+                                    return $cached->data;
+                                }
+
+                                // Handle old string format for backward compatibility
+                                if (is_string($cached)) {
+                                    // Try to parse as JSON, if fails return raw data
+                                    $decoded = json_decode($cached, true);
+                                    if (JSON_ERROR_NONE === json_last_error()) {
+                                        return $processor(new \React\Http\Message\Response(200, ['Content-Type' => 'application/json'], $cached));
+                                    }
+                                    // Non-JSON cached data - return raw
+                                    return $cached;
+                                }
+
+                                // Handle legacy array format for backward compatibility
+                                if (is_array($cached) && isset($cached['d'])) {
+                                    $cached_body = json_encode($cached['d']);
+                                    if (false === $cached_body) {
+                                        throw new ApiError('Failed to restore cached response body from legacy cache format.');
+                                    }
+                                    return $processor(new \React\Http\Message\Response(200, ['Content-Type' => 'application/json'], $cached_body));
+                                }
+
+                                if (null !== $cached && !is_array($cached)) {
+                                    return $cached;
+                                }
+
+                                throw new ApiError('Received 304 Not Modified but no cached data found.');
                             }
 
-                            if ($cached !== null && !is_array($cached)) {
-                                return $cached;
+                            $last_modified = $response->getHeaderLine('Last-Modified');
+                            if ($last_modified) {
+                                $this->cache->set($cache_key . '.last_modified', $last_modified, 86400); // Keep timestamp for 24h
                             }
 
-                            throw new ApiError('Received 304 Not Modified but no cached data found.');
+                            return $processor($response);
+                        },
+                        function (\Throwable $e) {
+                            if ($e instanceof \React\Http\Message\ResponseException) {
+                                $this->processError($e);
+                            } else {
+                                throw new ApiError('Request failed: ' . $e->getMessage(), (int) $e->getCode(), $e);
+                            }
                         }
-
-                        $last_modified = $response->getHeaderLine('Last-Modified');
-                        if ($last_modified) {
-                            $this->cache->set($cache_key . '.last_modified', $last_modified, 86400); // Keep timestamp for 24h
-                        }
-
-                        return $processor($response);
-                    },
-                    function (\Throwable $e) {
-                        if ($e instanceof \Exception) {
-                            $this->processError($e);
-                        } else {
-                            throw new ApiError('Fatal error: ' . $e->getMessage(), $e->getCode(), $e);
-                        }
-                    }
-                );
+                    );
             },
             $options
         );
+
+        /** @var PromiseInterface<T> */
+        return $react_promise->then(function ($result) {
+            /** @var T $result */
+            return $result;
+        });
     }
 
     /**
      * Resolves a location identifier to a UID
      *
-     * @param  string|int  $identifier  Location identifier (name or UID)
-     * @return int Resolved location UID
-     *
+     * @param  string|int                $identifier Location identifier (name or UID)
+     * @return int                       Resolved location UID
      * @throws InvalidParameterException If the location name cannot be resolved
      */
     private function resolveUid(string|int $identifier) : int
@@ -347,51 +378,42 @@ class AlertsClient
     /**
      * Processes API errors and throws appropriate exceptions
      *
-     * @param  \Exception  $error  The caught exception
+     * @param  \React\Http\Message\ResponseException $error The caught exception
      * @return void
-     *
-     * @throws UnauthorizedError For 401 responses
-     * @throws ForbiddenError For 403 responses
-     * @throws NotFoundError For 404 responses
-     * @throws RateLimitError For 429 responses
-     * @throws BadRequestError For 400 responses
-     * @throws InternalServerError For 500 responses
-     * @throws ApiError For other API errors
+     * @throws UnauthorizedError                     For 401 responses
+     * @throws ForbiddenError                        For 403 responses
+     * @throws NotFoundError                         For 404 responses
+     * @throws RateLimitError                        For 429 responses
+     * @throws BadRequestError                       For 400 responses
+     * @throws InternalServerError                   For 500 responses
+     * @throws ApiError                              For other API errors
      */
-    private function processError(\Exception $error) : void
+    private function processError(\React\Http\Message\ResponseException $error) : void
     {
-        if ($error instanceof RequestException) {
-            $response = $error->getResponse();
-            if ($response) {
-                $code = $response->getStatusCode();
-                switch ($code) {
-                    case 401:
-                        throw new UnauthorizedError('Unauthorized access. Check your API token.');
-                    case 403:
-                        throw new ForbiddenError('Access forbidden.');
-                    case 404:
-                        throw new NotFoundError('Resource not found.');
-                    case 429:
-                        throw new RateLimitError('Rate limit exceeded.');
-                    case 400:
-                        throw new BadRequestError('Bad request parameters.');
-                    case 500:
-                        throw new InternalServerError('Internal server error.');
-                    default:
-                        throw new ApiError('API error: ' . $error->getMessage());
-                }
-            } else {
-                throw new ApiError('Request failed: ' . $error->getMessage());
-            }
-        } else {
-            throw new ApiError('Unknown error: ' . $error->getMessage());
+        $response = $error->getResponse();
+        $code = $response->getStatusCode();
+        switch ($code) {
+            case 401:
+                throw new UnauthorizedError('Unauthorized access. Check your API token.');
+            case 403:
+                throw new ForbiddenError('Access forbidden.');
+            case 404:
+                throw new NotFoundError('Resource not found.');
+            case 429:
+                throw new RateLimitError('Rate limit exceeded.');
+            case 400:
+                throw new BadRequestError('Bad request parameters.');
+            case 500:
+                throw new InternalServerError('Internal server error.');
+            default:
+                throw new ApiError('API error: ' . $error->getMessage());
         }
     }
 
     /**
      * Configures cache TTL (Time To Live) settings for different request types
      *
-     * @param  array<string, int>  $ttl_config  Associative array of cache types and their TTL in seconds
+     * @param  array<string, int> $ttl_config Associative array of cache types and their TTL in seconds
      * @return void
      */
     public function configureCacheTtl(array $ttl_config) : void
@@ -400,26 +422,26 @@ class AlertsClient
     }
 
     /**
-     * Clears cached items by tag(s)
-     *
-     * @param  string|string[]  $tags  A single tag or an array of tags to invalidate
-     * @return void
-     */
-    public function clearCache(string|array $tags) : void
-    {
-        if (method_exists($this->cache, 'invalidateTags')) {
-            $this->cache->invalidateTags(is_array($tags) ? $tags : [$tags]);
-        }
-    }
-
-    /**
      * Sets the minimum interval between identical API requests
-     * 
-     * @param  int  $seconds  Minimum interval in seconds
+     *
+     * @param  int  $seconds Minimum interval in seconds
      * @return void
      */
-    public function setRequestInterval(int $seconds): void
+    public function setRequestInterval(int $seconds) : void
     {
         $this->request_interval = $seconds;
+
+        $this->rate_limiter_factory = new RateLimiterFactory([
+            'id' => 'alerts_in_ua',
+            'policy' => 'fixed_window',
+            'limit' => $this->request_interval > 0 ? 1 : 1000,
+            'interval' => ($this->request_interval > 0 ? $this->request_interval : 1) . ' seconds',
+        ], new InMemoryStorage());
+
+        $config = AsyncCacheConfig::builder($this->cache)
+            ->withRateLimiter($this->rate_limiter_factory)
+            ->build();
+
+        $this->async_cache = new AsyncCacheManager($config);
     }
 }

@@ -40,9 +40,9 @@ class AirRaidAlertStatus implements JsonSerializable
     /**
      * AirRaidAlertStatus constructor
      *
-     * @param  string  $location_title  The title/name of the location
-     * @param  AlertStatus|string  $status  The alert status
-     * @param  int|null  $uid  The UID of the location
+     * @param string             $location_title The title/name of the location
+     * @param AlertStatus|string $status         The alert status
+     * @param int|null           $uid            The UID of the location
      */
     public function __construct(string $location_title, AlertStatus|string $status, ?int $uid = null)
     {
@@ -88,7 +88,7 @@ class AirRaidAlertStatus implements JsonSerializable
      */
     public function isActive() : bool
     {
-        return $this->status === AlertStatus::ACTIVE;
+        return AlertStatus::ACTIVE === $this->status;
     }
 
     /**
@@ -98,7 +98,7 @@ class AirRaidAlertStatus implements JsonSerializable
      */
     public function isPartlyActive() : bool
     {
-        return $this->status === AlertStatus::PARTLY;
+        return AlertStatus::PARTLY === $this->status;
     }
 
     /**
@@ -108,7 +108,7 @@ class AirRaidAlertStatus implements JsonSerializable
      */
     public function isNoAlert() : bool
     {
-        return $this->status === AlertStatus::NO_ALERT;
+        return AlertStatus::NO_ALERT === $this->status;
     }
 
     /**

@@ -29,7 +29,7 @@ use JsonSerializable;
 /**
  * Enumeration of location types in Ukraine
  */
-enum LocationType: string implements JsonSerializable
+enum LocationType : string implements JsonSerializable
 {
     case OBLAST = 'oblast';
     case RAION = 'raion';
@@ -39,13 +39,13 @@ enum LocationType: string implements JsonSerializable
 
     /**
      * Create from string with fallback to UNKNOWN
-     * 
-     * @param  string|null  $value  Raw string value
+     *
+     * @param  string|null $value Raw string value
      * @return self
      */
     public static function fromString(?string $value) : self
     {
-        if ($value === null) {
+        if (null === $value) {
             return self::UNKNOWN;
         }
 

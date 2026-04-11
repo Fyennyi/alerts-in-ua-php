@@ -48,13 +48,13 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
     /**
      * AirRaidAlertStatuses constructor
      *
-     * @param  array<int, AirRaidAlertStatus>  $statuses  List of air raid alert status objects
+     * @param array<int, AirRaidAlertStatus> $statuses List of air raid alert status objects
      */
     public function __construct(array $statuses)
     {
         $this->statuses = $statuses;
         foreach ($statuses as $status) {
-            if ($status->getUid() !== null) {
+            if (null !== $status->getUid()) {
                 $this->uid_cache[$status->getUid()] = $status;
             }
         }
@@ -63,7 +63,7 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
     /**
      * Filter statuses by a specific status value
      *
-     * @param  AlertStatus|string  $status  Status to filter by
+     * @param  AlertStatus|string             $status Status to filter by
      * @return array<int, AirRaidAlertStatus> Filtered list of status objects
      */
     public function filterByStatus(AlertStatus|string $status) : array
@@ -105,7 +105,7 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
     /**
      * Get status by UID using cached lookup
      *
-     * @param  int  $uid  The UID to look up
+     * @param  int                     $uid The UID to look up
      * @return AirRaidAlertStatus|null The status object if found, null otherwise
      */
     public function getStatus(int $uid) : ?AirRaidAlertStatus

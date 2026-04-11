@@ -8,13 +8,13 @@ The `AlertsClient` is the central entry point for interacting with the API. It h
 public function __construct(
     string $token, 
     ?CacheInterface $cache = null, 
-    ?ClientInterface $client = null
+    ?Browser $client = null
 )
 ```
 
 - **`$token`**: Your API token.
 - **`$cache`**: (Optional) A [PSR-16 Simple Cache](https://www.php-fig.org/psr/psr-16/) implementation. If provided, the client will automatically cache responses to reduce API calls and latency.
-- **`$client`**: (Optional) A custom Guzzle client instance. Useful for mocking in tests or advanced HTTP configurations (timeouts, proxies).
+- **`$client`**: (Optional) A custom ReactPHP Browser instance. Useful for mocking in tests or advanced HTTP configurations.
 
 ## Methods
 
@@ -23,15 +23,17 @@ public function __construct(
 Fetches all currently active alerts across Ukraine.
 
 ```php
-public function getActiveAlertsAsync(bool $use_cache = false): PromiseInterface
+public function getActiveAlertsAsync(bool $use_cache = false): PromiseInterface<Alerts>
 ```
 
 **Returns:** A Promise resolving to an [`Alerts`](alerts.md) collection.
 
 **Example:**
 ```php
+use function React\Async\await;
+
 $promise = $client->getActiveAlertsAsync(use_cache: true);
-$alerts = $promise->wait();
+$alerts = await($promise);
 echo "Found " . count($alerts) . " active alerts.";
 ```
 
@@ -46,7 +48,7 @@ public function getAlertsHistoryAsync(
     string|int $oblast_uid_or_location_title,
     string $period = 'week_ago',
     bool $use_cache = false
-): PromiseInterface
+): PromiseInterface<Alerts>
 ```
 
 **Parameters:**
@@ -67,7 +69,7 @@ public function getAirRaidAlertStatusAsync(
     string|int $oblast_uid_or_location_title,
     bool $oblast_level_only = false,
     bool $use_cache = false
-): PromiseInterface
+): PromiseInterface<AirRaidAlertOblastStatus>
 ```
 
 **Parameters:**
@@ -85,7 +87,7 @@ Optimized method to get the status of all oblasts at once. Useful for generating
 public function getAirRaidAlertStatusesByOblastAsync(
     bool $oblast_level_only = false,
     bool $use_cache = false
-): PromiseInterface
+): PromiseInterface<AirRaidAlertOblastStatuses>
 ```
 
 **Returns:** A Promise resolving to an [`AirRaidAlertOblastStatuses`](air-raid-alert-oblast-statuses.md) collection.
@@ -97,7 +99,7 @@ public function getAirRaidAlertStatusesByOblastAsync(
 Retrieves a raw list of all locations with their current status.
 
 ```php
-public function getAirRaidAlertStatusesAsync(bool $use_cache = false): PromiseInterface
+public function getAirRaidAlertStatusesAsync(bool $use_cache = false): PromiseInterface<AirRaidAlertStatuses>
 ```
 
 **Returns:** A Promise resolving to an [`AirRaidAlertStatuses`](air-raid-alert-statuses.md) collection.
@@ -112,7 +114,7 @@ Sets the minimum interval between identical API requests to prevent triggering r
 public function setRequestInterval(int $seconds): void
 ```
 
-- **`$seconds`**: Minimum wait time between identical requests (default: `5`).
+- **`$seconds`**: Minimum wait time between identical requests (default: `5`). Use `0` to disable internal rate limiting.
 
 ## Error Handling
 
@@ -129,8 +131,10 @@ The client throws specific exceptions from the `Fyennyi\AlertsInUa\Exception` na
 
 **Example:**
 ```php
+use function React\Async\await;
+
 try {
-    $alerts = $client->getActiveAlertsAsync()->wait();
+    $alerts = await($client->getActiveAlertsAsync());
 } catch (UnauthorizedError $e) {
     // Refresh token or notify admin
 } catch (RateLimitError $e) {
