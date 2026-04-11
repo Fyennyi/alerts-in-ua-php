@@ -4,26 +4,24 @@ namespace Tests\Integration;
 
 use Fyennyi\AlertsInUa\Client\AlertsClient;
 use Fyennyi\AlertsInUa\Model\Alerts;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use React\Http\Browser;
+use React\Http\Message\Response;
 use ReflectionClass;
+
+use function React\Async\await;
+use function React\Promise\resolve;
 
 class ApiIntegrationTest extends TestCase
 {
-    private $mockHandler;
-
-    private $client;
+    /** @var Browser|\PHPUnit\Framework\MockObject\MockObject */
+    private $mockBrowser;
 
     private $token = 'test_api_token';
 
     protected function setUp() : void
     {
-        $this->mockHandler = new MockHandler();
-        $handlerStack = HandlerStack::create($this->mockHandler);
-        $this->client = new GuzzleClient(['handler' => $handlerStack]);
+        $this->mockBrowser = $this->createMock(Browser::class);
     }
 
     /**
@@ -33,10 +31,16 @@ class ApiIntegrationTest extends TestCase
     {
         // Step 1: Get active alerts
         $alertsResponseJson = file_get_contents(__DIR__ . '/../fixtures/active_alerts.json');
-        $this->mockHandler->append(new Response(200, [], $alertsResponseJson));
+        
+        $this->mockBrowser->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnMap([
+                ['GET', 'https://api.alerts.in.ua/v1/alerts/active.json', [], resolve(new Response(200, [], $alertsResponseJson))],
+                ['GET', 'https://api.alerts.in.ua/v1/regions/22/alerts/week_ago.json', [], resolve(new Response(200, [], file_get_contents(__DIR__ . '/../fixtures/alerts_history.json')))],
+            ]);
 
         $alertsClient = $this->createMockAlertsClient();
-        $alerts = $alertsClient->getActiveAlertsAsync()->wait();
+        $alerts = await($alertsClient->getActiveAlertsAsync());
 
         // Analyze alerts
         $this->assertGreaterThan(0, count($alerts->getAllAlerts()));
@@ -44,10 +48,7 @@ class ApiIntegrationTest extends TestCase
         $oblastAlerts = $alerts->getOblastAlerts();
 
         // Step 2: Get alerts history
-        $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
-        $this->mockHandler->append(new Response(200, [], $historyResponseJson));
-
-        $history = $alertsClient->getAlertsHistoryAsync('Харківська область', 'week_ago')->wait();
+        $history = await($alertsClient->getAlertsHistoryAsync('Харківська область', 'week_ago'));
 
         // Check history
         $this->assertGreaterThan(0, count($history->getAllAlerts()));
@@ -70,7 +71,7 @@ class ApiIntegrationTest extends TestCase
         $reflection = new ReflectionClass($alertsClient);
         $property = $reflection->getProperty('client');
         $property->setAccessible(true);
-        $property->setValue($alertsClient, $this->client);
+        $property->setValue($alertsClient, $this->mockBrowser);
 
         return $alertsClient;
     }
