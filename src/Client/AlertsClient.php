@@ -60,8 +60,6 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class AlertsClient
 {
-    use GeoLocationTrait;
-
     /** @var ClientInterface HTTP client for making requests */
     private ClientInterface $client;
 
