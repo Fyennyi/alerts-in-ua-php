@@ -6,6 +6,7 @@
     "require": {
         "php": ">=8.1",
         "react/http": "^1.11",
+        "react/async": "^4.3",
         "symfony/cache": "^7.3 || ^8.0",
         "psr/simple-cache": "^3.0",
         "fyennyi/async-cache-php": "^1.0"
