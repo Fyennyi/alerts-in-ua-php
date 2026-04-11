@@ -10,6 +10,7 @@ use React\Http\Message\Response;
 use ReflectionClass;
 
 use function React\Async\await;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 
 class ApiIntegrationTest extends TestCase
