@@ -268,9 +268,6 @@ class AlertsClient
         $cache_key = $endpoint . $cache_key_suffix;
         $ttl = $this->ttl_config[$type] ?? 300;
 
-        // Configure rate limit: default to request_interval seconds per endpoint (key)
-        $this->rate_limiter->configure($cache_key, $this->request_interval);
-
         // Prepare tags if adapter supports them
         $sanitized_tag = str_replace(['{', '}', '(', ')', '/', '\\', '@', ':'], '_', $type);
         $tags = [$sanitized_tag];
