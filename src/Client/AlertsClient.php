@@ -334,6 +334,30 @@ class AlertsClient
 
         /** @var Promise $guzzle_promise */
         $guzzle_promise = new Promise(function () use (&$guzzle_promise, $react_promise) {
+            $resolved = false;
+            $result = null;
+            $error = null;
+
+            $react_promise->then(
+                function ($v) use (&$resolved, &$result) {
+                    $resolved = true;
+                    $result = $v;
+                },
+                function ($e) use (&$resolved, &$error) {
+                    $resolved = true;
+                    $error = $e;
+                }
+            );
+
+            if ($resolved) {
+                if ($error) {
+                    $guzzle_promise->reject($error);
+                } else {
+                    $guzzle_promise->resolve($result);
+                }
+                return;
+            }
+
             try {
                 $guzzle_promise->resolve(\React\Async\await($react_promise));
             } catch (\Throwable $e) {
