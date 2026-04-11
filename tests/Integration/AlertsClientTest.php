@@ -222,7 +222,9 @@ class AlertsClientTest extends TestCase
 
     public function testCache()
     {
-        $this->mockBrowser->method('request')
+        // Mock response
+        $this->mockBrowser->expects($this->atLeastOnce())
+            ->method('request')
             ->willReturn(resolve(new Response(200, [], json_encode([
                 'alerts' => [[
                     'id' => 1,
@@ -326,6 +328,7 @@ class AlertsClientTest extends TestCase
 
     public function testClearCacheCallsInvalidateTags()
     {
+        $this->mockBrowser->expects($this->never())->method('request');
         $mockCache = $this->createMock(TagAwarePsr16Cache::class);
 
         $mockCache->expects($this->once())
@@ -338,6 +341,7 @@ class AlertsClientTest extends TestCase
 
     public function testClearCacheCallsInvalidateTagsWithArray()
     {
+        $this->mockBrowser->expects($this->never())->method('request');
         $mockCache = $this->createMock(TagAwarePsr16Cache::class);
 
         $mockCache->expects($this->once())
@@ -350,6 +354,7 @@ class AlertsClientTest extends TestCase
 
     public function testResolveUid()
     {
+        $this->mockBrowser->expects($this->never())->method('request');
         $reflection = new ReflectionClass($this->alertsClient);
         $method = $reflection->getMethod('resolveUid');
         $method->setAccessible(true);

@@ -33,7 +33,8 @@ class ApiIntegrationTest extends TestCase
         $alertsResponseJson = file_get_contents(__DIR__ . '/../fixtures/active_alerts.json');
         $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
         
-        $this->mockBrowser->method('request')
+        $this->mockBrowser->expects($this->atLeastOnce())
+            ->method('request')
             ->willReturnCallback(function($method, $url) use ($alertsResponseJson, $historyResponseJson) {
                 if (str_contains($url, 'alerts/active.json')) {
                     return resolve(new Response(200, [], $alertsResponseJson));

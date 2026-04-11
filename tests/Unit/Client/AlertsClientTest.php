@@ -67,6 +67,8 @@ class AlertsClientTest extends TestCase
 
     public function testResolveUidWithStringDigit()
     {
+        $this->mockBrowser->expects($this->never())->method('request');
+
         // Use reflection to make the private method accessible
         $method = new ReflectionMethod(AlertsClient::class, 'resolveUid');
         $method->setAccessible(true);
