@@ -337,7 +337,7 @@ class AlertsClient
         /** @var Promise $guzzle_promise */
         $guzzle_promise = new Promise(function () use (&$guzzle_promise, $react_promise) {
             try {
-                $guzzle_promise->resolve($react_promise->wait());
+                $guzzle_promise->resolve(\React\Async\await($react_promise));
             } catch (\Throwable $e) {
                 $guzzle_promise->reject($e);
             }
