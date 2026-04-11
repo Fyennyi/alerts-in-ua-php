@@ -9,7 +9,7 @@
 [![Test Coverage](https://img.shields.io/codecov/c/github/Fyennyi/alerts-in-ua-php?label=Test%20Coverage&logo=codecov)](https://app.codecov.io/gh/Fyennyi/alerts-in-ua-php)
 [![Static Analysis](https://img.shields.io/github/actions/workflow/status/Fyennyi/alerts-in-ua-php/phpstan.yml?label=PHPStan&logo=github)](https://github.com/Fyennyi/alerts-in-ua-php/actions/workflows/phpstan.yml)
 
-The API client for alerts.in.ua is a PHP library that simplifies access to the alerts.in.ua API service. It provides real-time information about air raid alerts in Ukraine. The library supports asynchronous operations, making it easy to integrate with various applications and services.
+The API client for alerts.in.ua is a PHP library that simplifies access to the alerts.in.ua API service. It provides real-time information about air raid alerts in Ukraine. The library is built on top of **ReactPHP**, providing native support for non-blocking asynchronous operations.
 
 > [!NOTE]
 > This unofficial library may not fully support the official alerts.in.ua API and is still in early development, so expect changes or instability.
@@ -43,11 +43,13 @@ $client = new AlertsClient('your_token', $cache);
 
 ### Getting Active Alerts
 
-Here's how to fetch and display all currently active alerts:
+Since the library uses ReactPHP, all request methods are asynchronous and return a `React\Promise\PromiseInterface`. You can use `React\Async\await` to wait for the result in a synchronous context:
 
 ```php
+use function React\Async\await;
+
 try {
-    $alerts = $client->getActiveAlertsAsync()->wait();
+    $alerts = await($client->getActiveAlertsAsync());
 
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
@@ -65,7 +67,7 @@ To retrieve historical alert data for a specific region:
 
 ```php
 try {
-    $history = $client->getAlertsHistoryAsync('Харківська область', 'month_ago')->wait();
+    $history = await($client->getAlertsHistoryAsync('Харківська область', 'month_ago'));
 
     echo "\nAlerts history for Kharkiv Oblast: " . count($history->getAllAlerts()) . "\n";
 
@@ -84,7 +86,7 @@ To check the current status of air raid alerts across all oblasts:
 
 ```php
 try {
-    $statuses = $client->getAirRaidAlertStatusesByOblastAsync()->wait();
+    $statuses = await($client->getAirRaidAlertStatusesByOblastAsync());
 
     echo "\nAir raid alert statuses by oblast:\n";
 
@@ -102,7 +104,7 @@ To retrieve a detailed list of all air raid alert statuses, including community-
 
 ```php
 try {
-    $statuses = $client->getAirRaidAlertStatusesAsync()->wait();
+    $statuses = await($client->getAirRaidAlertStatusesAsync());
 
     echo "\nDetailed air raid alert statuses:\n";
 
@@ -120,7 +122,7 @@ The library provides convenient methods to filter alerts by type and location:
 
 ```php
 try {
-    $alerts = $client->getActiveAlertsAsync()->wait();
+    $alerts = await($client->getActiveAlertsAsync());
 
     // Get only air raid alerts
     $air_raid_alerts = $alerts->getAirRaidAlerts();
@@ -153,58 +155,36 @@ echo $alerts->toXml('alerts');
 
 ## Asynchronous Operations
 
-The library supports asynchronous operations for better performance when handling multiple requests. You can run multiple API calls concurrently without blocking execution.
+The library natively supports asynchronous operations for better performance. You can run multiple API calls concurrently without blocking execution.
 
 ### Fetching Multiple Alerts Concurrently
 
-You can start multiple requests and handle them all together without blocking:
+You can use `React\Promise\all()` to handle multiple requests together:
 
 ```php
-use GuzzleHttp\Promise\Utils;
+use function React\Async\await;
+use function React\Promise\all;
 
 $promises = [
     'active' => $client->getActiveAlertsAsync(),
     'history' => $client->getAlertsHistoryAsync('Харківська область', 'month_ago'),
 ];
 
-Utils::all($promises)->then(function ($results) {
+all($promises)->then(function ($results) {
     $alerts = $results['active'];
     $history = $results['history'];
 
     echo "Active alerts: " . count($alerts->getAllAlerts()) . "\n";
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()}\n";
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}\n";
     }
 
     echo "\nHistory for Kharkiv Oblast:\n";
     foreach ($history->getAllAlerts() as $alert) {
         $status = $alert->isFinished() ? 'Finished' : 'Active';
-        echo "{$alert->getAlertType()} in {$alert->getLocationTitle()} - {$status}\n";
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()} - {$status}\n";
     }
-})->wait();
-```
-
-### Checking Air Raid Alert Statuses Concurrently
-
-You can also query multiple oblasts or summary data at the same time:
-
-```php
-$promises = [
-    'kyiv_status' => $client->getAirRaidAlertStatusAsync('Київська область', true),
-    'all_statuses' => $client->getAirRaidAlertStatusesByOblastAsync(),
-];
-
-Utils::all($promises)->then(function ($results) {
-    $kyiv_status = $results['kyiv_status'];
-    $all_statuses = $results['all_statuses'];
-
-    echo "Kyiv Oblast air raid status: " . $kyiv_status->getStatus() . "\n";
-
-    echo "\nAir raid alert statuses by oblast:\n";
-    foreach ($all_statuses->getStatuses() as $status) {
-        echo "{$status->getOblast()}: {$status->getStatus()}\n";
-    }
-})->wait();
+});
 ```
 
 ### Filtering Alerts After Asynchronous Retrieval
@@ -220,13 +200,13 @@ $client->getActiveAlertsAsync()->then(function ($alerts) {
     echo "Air raid alerts: " . count($air_raid_alerts) . "\n";
     echo "Oblast-level alerts: " . count($oblast_alerts) . "\n";
     echo "Kharkiv Oblast alerts: " . count($kharkiv_alerts) . "\n";
-})->wait();
+});
 ```
 
 > [!TIP]
-> You can use `Utils::settle()` instead of `Utils::all()` if you want to gracefully handle individual request failures without throwing exceptions.
+> Using `React\Promise\all()` allows for better concurrency and performance when dealing with multiple requests.
 
-You can continue to use individual `->wait()` calls when needed, but using `Utils::all()` allows for better concurrency and performance when dealing with multiple requests.
+You can continue to use `await()` when needed for simplicity in synchronous scripts, but for true non-blocking execution, use `.then()` or run the event loop.
 
 ## Caching
 
@@ -265,7 +245,7 @@ Many methods in `AlertsClient` also accept an optional `$use_cache` parameter. W
 
 ### AlertsClient
 
-#### `getActiveAlertsAsync(bool $use_cache = false): Promise<Alerts>`
+#### `getActiveAlertsAsync(bool $use_cache = false): PromiseInterface<Alerts>`
 
 Fetches a list of active alerts asynchronously.
 
@@ -273,7 +253,7 @@ Fetches a list of active alerts asynchronously.
 
 ---
 
-#### `getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = false): Promise<Alerts>`
+#### `getAlertsHistoryAsync(string|int $oblast_uid_or_location_title, string $period = 'week_ago', bool $use_cache = false): PromiseInterface<Alerts>`
 
 Fetches the alert history for a specific oblast or location.
 
@@ -283,7 +263,7 @@ Fetches the alert history for a specific oblast or location.
 
 ---
 
-#### `getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatus>`
+#### `getAirRaidAlertStatusAsync(string|int $oblast_uid_or_location_title, bool $oblast_level_only = false, bool $use_cache = false): PromiseInterface<AirRaidAlertOblastStatus>`
 
 Returns air raid alert status for one oblast.
 
@@ -293,7 +273,7 @@ Returns air raid alert status for one oblast.
 
 ---
 
-#### `getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatuses>`
+#### `getAirRaidAlertStatusesByOblastAsync(bool $oblast_level_only = false, bool $use_cache = false): PromiseInterface<AirRaidAlertOblastStatuses>`
 
 Returns air raid alert statuses across all oblasts.
 
@@ -302,7 +282,7 @@ Returns air raid alert statuses across all oblasts.
 
 ---
 
-#### `getAirRaidAlertStatusesAsync(bool $use_cache = false): Promise<AirRaidAlertStatuses>`
+#### `getAirRaidAlertStatusesAsync(bool $use_cache = false): PromiseInterface<AirRaidAlertStatuses>`
 
 Fetches a detailed list of all air raid alert statuses, including community-level alerts.
 
@@ -310,32 +290,14 @@ Fetches a detailed list of all air raid alert statuses, including community-leve
 
 ---
 
-#### `getAlertsByCoordinatesAsync(float $lat, float $lon, string $period = 'week_ago', bool $use_cache = false): Promise<Alerts>`
-
-Fetches the alert history for the location at the given coordinates.
-
----
-
-#### `getAirRaidAlertStatusByCoordinatesAsync(float $lat, float $lon, bool $oblast_level_only = false, bool $use_cache = false): Promise<AirRaidAlertOblastStatus>`
-
-Returns air raid alert status for the location at the given coordinates.
-
----
-
-#### `getAirRaidAlertStatusByCoordinatesFromAllAsync(float $lat, float $lon, bool $use_cache = false): Promise<AirRaidAlertStatus>`
-
-Returns air raid alert status for the location at the given coordinates using the bulk status endpoint.
-
----
-
 #### `setRequestInterval(int $seconds): void`
 
-Sets the minimum interval between identical API requests (default: 5 seconds). Use `0` to disable internal rate limiting (useful for tests).
+Sets the minimum interval between identical API requests (default: 5 seconds). Use `0` to disable internal rate limiting.
 
 ---
 
 > [!NOTE]
-> All async methods return a `GuzzleHttp\Promise\PromiseInterface`. To retrieve the final result, call `->wait()` on the promise.
+> All async methods return a `React\Promise\PromiseInterface`. To retrieve the final result in a synchronous environment, use `React\Async\await()`.
 
 ### Alert
 
