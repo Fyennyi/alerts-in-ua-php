@@ -31,13 +31,18 @@ class ApiIntegrationTest extends TestCase
     {
         // Step 1: Get active alerts
         $alertsResponseJson = file_get_contents(__DIR__ . '/../fixtures/active_alerts.json');
+        $historyResponseJson = file_get_contents(__DIR__ . '/../fixtures/alerts_history.json');
         
-        $this->mockBrowser->expects($this->exactly(2))
-            ->method('request')
-            ->willReturnMap([
-                ['GET', 'https://api.alerts.in.ua/v1/alerts/active.json', [], resolve(new Response(200, [], $alertsResponseJson))],
-                ['GET', 'https://api.alerts.in.ua/v1/regions/22/alerts/week_ago.json', [], resolve(new Response(200, [], file_get_contents(__DIR__ . '/../fixtures/alerts_history.json')))],
-            ]);
+        $this->mockBrowser->method('request')
+            ->willReturnCallback(function($method, $url) use ($alertsResponseJson, $historyResponseJson) {
+                if (str_contains($url, 'alerts/active.json')) {
+                    return resolve(new Response(200, [], $alertsResponseJson));
+                }
+                if (str_contains($url, 'regions/22/alerts/week_ago.json')) {
+                    return resolve(new Response(200, [], $historyResponseJson));
+                }
+                return reject(new \Exception('Unexpected URL: ' . $url));
+            });
 
         $alertsClient = $this->createMockAlertsClient();
         $alerts = await($alertsClient->getActiveAlertsAsync());
