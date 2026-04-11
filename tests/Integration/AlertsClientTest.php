@@ -458,7 +458,35 @@ class AlertsClientTest extends TestCase
 
     public function testLegacyCacheFormat()
     {
-        $legacyData = json_encode(['alerts' => []]);
+        // Test string format (JSON)
+        $jsonData = json_encode(['alerts' => []]);
+        $this->cache->set('alerts/active.json', $jsonData);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
+
+        $result = await($this->alertsClient->getActiveAlertsAsync());
+        $this->assertInstanceOf(Alerts::class, $result);
+    }
+
+    public function testLegacyCacheWithNonJsonData()
+    {
+        $rawData = 'not json data';
+        $this->cache->set('alerts/active.json.last_modified', 'Sat, 15 Jun 2024 15:16:00 GMT');
+        $this->cache->set('alerts/active.json', $rawData);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
+
+        $result = await($this->alertsClient->getActiveAlertsAsync(true));
+        $this->assertEquals($rawData, $result);
+    }
+
+    public function testLegacyCacheWithArrayFormat()
+    {
+        $legacyData = ['d' => ['alerts' => []]];
         $this->cache->set('alerts/active.json', $legacyData);
 
         $this->mockBrowser->expects($this->once())
@@ -467,6 +495,38 @@ class AlertsClientTest extends TestCase
 
         $result = await($this->alertsClient->getActiveAlertsAsync());
         $this->assertInstanceOf(Alerts::class, $result);
+    }
+
+    public function testLegacyCacheWithInvalidJsonEncode()
+    {
+        $this->expectException(ApiError::class);
+        $this->expectExceptionMessage('Failed to restore cached response body from legacy cache format.');
+
+        // Cyclical reference - json_encode returns false
+        $data = [];
+        $data['self'] = &$data;
+        $legacyData = ['d' => $data];
+        $this->cache->set('alerts/active.json', $legacyData);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
+
+        await($this->alertsClient->getActiveAlertsAsync());
+    }
+
+    public function testLegacyCacheWithNonArrayCachedData()
+    {
+        $cachedData = 123; // integer
+        $this->cache->set('alerts/active.json.last_modified', 'Sat, 15 Jun 2024 15:16:00 GMT');
+        $this->cache->set('alerts/active.json', $cachedData);
+
+        $this->mockBrowser->expects($this->once())
+            ->method('request')
+            ->willReturn(resolve(new Response(304, [])));
+
+        $result = await($this->alertsClient->getActiveAlertsAsync(true));
+        $this->assertEquals($cachedData, $result);
     }
 
     public function testGetAirRaidAlertStatusesByOblastWithInvalidData()

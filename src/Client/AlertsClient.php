@@ -356,10 +356,7 @@ class AlertsClient
         );
 
         /** @var PromiseInterface<T> */
-        return $react_promise->then(function ($result) use ($processor) {
-            if ($result instanceof ResponseInterface) {
-                return $processor($result);
-            }
+        return $react_promise->then(function ($result) {
             /** @var T $result */
             return $result;
         });
