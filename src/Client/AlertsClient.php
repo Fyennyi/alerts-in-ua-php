@@ -281,7 +281,7 @@ class AlertsClient
             tags: $tags
         );
 
-        return $this->async_cache->wrap(
+        $react_promise = $this->async_cache->wrap(
             $cache_key,
             function () use ($endpoint, $processor, $cache_key) {
                 $headers = [
@@ -333,6 +333,10 @@ class AlertsClient
             },
             $options
         );
+
+        return new Promise(function () use ($react_promise) {
+            return $react_promise->wait();
+        });
     }
 
     /**
