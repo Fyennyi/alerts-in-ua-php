@@ -3,6 +3,12 @@
     "description": "PHP client library for the alerts.in.ua API.",
     "type": "library",
     "license": "LicenseRef-CSSM-Unlimited-2.0",
+    "authors": [
+        {
+            "name": "Serhii Cherneha",
+            "email": "chernegasergiy3@gmail.com"
+        }
+    ],
     "require": {
         "php": ">=8.1",
         "react/http": "^1.11",
