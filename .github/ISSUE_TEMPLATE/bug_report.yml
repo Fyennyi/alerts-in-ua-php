@@ -1,0 +1,57 @@
+name: Bug Report
+description: Report a reproducible bug or unexpected behaviour
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue. Please fill out the fields below.
+
+  - type: input
+    id: version
+    attributes:
+      label: Package Version
+      description: Which version of alerts-in-ua-php are you using?
+      placeholder: "e.g., 1.0.0 or dev-main"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows 11
+        - Windows 10
+        - Ubuntu 22.04
+        - Ubuntu 24.04
+        - macOS
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: What happened? What was expected to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Initialize the client with...
+        2. Call method...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Stack Trace
+      description: Paste the relevant PHP error logs or full stack trace.
+      render: shell

@@ -1,0 +1,42 @@
+name: Feature Request
+description: Suggest an improvement or new feature for the library
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to suggest a new feature or improvement for `alerts-in-ua-php`!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is or what is missing.
+      placeholder: "e.g., I find it frustrating that I have to manually filter alerts by..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: A clear and concise description of how you think this should be implemented.
+      placeholder: "e.g., Add a new method in AlertsClient that returns..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Did you consider any alternative solutions or workarounds?
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context, code snippets, or API endpoint references here.
+    validations:
+      required: false
