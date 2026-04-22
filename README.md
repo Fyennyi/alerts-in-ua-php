@@ -8,6 +8,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/Fyennyi/alerts-in-ua-php/phpunit.yml?label=Tests&logo=github)](https://github.com/Fyennyi/alerts-in-ua-php/actions/workflows/phpunit.yml)
 [![Test Coverage](https://img.shields.io/codecov/c/github/Fyennyi/alerts-in-ua-php?label=Test%20Coverage&logo=codecov)](https://app.codecov.io/gh/Fyennyi/alerts-in-ua-php)
 [![Static Analysis](https://img.shields.io/github/actions/workflow/status/Fyennyi/alerts-in-ua-php/phpstan.yml?label=PHPStan&logo=github)](https://github.com/Fyennyi/alerts-in-ua-php/actions/workflows/phpstan.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFyennyi%2Falerts-in-ua-php.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FFyennyi%2Falerts-in-ua-php?ref=badge_shield)
 
 The API client for alerts.in.ua is a PHP library that simplifies access to the alerts.in.ua API service. It provides real-time information about air raid alerts in Ukraine. The library is built on top of **ReactPHP**, providing native support for non-blocking asynchronous operations.
 
@@ -705,3 +706,6 @@ Please make sure to update tests as appropriate and adhere to the existing codin
 ## License
 
 This library is licensed under the CSSM Unlimited License v2.0 (CSSM-ULv2). See the [LICENSE](LICENSE) file for details.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFyennyi%2Falerts-in-ua-php.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFyennyi%2Falerts-in-ua-php?ref=badge_large)
