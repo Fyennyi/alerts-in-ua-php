@@ -36,7 +36,7 @@ jobs:
         run: vendor/bin/phpunit --coverage-clover clover.xml --display-warnings
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: clover-report
           path: clover.xml
