@@ -57,7 +57,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ env.CODECOV_TOKEN != '' }}
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: clover.xml
           token: ${{ env.CODECOV_TOKEN }}
