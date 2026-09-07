@@ -22,6 +22,7 @@ An `Alert` object contains the following data points:
 ```php
 public function getId(): int
 public function getLocationTitle(): string
+public function getLocationTitleEn(): ?string
 public function getLocationType(): LocationType
 public function getAlertType(): AlertType
 public function getNotes(): ?string
