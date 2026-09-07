@@ -52,6 +52,7 @@ nav:
     - AlertsClient: methods/alerts-client.md
     - Models:
       - Alert: methods/alert.md
+      - Threat: methods/threat.md
       - Alerts (Collection): methods/alerts.md
       - AirRaidAlertStatus: methods/air-raid-alert-status.md
       - AirRaidAlertStatuses: methods/air-raid-alert-statuses.md
