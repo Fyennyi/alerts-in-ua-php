@@ -321,6 +321,9 @@ Returns the unique identifier of the alert.
 #### `getLocationTitle(): string`
 Returns the name of the location where the alert is active (e.g., `'Харківська область'`).
 
+#### `getLocationTitleEn(): ?string`
+Returns the English name of the location where the alert is active, or `null` if not provided (e.g., `'Kharkiv Oblast'`).
+
 #### `getLocationType(): LocationType`
 Returns the type of the location as a `LocationType` enum (e.g., `LocationType::OBLAST`).
 
