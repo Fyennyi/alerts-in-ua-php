@@ -7,7 +7,9 @@ A read-only collection of `AirRaidAlertStatus` objects. It optimizes lookups by 
 ### By UID (Fast Lookup)
 
 ```php
-$statuses = $client->getAirRaidAlertStatusesAsync()->wait();
+use function React\Async\await;
+
+$statuses = await($client->getAirRaidAlertStatusesAsync());
 $kyivStatus = $statuses->getStatus(31); // 31 is Kyiv City UID
 ```
 

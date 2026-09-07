@@ -7,7 +7,9 @@ The `Alerts` class is a powerful wrapper around an array of `Alert` objects. It 
 It behaves like a standard array:
 
 ```php
-$alerts = $client->getActiveAlertsAsync()->wait();
+use function React\Async\await;
+
+$alerts = await($client->getActiveAlertsAsync());
 
 $count = count($alerts); // Implements Countable
 foreach ($alerts as $alert) { // Implements IteratorAggregate
