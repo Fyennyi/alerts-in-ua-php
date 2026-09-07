@@ -89,7 +89,7 @@ class Alert implements JsonSerializable
         $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
 
         $this->alert_level = isset($data['alert_level']) && is_string($data['alert_level']) ? AlertLevel::fromString($data['alert_level']) : null;
-        
+
         $this->threats = [];
         if (isset($data['threats']) && is_array($data['threats'])) {
             foreach ($data['threats'] as $threatData) {
@@ -392,7 +392,7 @@ class Alert implements JsonSerializable
             'is_active' => $this->isActive(),
             'duration' => $this->getDurationInSeconds(),
             'alert_level' => $this->alert_level?->value,
-            'threats' => array_map(fn(Threat $t) => $t->toArray(), $this->threats),
+            'threats' => array_map(fn (Threat $t) => $t->toArray(), $this->threats),
         ];
     }
 
