@@ -39,7 +39,7 @@ class Threat implements JsonSerializable
     /**
      * Constructor for Threat
      *
-     * @param array<string, mixed> $data Raw threat data from API
+     * @param array<mixed, mixed> $data Raw threat data from API
      */
     public function __construct(array $data)
     {
