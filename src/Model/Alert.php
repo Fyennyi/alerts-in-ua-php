@@ -92,9 +92,9 @@ class Alert implements JsonSerializable
 
         $this->threats = [];
         if (isset($data['threats']) && is_array($data['threats'])) {
-            foreach ($data['threats'] as $threatData) {
-                if (is_array($threatData)) {
-                    $this->threats[] = new Threat($threatData);
+            foreach ($data['threats'] as $threat_data) {
+                if (is_array($threat_data)) {
+                    $this->threats[] = new Threat($threat_data);
                 }
             }
         }
