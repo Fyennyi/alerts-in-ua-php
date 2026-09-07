@@ -73,7 +73,6 @@ class AirRaidAlertStatusTest extends TestCase
 
         $reflection = new \ReflectionClass($status);
         $property = $reflection->getProperty('location_title');
-        $property->setAccessible(true);
         // Insert invalid UTF-8
         $property->setValue($status, "\xB1\x31");
 

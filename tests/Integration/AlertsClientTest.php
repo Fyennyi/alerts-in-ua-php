@@ -42,7 +42,6 @@ class AlertsClientTest extends TestCase
 
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
-        $clientProperty->setAccessible(true);
         $clientProperty->setValue($this->alertsClient, $this->mockBrowser);
     }
 
@@ -331,7 +330,6 @@ class AlertsClientTest extends TestCase
         $this->mockBrowser->expects($this->never())->method('request');
         $reflection = new ReflectionClass($this->alertsClient);
         $method = $reflection->getMethod('resolveUid');
-        $method->setAccessible(true);
 
         $this->assertEquals(22, $method->invoke($this->alertsClient, 22));
         $this->assertEquals(22, $method->invoke($this->alertsClient, '22'));

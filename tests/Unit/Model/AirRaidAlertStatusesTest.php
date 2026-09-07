@@ -45,7 +45,6 @@ class AirRaidAlertStatusesTest extends TestCase
 
         $reflectionClass = new \ReflectionClass($alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
-        $clientProperty->setAccessible(true);
         $clientProperty->setValue($alertsClient, $mockBrowser);
 
         $statuses = await($alertsClient->getAirRaidAlertStatusesByOblastAsync());
@@ -224,7 +223,6 @@ class AirRaidAlertStatusesTest extends TestCase
 
         $reflection = new \ReflectionClass($statuses);
         $property = $reflection->getProperty('statuses');
-        $property->setAccessible(true);
         // Insert a resource to cause json_encode failure
         $property->setValue($statuses, [fopen('php://memory', 'r')]);
 

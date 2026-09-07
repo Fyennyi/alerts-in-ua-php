@@ -245,7 +245,6 @@ class AlertTest extends TestCase
 
         $reflection = new \ReflectionClass($alert);
         $property = $reflection->getProperty('location_title');
-        $property->setAccessible(true);
         // Insert invalid UTF-8 to cause json_encode error
         $property->setValue($alert, "\xB1\x31");
 

@@ -76,7 +76,6 @@ class ApiIntegrationTest extends TestCase
         // Inject mock client
         $reflection = new ReflectionClass($alertsClient);
         $property = $reflection->getProperty('client');
-        $property->setAccessible(true);
         $property->setValue($alertsClient, $this->mockBrowser);
 
         return $alertsClient;
