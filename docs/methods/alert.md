@@ -25,6 +25,9 @@ public function getLocationTitle(): string
 public function getLocationType(): LocationType
 public function getAlertType(): AlertType
 public function getNotes(): ?string
+public function getAlertLevel(): ?AlertLevel
+public function getThreats(): array
+public function hasThreats(): bool
 ```
 
 ### Location Hierarchy
