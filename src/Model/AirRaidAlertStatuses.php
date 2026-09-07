@@ -54,8 +54,9 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
     {
         $this->statuses = $statuses;
         foreach ($statuses as $status) {
-            if (null !== $status->getUid()) {
-                $this->uid_cache[$status->getUid()] = $status;
+            $uid = $status->getUid();
+            if (null !== $uid) {
+                $this->uid_cache[$uid] = $status;
             }
         }
     }
