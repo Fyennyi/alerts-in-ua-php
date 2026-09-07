@@ -241,6 +241,9 @@ class AlertTest extends TestCase
         $this->assertNull($alert->getProperty('location_raion'));
         $this->assertEquals('Finished alert notes', $alert->getProperty('notes'));
         $this->assertTrue($alert->getProperty('calculated'));
+        $this->assertInstanceOf(AlertLevel::class, $alert->getProperty('alert_level'));
+        $this->assertEquals(AlertLevel::YELLOW, $alert->getProperty('alert_level'));
+        $this->assertIsArray($alert->getProperty('threats'));
         $this->assertNull($alert->getProperty('non_existent_property'));
     }
 
@@ -254,6 +257,10 @@ class AlertTest extends TestCase
         $this->assertEquals($this->activeAlertData['location_title'], $array['location_title']);
         $this->assertTrue($array['is_active']);
         $this->assertIsInt($array['duration']);
+        $this->assertEquals('red', $array['alert_level']);
+        $this->assertIsArray($array['threats']);
+        $this->assertCount(1, $array['threats']);
+        $this->assertEquals('drones', $array['threats'][0]['threat_type']);
     }
 
     public function testToJson()
