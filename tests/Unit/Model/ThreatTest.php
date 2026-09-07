@@ -79,7 +79,7 @@ class ThreatTest extends TestCase
 
     public function testToJsonThrowsExceptionOnFailure()
     {
-        // Передаємо невалідну UTF-8 послідовність, щоб викликати помилку json_encode
+        // Pass an invalid UTF-8 sequence to trigger a json_encode error
         $data = [
             'source_message' => "\xB1\x31"
         ];
