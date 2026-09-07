@@ -36,6 +36,13 @@ class AlertTest extends TestCase
             'location_raion' => 'Київський район',
             'notes' => 'Active alert notes',
             'calculated' => false,
+            'alert_level' => 'red',
+            'threats' => [
+                [
+                    'threat_type' => 'drones',
+                    'level' => 'red',
+                ]
+            ],
         ];
 
         $this->finishedAlertData = [
@@ -52,6 +59,8 @@ class AlertTest extends TestCase
             'location_raion' => null,
             'notes' => 'Finished alert notes',
             'calculated' => true,
+            'alert_level' => 'yellow',
+            'threats' => [],
         ];
     }
 
