@@ -26,6 +26,7 @@ namespace Fyennyi\AlertsInUa\Model;
 
 use DateInterval;
 use DateTimeImmutable;
+use Fyennyi\AlertsInUa\Model\Enum\AlertLevel;
 use Fyennyi\AlertsInUa\Model\Enum\AlertType;
 use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
@@ -59,6 +60,11 @@ class Alert implements JsonSerializable
 
     private ?string $notes;
 
+    private ?AlertLevel $alert_level;
+
+    /** @var Threat[] */
+    private array $threats = [];
+
     private bool $calculated;
 
     /**
@@ -81,6 +87,17 @@ class Alert implements JsonSerializable
         $this->location_raion = isset($data['location_raion']) && is_string($data['location_raion']) ? $data['location_raion'] : null;
         $this->notes = isset($data['notes']) && is_string($data['notes']) ? $data['notes'] : null;
         $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
+
+        $this->alert_level = isset($data['alert_level']) && is_string($data['alert_level']) ? AlertLevel::fromString($data['alert_level']) : null;
+        
+        $this->threats = [];
+        if (isset($data['threats']) && is_array($data['threats'])) {
+            foreach ($data['threats'] as $threatData) {
+                if (is_array($threatData)) {
+                    $this->threats[] = new Threat($threatData);
+                }
+            }
+        }
     }
 
     /**
@@ -204,6 +221,36 @@ class Alert implements JsonSerializable
     }
 
     /**
+     * Get alert level
+     *
+     * @return AlertLevel|null Alert level enum or null if not set
+     */
+    public function getAlertLevel() : ?AlertLevel
+    {
+        return $this->alert_level;
+    }
+
+    /**
+     * Get specific threats associated with the alert
+     *
+     * @return Threat[] Array of active threats
+     */
+    public function getThreats() : array
+    {
+        return $this->threats;
+    }
+
+    /**
+     * Check if alert has specific threats
+     *
+     * @return bool
+     */
+    public function hasThreats() : bool
+    {
+        return !empty($this->threats);
+    }
+
+    /**
      * Check if the alert end time is estimated
      *
      * @return bool True if the end time is estimated, false if it is the actual end time
@@ -235,6 +282,8 @@ class Alert implements JsonSerializable
             'location_raion' => $this->location_raion,
             'notes' => $this->notes,
             'calculated' => $this->calculated,
+            'alert_level' => $this->alert_level,
+            'threats' => $this->threats,
             default => null
         };
     }
@@ -342,6 +391,8 @@ class Alert implements JsonSerializable
             'calculated' => $this->calculated,
             'is_active' => $this->isActive(),
             'duration' => $this->getDurationInSeconds(),
+            'alert_level' => $this->alert_level?->value,
+            'threats' => array_map(fn(Threat $t) => $t->toArray(), $this->threats),
         ];
     }
 
