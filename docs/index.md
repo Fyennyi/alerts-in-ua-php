@@ -7,7 +7,7 @@ The **Alerts in UA PHP** library provides a robust, object-oriented interface fo
 
 ## Key Features
 
-- **Asynchronous Requests:** Built on Guzzle Promises for non-blocking I/O.
+- **Asynchronous Requests:** Built on ReactPHP Promises for non-blocking I/O.
 - **Smart Caching:** PSR-16 compatible caching to respect API rate limits and improve performance.
 - **Rich Models:** Fully typed objects for Alerts, Locations, and Statuses.
 - **Helper Methods:** Convenient filtering and data manipulation methods built-in.
