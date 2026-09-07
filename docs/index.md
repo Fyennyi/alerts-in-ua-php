@@ -16,9 +16,10 @@ The **Alerts in UA PHP** library provides a robust, object-oriented interface fo
 
 ```php
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use function React\Async\await;
 
 $client = new AlertsClient('your_api_token');
-$alerts = $client->getActiveAlertsAsync()->wait();
+$alerts = await($client->getActiveAlertsAsync());
 
 foreach ($alerts as $alert) {
     echo "Alert in {$alert->getLocationTitle()} started at {$alert->getStartedAt()->format('H:i')}\n";
