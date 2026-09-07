@@ -76,4 +76,19 @@ class ThreatTest extends TestCase
         $this->assertEquals('drones', $decoded['threat_type']);
         $this->assertEquals('yellow', $decoded['level']);
     }
+
+    public function testToJsonThrowsExceptionOnFailure()
+    {
+        // Передаємо невалідну UTF-8 послідовність, щоб викликати помилку json_encode
+        $data = [
+            'source_message' => "\xB1\x31"
+        ];
+
+        $threat = new Threat($data);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to encode threat to JSON: Malformed UTF-8 characters, possibly incorrectly encoded');
+
+        $threat->toJson();
+    }
 }
