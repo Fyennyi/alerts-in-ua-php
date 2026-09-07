@@ -373,6 +373,24 @@ Returns a JSON representation of the alert.
 
 ---
 
+### Threat
+
+An object representing a specific threat associated with an alert, returned within the array of the `getThreats()` method of an `Alert`.
+
+#### `getThreatType(): ThreatType`
+Returns the type of the threat as a `ThreatType` enum (e.g., `ThreatType::DRONES`).
+
+#### `getLevel(): AlertLevel`
+Returns the threat level as an `AlertLevel` enum (e.g., `AlertLevel::RED`).
+
+#### `getStartedAt(): ?DateTimeInterface`
+Returns the start time of the threat, or `null` if not provided.
+
+#### `getSourceMessage(): ?string`
+Returns the original source message associated with the threat, or `null` if not provided.
+
+---
+
 ### Alerts
 
 A collection of `Alert` objects returned by `getActiveAlertsAsync()` and `getAlertsHistoryAsync()`. This object is iterable, so you can use it directly in a `foreach` loop.
