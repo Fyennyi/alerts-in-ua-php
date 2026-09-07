@@ -347,6 +347,15 @@ Returns additional notes for the alert.
 #### `isCalculated(): bool`
 Returns `true` if the alert's end time was calculated automatically.
 
+#### `getAlertLevel(): ?AlertLevel`
+Returns the threat level of the alert as an `AlertLevel` enum, or `null` if not provided.
+
+#### `getThreats(): array`
+Returns an array of associated active threats.
+
+#### `hasThreats(): bool`
+Returns `true` if the alert has associated active threats.
+
 #### `isFinished(): bool`
 Returns `true` if the alert has finished, or `false` if it is still active.
 
