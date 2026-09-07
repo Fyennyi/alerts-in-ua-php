@@ -25,6 +25,7 @@ class AlertTest extends TestCase
         $this->activeAlertData = [
             'id' => 1,
             'location_title' => 'м. Київ',
+            'location_title_en' => 'Kyiv City',
             'location_type' => 'city',
             'started_at' => '2022-03-15T14:09:26+02:00',
             'finished_at' => null,
@@ -48,6 +49,7 @@ class AlertTest extends TestCase
         $this->finishedAlertData = [
             'id' => 2,
             'location_title' => 'Харківська область',
+            'location_title_en' => 'Kharkiv Oblast',
             'location_type' => 'oblast',
             'started_at' => '2022-03-15T12:13:04+02:00',
             'finished_at' => '2022-03-15T13:53:16+02:00',
@@ -69,6 +71,7 @@ class AlertTest extends TestCase
         $data = [
             'id' => 123,
             'location_title' => 'Київ',
+            'location_title_en' => 'Kyiv',
             'location_type' => 'city',
             'started_at' => '2023-01-02T10:15:30.000Z',
             'finished_at' => '2023-01-02T11:30:00.000Z',
@@ -86,6 +89,7 @@ class AlertTest extends TestCase
 
         $this->assertEquals(123, $alert->getId());
         $this->assertEquals('Київ', $alert->getLocationTitle());
+        $this->assertEquals('Kyiv', $alert->getLocationTitleEn());
         $this->assertEquals(LocationType::CITY, $alert->getLocationType());
         $this->assertEquals(AlertType::AIR_RAID, $alert->getAlertType());
         $this->assertEquals(31, $alert->getLocationUid());
@@ -111,6 +115,7 @@ class AlertTest extends TestCase
 
         $this->assertEquals(123, $alert->getId());
         $this->assertEquals('Київ', $alert->getLocationTitle());
+        $this->assertNull($alert->getLocationTitleEn());
         $this->assertNull($alert->getFinishedAt());
         $this->assertFalse($alert->isFinished());
         $this->assertTrue($alert->isActive());
