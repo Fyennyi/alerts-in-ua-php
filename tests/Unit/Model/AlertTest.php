@@ -4,8 +4,11 @@ namespace Tests\Unit\Model;
 
 use DateInterval;
 use Fyennyi\AlertsInUa\Model\Alert;
+use Fyennyi\AlertsInUa\Model\Enum\AlertLevel;
 use Fyennyi\AlertsInUa\Model\Enum\AlertType;
 use Fyennyi\AlertsInUa\Model\Enum\LocationType;
+use Fyennyi\AlertsInUa\Model\Enum\ThreatType;
+use Fyennyi\AlertsInUa\Model\Threat;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -102,6 +105,63 @@ class AlertTest extends TestCase
         $this->assertNull($alert->getFinishedAt());
         $this->assertFalse($alert->isFinished());
         $this->assertTrue($alert->isActive());
+    }
+
+    public function testGetAlertLevel()
+    {
+        $alert = new Alert(['alert_level' => 'red']);
+        $this->assertInstanceOf(AlertLevel::class, $alert->getAlertLevel());
+        $this->assertEquals(AlertLevel::RED, $alert->getAlertLevel());
+
+        $alertNull = new Alert([]);
+        $this->assertNull($alertNull->getAlertLevel());
+    }
+
+    public function testGetThreats()
+    {
+        $data = [
+            'threats' => [
+                [
+                    'threat_type' => 'drones',
+                    'level' => 'yellow'
+                ],
+                [
+                    'threat_type' => 'cruise_missiles',
+                    'level' => 'red'
+                ]
+            ]
+        ];
+
+        $alert = new Alert($data);
+        $threats = $alert->getThreats();
+
+        $this->assertIsArray($threats);
+        $this->assertCount(2, $threats);
+        $this->assertInstanceOf(Threat::class, $threats[0]);
+        $this->assertEquals(ThreatType::DRONES, $threats[0]->getThreatType());
+        $this->assertEquals(AlertLevel::YELLOW, $threats[0]->getLevel());
+
+        $alertEmpty = new Alert([]);
+        $this->assertIsArray($alertEmpty->getThreats());
+        $this->assertCount(0, $alertEmpty->getThreats());
+    }
+
+    public function testHasThreats()
+    {
+        $data = [
+            'threats' => [
+                [
+                    'threat_type' => 'drones',
+                    'level' => 'yellow'
+                ]
+            ]
+        ];
+
+        $alert = new Alert($data);
+        $this->assertTrue($alert->hasThreats());
+
+        $alertEmpty = new Alert([]);
+        $this->assertFalse($alertEmpty->hasThreats());
     }
 
     public function testIsActive()
