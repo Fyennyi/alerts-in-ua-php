@@ -54,7 +54,14 @@ try {
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}\n";
+        $level = $alert->getAlertLevel() ? " [Level: {$alert->getAlertLevel()->value}]" : '';
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}{$level}\n";
+
+        if ($alert->hasThreats()) {
+            foreach ($alert->getThreats() as $threat) {
+                echo " - Threat: {$threat->getThreatType()->value} ({$threat->getLevel()->value})\n";
+            }
+        }
     }
 } catch (\Throwable $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
