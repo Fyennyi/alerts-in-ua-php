@@ -23,6 +23,12 @@ $alerts = await($client->getActiveAlertsAsync());
 
 foreach ($alerts as $alert) {
     echo "Alert in {$alert->getLocationTitle()} started at {$alert->getStartedAt()->format('H:i')}\n";
+    
+    if ($alert->hasThreats()) {
+        foreach ($alert->getThreats() as $threat) {
+            echo " - Threat: {$threat->getThreatType()->value}\n";
+        }
+    }
 }
 ```
 
