@@ -12,8 +12,9 @@ Easily group regions by their state:
 
 ```php
 use Fyennyi\AlertsInUa\Model\Enum\AlertStatus;
+use function React\Async\await;
 
-$allStatuses = $client->getAirRaidAlertStatusesByOblastAsync()->wait();
+$allStatuses = await($client->getAirRaidAlertStatusesByOblastAsync());
 
 $dangerousRegions = $allStatuses->getActiveAlertOblasts();
 $partialRegions   = $allStatuses->getPartlyActiveAlertOblasts();

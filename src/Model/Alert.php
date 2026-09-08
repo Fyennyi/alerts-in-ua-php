@@ -26,6 +26,7 @@ namespace Fyennyi\AlertsInUa\Model;
 
 use DateInterval;
 use DateTimeImmutable;
+use Fyennyi\AlertsInUa\Model\Enum\AlertLevel;
 use Fyennyi\AlertsInUa\Model\Enum\AlertType;
 use Fyennyi\AlertsInUa\Model\Enum\LocationType;
 use Fyennyi\AlertsInUa\Util\UaDateParser;
@@ -38,6 +39,8 @@ class Alert implements JsonSerializable
     private int $id;
 
     private string $location_title;
+
+    private ?string $location_title_en;
 
     private LocationType $location_type;
 
@@ -59,6 +62,11 @@ class Alert implements JsonSerializable
 
     private ?string $notes;
 
+    private ?AlertLevel $alert_level;
+
+    /** @var Threat[] */
+    private array $threats = [];
+
     private bool $calculated;
 
     /**
@@ -70,6 +78,7 @@ class Alert implements JsonSerializable
     {
         $this->id = isset($data['id']) && is_int($data['id']) ? $data['id'] : 0;
         $this->location_title = isset($data['location_title']) && is_string($data['location_title']) ? $data['location_title'] : '';
+        $this->location_title_en = isset($data['location_title_en']) && is_string($data['location_title_en']) ? $data['location_title_en'] : null;
         $this->location_type = LocationType::fromString(isset($data['location_type']) && is_string($data['location_type']) ? $data['location_type'] : null);
         $this->started_at = isset($data['started_at']) && is_string($data['started_at']) ? UaDateParser::parseDate($data['started_at']) : null;
         $this->finished_at = isset($data['finished_at']) && is_string($data['finished_at']) ? UaDateParser::parseDate($data['finished_at']) : null;
@@ -81,6 +90,17 @@ class Alert implements JsonSerializable
         $this->location_raion = isset($data['location_raion']) && is_string($data['location_raion']) ? $data['location_raion'] : null;
         $this->notes = isset($data['notes']) && is_string($data['notes']) ? $data['notes'] : null;
         $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
+
+        $this->alert_level = isset($data['alert_level']) && is_string($data['alert_level']) ? AlertLevel::fromString($data['alert_level']) : null;
+
+        $this->threats = [];
+        if (isset($data['threats']) && is_array($data['threats'])) {
+            foreach ($data['threats'] as $threat_data) {
+                if (is_array($threat_data)) {
+                    $this->threats[] = new Threat($threat_data);
+                }
+            }
+        }
     }
 
     /**
@@ -101,6 +121,16 @@ class Alert implements JsonSerializable
     public function getLocationTitle() : string
     {
         return $this->location_title;
+    }
+
+    /**
+     * Get the English title of the location where the alert is active
+     *
+     * @return string|null English location title
+     */
+    public function getLocationTitleEn() : ?string
+    {
+        return $this->location_title_en;
     }
 
     /**
@@ -204,6 +234,36 @@ class Alert implements JsonSerializable
     }
 
     /**
+     * Get alert level
+     *
+     * @return AlertLevel|null Alert level enum or null if not set
+     */
+    public function getAlertLevel() : ?AlertLevel
+    {
+        return $this->alert_level;
+    }
+
+    /**
+     * Get specific threats associated with the alert
+     *
+     * @return Threat[] Array of active threats
+     */
+    public function getThreats() : array
+    {
+        return $this->threats;
+    }
+
+    /**
+     * Check if alert has specific threats
+     *
+     * @return bool
+     */
+    public function hasThreats() : bool
+    {
+        return !empty($this->threats);
+    }
+
+    /**
      * Check if the alert end time is estimated
      *
      * @return bool True if the end time is estimated, false if it is the actual end time
@@ -235,6 +295,8 @@ class Alert implements JsonSerializable
             'location_raion' => $this->location_raion,
             'notes' => $this->notes,
             'calculated' => $this->calculated,
+            'alert_level' => $this->alert_level,
+            'threats' => $this->threats,
             default => null
         };
     }
@@ -329,6 +391,7 @@ class Alert implements JsonSerializable
         return [
             'id' => $this->id,
             'location_title' => $this->location_title,
+            'location_title_en' => $this->location_title_en,
             'location_type' => $this->location_type->value,
             'started_at' => $this->started_at?->format('Y-m-d H:i:s'),
             'finished_at' => $this->finished_at?->format('Y-m-d H:i:s'),
@@ -342,6 +405,8 @@ class Alert implements JsonSerializable
             'calculated' => $this->calculated,
             'is_active' => $this->isActive(),
             'duration' => $this->getDurationInSeconds(),
+            'alert_level' => $this->alert_level?->value,
+            'threats' => array_map(fn (Threat $t) => $t->toArray(), $this->threats),
         ];
     }
 

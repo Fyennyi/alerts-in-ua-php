@@ -7,7 +7,7 @@ The **Alerts in UA PHP** library provides a robust, object-oriented interface fo
 
 ## Key Features
 
-- **Asynchronous Requests:** Built on Guzzle Promises for non-blocking I/O.
+- **Asynchronous Requests:** Built on ReactPHP Promises for non-blocking I/O.
 - **Smart Caching:** PSR-16 compatible caching to respect API rate limits and improve performance.
 - **Rich Models:** Fully typed objects for Alerts, Locations, and Statuses.
 - **Helper Methods:** Convenient filtering and data manipulation methods built-in.
@@ -16,12 +16,19 @@ The **Alerts in UA PHP** library provides a robust, object-oriented interface fo
 
 ```php
 use Fyennyi\AlertsInUa\Client\AlertsClient;
+use function React\Async\await;
 
 $client = new AlertsClient('your_api_token');
-$alerts = $client->getActiveAlertsAsync()->wait();
+$alerts = await($client->getActiveAlertsAsync());
 
 foreach ($alerts as $alert) {
     echo "Alert in {$alert->getLocationTitle()} started at {$alert->getStartedAt()->format('H:i')}\n";
+    
+    if ($alert->hasThreats()) {
+        foreach ($alert->getThreats() as $threat) {
+            echo " - Threat: {$threat->getThreatType()->value}\n";
+        }
+    }
 }
 ```
 

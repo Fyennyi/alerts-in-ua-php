@@ -54,7 +54,14 @@ try {
     echo 'Active alerts: ' . count($alerts->getAllAlerts()) . "\n";
 
     foreach ($alerts->getAllAlerts() as $alert) {
-        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}\n";
+        $level = $alert->getAlertLevel() ? " [Level: {$alert->getAlertLevel()->value}]" : '';
+        echo "{$alert->getAlertType()->value} in {$alert->getLocationTitle()}{$level}\n";
+
+        if ($alert->hasThreats()) {
+            foreach ($alert->getThreats() as $threat) {
+                echo " - Threat: {$threat->getThreatType()->value} ({$threat->getLevel()->value})\n";
+            }
+        }
     }
 } catch (\Throwable $e) {
     echo 'Error: ' . $e->getMessage() . "\n";
@@ -314,6 +321,9 @@ Returns the unique identifier of the alert.
 #### `getLocationTitle(): string`
 Returns the name of the location where the alert is active (e.g., `'Харківська область'`).
 
+#### `getLocationTitleEn(): ?string`
+Returns the English name of the location where the alert is active, or `null` if not provided (e.g., `'Kharkiv Oblast'`).
+
 #### `getLocationType(): LocationType`
 Returns the type of the location as a `LocationType` enum (e.g., `LocationType::OBLAST`).
 
@@ -347,6 +357,15 @@ Returns additional notes for the alert.
 #### `isCalculated(): bool`
 Returns `true` if the alert's end time was calculated automatically.
 
+#### `getAlertLevel(): ?AlertLevel`
+Returns the threat level of the alert as an `AlertLevel` enum, or `null` if not provided.
+
+#### `getThreats(): array`
+Returns an array of associated active threats.
+
+#### `hasThreats(): bool`
+Returns `true` if the alert has associated active threats.
+
 #### `isFinished(): bool`
 Returns `true` if the alert has finished, or `false` if it is still active.
 
@@ -361,6 +380,24 @@ Returns the duration of the alert in seconds.
 
 #### `__toString(): string`
 Returns a JSON representation of the alert.
+
+---
+
+### Threat
+
+An object representing a specific threat associated with an alert, returned within the array of the `getThreats()` method of an `Alert`.
+
+#### `getThreatType(): ThreatType`
+Returns the type of the threat as a `ThreatType` enum (e.g., `ThreatType::DRONES`).
+
+#### `getLevel(): AlertLevel`
+Returns the threat level as an `AlertLevel` enum (e.g., `AlertLevel::RED`).
+
+#### `getStartedAt(): ?DateTimeInterface`
+Returns the start time of the threat, or `null` if not provided.
+
+#### `getSourceMessage(): ?string`
+Returns the original source message associated with the threat, or `null` if not provided.
 
 ---
 

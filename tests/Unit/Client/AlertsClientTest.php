@@ -31,7 +31,6 @@ class AlertsClientTest extends TestCase
         // 3. Use reflection to inject the mocked Browser client
         $reflectionClass = new ReflectionClass($this->alertsClient);
         $clientProperty = $reflectionClass->getProperty('client');
-        $clientProperty->setAccessible(true);
         $clientProperty->setValue($this->alertsClient, $this->mockBrowser);
     }
 
@@ -69,7 +68,6 @@ class AlertsClientTest extends TestCase
 
         // Use reflection to make the private method accessible
         $method = new ReflectionMethod(AlertsClient::class, 'resolveUid');
-        $method->setAccessible(true);
 
         // Call the private method with a string digit
         $result = $method->invoke($this->alertsClient, '22');

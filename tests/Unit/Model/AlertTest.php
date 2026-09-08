@@ -4,8 +4,11 @@ namespace Tests\Unit\Model;
 
 use DateInterval;
 use Fyennyi\AlertsInUa\Model\Alert;
+use Fyennyi\AlertsInUa\Model\Enum\AlertLevel;
 use Fyennyi\AlertsInUa\Model\Enum\AlertType;
 use Fyennyi\AlertsInUa\Model\Enum\LocationType;
+use Fyennyi\AlertsInUa\Model\Enum\ThreatType;
+use Fyennyi\AlertsInUa\Model\Threat;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -22,6 +25,7 @@ class AlertTest extends TestCase
         $this->activeAlertData = [
             'id' => 1,
             'location_title' => 'м. Київ',
+            'location_title_en' => 'Kyiv City',
             'location_type' => 'city',
             'started_at' => '2022-03-15T14:09:26+02:00',
             'finished_at' => null,
@@ -33,11 +37,19 @@ class AlertTest extends TestCase
             'location_raion' => 'Київський район',
             'notes' => 'Active alert notes',
             'calculated' => false,
+            'alert_level' => 'red',
+            'threats' => [
+                [
+                    'threat_type' => 'drones',
+                    'level' => 'red',
+                ]
+            ],
         ];
 
         $this->finishedAlertData = [
             'id' => 2,
             'location_title' => 'Харківська область',
+            'location_title_en' => 'Kharkiv Oblast',
             'location_type' => 'oblast',
             'started_at' => '2022-03-15T12:13:04+02:00',
             'finished_at' => '2022-03-15T13:53:16+02:00',
@@ -49,6 +61,8 @@ class AlertTest extends TestCase
             'location_raion' => null,
             'notes' => 'Finished alert notes',
             'calculated' => true,
+            'alert_level' => 'yellow',
+            'threats' => [],
         ];
     }
 
@@ -57,6 +71,7 @@ class AlertTest extends TestCase
         $data = [
             'id' => 123,
             'location_title' => 'Київ',
+            'location_title_en' => 'Kyiv',
             'location_type' => 'city',
             'started_at' => '2023-01-02T10:15:30.000Z',
             'finished_at' => '2023-01-02T11:30:00.000Z',
@@ -74,6 +89,7 @@ class AlertTest extends TestCase
 
         $this->assertEquals(123, $alert->getId());
         $this->assertEquals('Київ', $alert->getLocationTitle());
+        $this->assertEquals('Kyiv', $alert->getLocationTitleEn());
         $this->assertEquals(LocationType::CITY, $alert->getLocationType());
         $this->assertEquals(AlertType::AIR_RAID, $alert->getAlertType());
         $this->assertEquals(31, $alert->getLocationUid());
@@ -99,9 +115,67 @@ class AlertTest extends TestCase
 
         $this->assertEquals(123, $alert->getId());
         $this->assertEquals('Київ', $alert->getLocationTitle());
+        $this->assertNull($alert->getLocationTitleEn());
         $this->assertNull($alert->getFinishedAt());
         $this->assertFalse($alert->isFinished());
         $this->assertTrue($alert->isActive());
+    }
+
+    public function testGetAlertLevel()
+    {
+        $alert = new Alert(['alert_level' => 'red']);
+        $this->assertInstanceOf(AlertLevel::class, $alert->getAlertLevel());
+        $this->assertEquals(AlertLevel::RED, $alert->getAlertLevel());
+
+        $alertNull = new Alert([]);
+        $this->assertNull($alertNull->getAlertLevel());
+    }
+
+    public function testGetThreats()
+    {
+        $data = [
+            'threats' => [
+                [
+                    'threat_type' => 'drones',
+                    'level' => 'yellow'
+                ],
+                [
+                    'threat_type' => 'cruise_missiles',
+                    'level' => 'red'
+                ]
+            ]
+        ];
+
+        $alert = new Alert($data);
+        $threats = $alert->getThreats();
+
+        $this->assertIsArray($threats);
+        $this->assertCount(2, $threats);
+        $this->assertInstanceOf(Threat::class, $threats[0]);
+        $this->assertEquals(ThreatType::DRONES, $threats[0]->getThreatType());
+        $this->assertEquals(AlertLevel::YELLOW, $threats[0]->getLevel());
+
+        $alertEmpty = new Alert([]);
+        $this->assertIsArray($alertEmpty->getThreats());
+        $this->assertCount(0, $alertEmpty->getThreats());
+    }
+
+    public function testHasThreats()
+    {
+        $data = [
+            'threats' => [
+                [
+                    'threat_type' => 'drones',
+                    'level' => 'yellow'
+                ]
+            ]
+        ];
+
+        $alert = new Alert($data);
+        $this->assertTrue($alert->hasThreats());
+
+        $alertEmpty = new Alert([]);
+        $this->assertFalse($alertEmpty->hasThreats());
     }
 
     public function testIsActive()
@@ -172,6 +246,9 @@ class AlertTest extends TestCase
         $this->assertNull($alert->getProperty('location_raion'));
         $this->assertEquals('Finished alert notes', $alert->getProperty('notes'));
         $this->assertTrue($alert->getProperty('calculated'));
+        $this->assertInstanceOf(AlertLevel::class, $alert->getProperty('alert_level'));
+        $this->assertEquals(AlertLevel::YELLOW, $alert->getProperty('alert_level'));
+        $this->assertIsArray($alert->getProperty('threats'));
         $this->assertNull($alert->getProperty('non_existent_property'));
     }
 
@@ -185,6 +262,10 @@ class AlertTest extends TestCase
         $this->assertEquals($this->activeAlertData['location_title'], $array['location_title']);
         $this->assertTrue($array['is_active']);
         $this->assertIsInt($array['duration']);
+        $this->assertEquals('red', $array['alert_level']);
+        $this->assertIsArray($array['threats']);
+        $this->assertCount(1, $array['threats']);
+        $this->assertEquals('drones', $array['threats'][0]['threat_type']);
     }
 
     public function testToJson()
@@ -245,7 +326,6 @@ class AlertTest extends TestCase
 
         $reflection = new \ReflectionClass($alert);
         $property = $reflection->getProperty('location_title');
-        $property->setAccessible(true);
         // Insert invalid UTF-8 to cause json_encode error
         $property->setValue($alert, "\xB1\x31");
 

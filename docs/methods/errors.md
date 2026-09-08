@@ -24,8 +24,10 @@ Wrap your calls in a try-catch block to handle expected failures gracefully.
 use Fyennyi\AlertsInUa\Exception\ApiError;
 use Fyennyi\AlertsInUa\Exception\UnauthorizedError;
 
+use function React\Async\await;
+
 try {
-    $alerts = $client->getActiveAlertsAsync()->wait();
+    $alerts = await($client->getActiveAlertsAsync());
 } catch (UnauthorizedError $e) {
     // Critical: Token is invalid. Alert the admin.
     $logger->critical("API Token failed: " . $e->getMessage());

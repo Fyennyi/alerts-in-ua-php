@@ -22,19 +22,36 @@
  *
  */
 
-namespace Fyennyi\AlertsInUa\Util;
+namespace Fyennyi\AlertsInUa\Model\Enum;
 
-class UserAgent
+use JsonSerializable;
+
+/**
+ * Enumeration of alert levels in Ukraine
+ */
+enum AlertLevel : string implements JsonSerializable
 {
-    private const DEFAULT_AGENT = 'alerts-in-ua-php/0.4.1 (+https://github.com/Fyennyi/alerts-in-ua-php)';
+    case RED = 'red';
+    case YELLOW = 'yellow';
+    case UNKNOWN = 'unknown';
 
     /**
-     * Get User-Agent string for API requests
+     * Create from string with fallback to UNKNOWN
      *
-     * @return string User-Agent string from environment variable or default value
+     * @param  string|null $value Raw string value
+     * @return self
      */
-    public static function getUserAgent() : string
+    public static function fromString(?string $value) : self
     {
-        return getenv('AIU_USER_AGENT') ?: self::DEFAULT_AGENT;
+        if (null === $value) {
+            return self::UNKNOWN;
+        }
+
+        return self::tryFrom($value) ?? self::UNKNOWN;
+    }
+
+    public function jsonSerialize() : string
+    {
+        return $this->value;
     }
 }

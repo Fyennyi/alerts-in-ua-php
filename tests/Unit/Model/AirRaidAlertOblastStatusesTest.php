@@ -119,7 +119,6 @@ class AirRaidAlertOblastStatusesTest extends TestCase
         $statuses = new AirRaidAlertOblastStatuses('A', false); // Pass some dummy data
         $statusesReflection = new \ReflectionClass($statuses);
         $statusesProperty = $statusesReflection->getProperty('statuses');
-        $statusesProperty->setAccessible(true);
         $statusesProperty->setValue($statuses, [$realStatus, fopen('php://memory', 'r')]); // Add a resource to the array
 
         // Temporarily suppress error log output for this test
