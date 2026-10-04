@@ -36,6 +36,8 @@ jobs:
         uses: fossas/fossa-action@v2.0.0
         with:
           api-key: ${{ secrets.FOSSA_API_KEY }}
+        env:
+          FOSSA_PROJECT: "git+github.com/Fyennyi/alerts-in-ua-php"
         continue-on-error: true
 
       - name: Run PHPUnit with coverage
