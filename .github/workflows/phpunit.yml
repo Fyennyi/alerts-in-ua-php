@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
@@ -32,6 +32,12 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      - name: Run FOSSA scan
+        uses: fossas/fossa-action@v2.0.0
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        continue-on-error: true
+
       - name: Run PHPUnit with coverage
         run: vendor/bin/phpunit --coverage-clover clover.xml --display-warnings
 
@@ -43,7 +49,7 @@ jobs:
 
   coverage:
     needs: tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
