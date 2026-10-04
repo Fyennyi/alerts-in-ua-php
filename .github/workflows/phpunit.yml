@@ -32,6 +32,12 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      - name: Run FOSSA scan
+        uses: fossas/fossa-action@main
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        continue-on-error: true
+
       - name: Run PHPUnit with coverage
         run: vendor/bin/phpunit --coverage-clover clover.xml --display-warnings
 
