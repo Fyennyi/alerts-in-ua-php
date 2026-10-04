@@ -33,7 +33,7 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       - name: Run FOSSA scan
-        uses: fossas/fossa-action@main
+        uses: fossas/fossa-action@v2.0.0
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
         continue-on-error: true
