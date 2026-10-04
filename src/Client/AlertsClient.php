@@ -322,7 +322,7 @@ class AlertsClient
                                     return $processor(new \React\Http\Message\Response(200, ['Content-Type' => 'application/json'], $cached_body));
                                 }
 
-                                if (null !== $cached && !is_array($cached)) {
+                                if (null !== $cached && ! is_array($cached)) {
                                     return $cached;
                                 }
 
