@@ -260,7 +260,7 @@ class Alert implements JsonSerializable
      */
     public function hasThreats() : bool
     {
-        return !empty($this->threats);
+        return ! empty($this->threats);
     }
 
     /**
