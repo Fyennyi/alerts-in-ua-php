@@ -44,6 +44,7 @@ return (new Config())
         'no_superfluous_phpdoc_tags' => false,
         'phpdoc_add_missing_param_annotation' => false,
         'phpdoc_summary' => false,
+        'not_operator_with_successor_space' => true,
         'yoda_style' => [
             'equal' => true,
             'identical' => true,
