@@ -44,14 +44,6 @@ class Alert implements JsonSerializable
 
     private LocationType $location_type;
 
-    private ?\DateTimeInterface $started_at;
-
-    private ?\DateTimeInterface $finished_at;
-
-    private ?\DateTimeInterface $updated_at;
-
-    private AlertType $alert_type;
-
     private ?int $location_uid;
 
     private ?string $location_oblast;
@@ -60,12 +52,20 @@ class Alert implements JsonSerializable
 
     private ?string $location_raion;
 
-    private ?string $notes;
+    private ?\DateTimeInterface $started_at;
+
+    private ?\DateTimeInterface $finished_at;
+
+    private ?\DateTimeInterface $updated_at;
+
+    private AlertType $alert_type;
 
     private ?AlertLevel $alert_level;
 
     /** @var Threat[] */
     private array $threats = [];
+
+    private ?string $notes;
 
     private bool $calculated;
 
@@ -80,17 +80,14 @@ class Alert implements JsonSerializable
         $this->location_title = isset($data['location_title']) && is_string($data['location_title']) ? $data['location_title'] : '';
         $this->location_title_en = isset($data['location_title_en']) && is_string($data['location_title_en']) ? $data['location_title_en'] : null;
         $this->location_type = LocationType::fromString(isset($data['location_type']) && is_string($data['location_type']) ? $data['location_type'] : null);
-        $this->started_at = isset($data['started_at']) && is_string($data['started_at']) ? UaDateParser::parseDate($data['started_at']) : null;
-        $this->finished_at = isset($data['finished_at']) && is_string($data['finished_at']) ? UaDateParser::parseDate($data['finished_at']) : null;
-        $this->updated_at = isset($data['updated_at']) && is_string($data['updated_at']) ? UaDateParser::parseDate($data['updated_at']) : null;
-        $this->alert_type = AlertType::fromString(isset($data['alert_type']) && is_string($data['alert_type']) ? $data['alert_type'] : null);
         $this->location_uid = isset($data['location_uid']) && (is_int($data['location_uid']) || is_string($data['location_uid'])) ? (int) $data['location_uid'] : null;
         $this->location_oblast = isset($data['location_oblast']) && is_string($data['location_oblast']) ? $data['location_oblast'] : null;
         $this->location_oblast_uid = isset($data['location_oblast_uid']) && (is_int($data['location_oblast_uid']) || is_string($data['location_oblast_uid'])) ? (int) $data['location_oblast_uid'] : null;
         $this->location_raion = isset($data['location_raion']) && is_string($data['location_raion']) ? $data['location_raion'] : null;
-        $this->notes = isset($data['notes']) && is_string($data['notes']) ? $data['notes'] : null;
-        $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
-
+        $this->started_at = isset($data['started_at']) && is_string($data['started_at']) ? UaDateParser::parseDate($data['started_at']) : null;
+        $this->finished_at = isset($data['finished_at']) && is_string($data['finished_at']) ? UaDateParser::parseDate($data['finished_at']) : null;
+        $this->updated_at = isset($data['updated_at']) && is_string($data['updated_at']) ? UaDateParser::parseDate($data['updated_at']) : null;
+        $this->alert_type = AlertType::fromString(isset($data['alert_type']) && is_string($data['alert_type']) ? $data['alert_type'] : null);
         $this->alert_level = isset($data['alert_level']) && is_string($data['alert_level']) ? AlertLevel::fromString($data['alert_level']) : null;
 
         $this->threats = [];
@@ -101,6 +98,9 @@ class Alert implements JsonSerializable
                 }
             }
         }
+
+        $this->notes = isset($data['notes']) && is_string($data['notes']) ? $data['notes'] : null;
+        $this->calculated = isset($data['calculated']) ? (bool) $data['calculated'] : false;
     }
 
     /**
@@ -144,46 +144,6 @@ class Alert implements JsonSerializable
     }
 
     /**
-     * Get alert start timestamp
-     *
-     * @return \DateTimeInterface|null Alert start date and time in Kyiv timezone or null if not set
-     */
-    public function getStartedAt() : ?\DateTimeInterface
-    {
-        return $this->started_at;
-    }
-
-    /**
-     * Get alert finish timestamp
-     *
-     * @return \DateTimeInterface|null Alert finish date and time in Kyiv timezone or null if still active
-     */
-    public function getFinishedAt() : ?\DateTimeInterface
-    {
-        return $this->finished_at;
-    }
-
-    /**
-     * Get alert last update timestamp
-     *
-     * @return \DateTimeInterface|null Alert last update date and time in Kyiv timezone or null if not set
-     */
-    public function getUpdatedAt() : ?\DateTimeInterface
-    {
-        return $this->updated_at;
-    }
-
-    /**
-     * Get alert type
-     *
-     * @return AlertType Alert type enum
-     */
-    public function getAlertType() : AlertType
-    {
-        return $this->alert_type;
-    }
-
-    /**
      * Get location unique identifier
      *
      * @return int|null Location UID or null if not specified
@@ -224,13 +184,43 @@ class Alert implements JsonSerializable
     }
 
     /**
-     * Get additional notes or comments about the alert
+     * Get alert start timestamp
      *
-     * @return string|null Alert notes or null if not specified
+     * @return \DateTimeInterface|null Alert start date and time in Kyiv timezone or null if not set
      */
-    public function getNotes() : ?string
+    public function getStartedAt() : ?\DateTimeInterface
     {
-        return $this->notes;
+        return $this->started_at;
+    }
+
+    /**
+     * Get alert finish timestamp
+     *
+     * @return \DateTimeInterface|null Alert finish date and time in Kyiv timezone or null if still active
+     */
+    public function getFinishedAt() : ?\DateTimeInterface
+    {
+        return $this->finished_at;
+    }
+
+    /**
+     * Get alert last update timestamp
+     *
+     * @return \DateTimeInterface|null Alert last update date and time in Kyiv timezone or null if not set
+     */
+    public function getUpdatedAt() : ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    /**
+     * Get alert type
+     *
+     * @return AlertType Alert type enum
+     */
+    public function getAlertType() : AlertType
+    {
+        return $this->alert_type;
     }
 
     /**
@@ -264,6 +254,16 @@ class Alert implements JsonSerializable
     }
 
     /**
+     * Get additional notes or comments about the alert
+     *
+     * @return string|null Alert notes or null if not specified
+     */
+    public function getNotes() : ?string
+    {
+        return $this->notes;
+    }
+
+    /**
      * Check if the alert end time is estimated
      *
      * @return bool True if the end time is estimated, false if it is the actual end time
@@ -285,18 +285,18 @@ class Alert implements JsonSerializable
             'id' => $this->id,
             'location_title' => $this->location_title,
             'location_type' => $this->location_type,
-            'started_at' => $this->started_at,
-            'finished_at' => $this->finished_at,
-            'updated_at' => $this->updated_at,
-            'alert_type' => $this->alert_type,
             'location_uid' => $this->location_uid,
             'location_oblast' => $this->location_oblast,
             'location_oblast_uid' => $this->location_oblast_uid,
             'location_raion' => $this->location_raion,
-            'notes' => $this->notes,
-            'calculated' => $this->calculated,
+            'started_at' => $this->started_at,
+            'finished_at' => $this->finished_at,
+            'updated_at' => $this->updated_at,
+            'alert_type' => $this->alert_type,
             'alert_level' => $this->alert_level,
             'threats' => $this->threats,
+            'notes' => $this->notes,
+            'calculated' => $this->calculated,
             default => null
         };
     }
@@ -393,20 +393,20 @@ class Alert implements JsonSerializable
             'location_title' => $this->location_title,
             'location_title_en' => $this->location_title_en,
             'location_type' => $this->location_type->value,
-            'started_at' => $this->started_at?->format('Y-m-d H:i:s'),
-            'finished_at' => $this->finished_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'alert_type' => $this->alert_type->value,
             'location_uid' => $this->location_uid,
             'location_oblast' => $this->location_oblast,
             'location_oblast_uid' => $this->location_oblast_uid,
             'location_raion' => $this->location_raion,
+            'started_at' => $this->started_at?->format('Y-m-d H:i:s'),
+            'finished_at' => $this->finished_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'alert_type' => $this->alert_type->value,
+            'alert_level' => $this->alert_level?->value,
+            'threats' => array_map(fn (Threat $t) => $t->toArray(), $this->threats),
             'notes' => $this->notes,
             'calculated' => $this->calculated,
             'is_active' => $this->isActive(),
             'duration' => $this->getDurationInSeconds(),
-            'alert_level' => $this->alert_level?->value,
-            'threats' => array_map(fn (Threat $t) => $t->toArray(), $this->threats),
         ];
     }
 
