@@ -88,8 +88,8 @@ class AirRaidAlertOblastStatuses implements Countable, IteratorAggregate, JsonSe
      */
     public function filterByStatus(AlertStatus|string $status) : array
     {
-        $statusValue = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
-        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $statusValue);
+        $status_value = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
+        return array_filter($this->statuses, fn (AirRaidAlertOblastStatus $s) => $s->getStatus() === $status_value);
     }
 
     /**

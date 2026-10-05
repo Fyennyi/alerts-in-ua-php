@@ -69,8 +69,8 @@ class AirRaidAlertStatuses implements ArrayAccess, Countable, IteratorAggregate,
      */
     public function filterByStatus(AlertStatus|string $status) : array
     {
-        $statusValue = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
-        return array_filter($this->statuses, fn (AirRaidAlertStatus $s) => $s->getStatus() === $statusValue);
+        $status_value = $status instanceof AlertStatus ? $status : AlertStatus::fromString($status);
+        return array_filter($this->statuses, fn (AirRaidAlertStatus $s) => $s->getStatus() === $status_value);
     }
 
     /**
