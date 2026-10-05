@@ -25,10 +25,10 @@ public function getLocationTitle(): string
 public function getLocationTitleEn(): ?string
 public function getLocationType(): LocationType
 public function getAlertType(): AlertType
-public function getNotes(): ?string
 public function getAlertLevel(): ?AlertLevel
 public function getThreats(): array
 public function hasThreats(): bool
+public function getNotes(): ?string
 ```
 
 ### Location Hierarchy
@@ -36,10 +36,10 @@ public function hasThreats(): bool
 Get information about the parent region (Oblast) or district (Raion).
 
 ```php
+public function getLocationUid(): ?int
 public function getLocationOblast(): ?string
 public function getLocationOblastUid(): ?int
 public function getLocationRaion(): ?string
-public function getLocationUid(): ?int
 ```
 
 ### Timing Methods
