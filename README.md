@@ -328,18 +328,6 @@ Returns the English name of the location where the alert is active, or `null` if
 #### `getLocationType(): LocationType`
 Returns the type of the location as a `LocationType` enum (e.g., `LocationType::OBLAST`).
 
-#### `getStartedAt(): ?DateTimeInterface`
-Returns the start time of the alert.
-
-#### `getFinishedAt(): ?DateTimeInterface`
-Returns the end time of the alert, or `null` if it is still active.
-
-#### `getUpdatedAt(): ?DateTimeInterface`
-Returns the time of the last update for the alert.
-
-#### `getAlertType(): AlertType`
-Returns the type of the alert as an `AlertType` enum (e.g., `AlertType::AIR_RAID`).
-
 #### `getLocationUid(): ?int`
 Returns the unique identifier (UID) of the location.
 
@@ -352,11 +340,17 @@ Returns the unique identifier (UID) of the oblast.
 #### `getLocationRaion(): ?string`
 Returns the name of the raion where the location is.
 
-#### `getNotes(): ?string`
-Returns additional notes for the alert.
+#### `getStartedAt(): ?DateTimeInterface`
+Returns the start time of the alert.
 
-#### `isCalculated(): bool`
-Returns `true` if the alert's end time was calculated automatically.
+#### `getFinishedAt(): ?DateTimeInterface`
+Returns the end time of the alert, or `null` if it is still active.
+
+#### `getUpdatedAt(): ?DateTimeInterface`
+Returns the time of the last update for the alert.
+
+#### `getAlertType(): AlertType`
+Returns the type of the alert as an `AlertType` enum (e.g., `AlertType::AIR_RAID`).
 
 #### `getAlertLevel(): ?AlertLevel`
 Returns the threat level of the alert as an `AlertLevel` enum, or `null` if not provided.
@@ -366,6 +360,12 @@ Returns an array of associated active threats.
 
 #### `hasThreats(): bool`
 Returns `true` if the alert has associated active threats.
+
+#### `getNotes(): ?string`
+Returns additional notes for the alert.
+
+#### `isCalculated(): bool`
+Returns `true` if the alert's end time was calculated automatically.
 
 #### `isFinished(): bool`
 Returns `true` if the alert has finished, or `false` if it is still active.
